@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "npm:react";
-import { Box, render, Text, useInput } from "npm:ink";
+import { Box, render, Text, useInput, useApp } from "npm:ink";
 import TextInput from "npm:ink-text-input";
 
 const App = () => {
+  const { exit } = useApp();
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
 
@@ -28,4 +29,10 @@ const App = () => {
   );
 };
 
-render(<App />);
+render(<App />, {
+  stdout: process.stdout,
+  stdin: process.stdin,
+  exitOnCtrlC: true,
+  patchConsole: true,
+  fullscreen: true
+});
