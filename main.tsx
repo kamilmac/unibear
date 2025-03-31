@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "npm:react";
-import { Box, render, Text, useInput, useApp } from "npm:ink";
+import { Box, render, Text, useApp, useInput } from "npm:ink";
 import TextInput from "npm:ink-text-input";
+// import process from "node:process";
 
 const App = () => {
   const { exit } = useApp();
@@ -34,5 +35,5 @@ render(<App />, {
   stdin: process.stdin,
   exitOnCtrlC: true,
   patchConsole: true,
-  fullscreen: true
+  fullscreen: true,
 });
