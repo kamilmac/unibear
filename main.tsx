@@ -14,9 +14,7 @@ const App = () => {
   return (
     <Box flexDirection="column" height="100%">
       <Box flexGrow={1} flexDirection="column">
-        {history.map((item, i) => (
-          <Text key={i}>{item}</Text>
-        ))}
+        {history.map((item, i) => <Text key={i}>{item}</Text>)}
       </Box>
       <Box height={12} borderStyle="single" borderColor="green" padding={1}>
         <TextInput
