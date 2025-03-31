@@ -13,7 +13,7 @@ const App = () => {
     // Check for Shift+Enter combination
     if (key.return && key.shift) {
       // Add a newline character to the current input
-      setInput(prevInput => prevInput + '\n');
+      setInput((prevInput) => prevInput + "\n");
       // Prevent default behavior
       return;
     }
@@ -22,7 +22,7 @@ const App = () => {
   const handleSubmit = (value: string) => {
     // Only submit if the value doesn't end with a newline
     // This prevents submission when Shift+Enter was just pressed
-    if (!value.endsWith('\n')) {
+    if (!value.endsWith("\n")) {
       setHistory([...history, value]);
       setInput("");
     }
