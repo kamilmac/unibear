@@ -9,9 +9,21 @@ const App = () => {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
 
+  useInput((input, key) => {
+    // Check for Shift+Enter combination
+    if (key.return && key.shift) {
+      // Add a newline character to the current input
+      setInput(prevInput => prevInput + '\n');
+    }
+  });
+
   const handleSubmit = (value: string) => {
-    setHistory([...history, value]);
-    setInput("");
+    // Only submit if the value doesn't end with a newline
+    // This prevents submission when Shift+Enter was just pressed
+    if (!value.endsWith('\n')) {
+      setHistory([...history, value]);
+      setInput("");
+    }
   };
 
   return (
