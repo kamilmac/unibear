@@ -8,9 +8,22 @@ const App = () => {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
 
+  // Handle key presses
+  useInput((input, key) => {
+    if (key.return && key.shift) {
+      // Submit on Shift+Enter
+      if (input.trim()) {
+        setHistory([...history, input]);
+        setInput("");
+      }
+    } else if (key.return) {
+      // Add new line on Enter
+      setInput(prev => prev + "\n");
+    }
+  });
+
   const handleSubmit = (value: string) => {
-    setHistory([...history, value]);
-    setInput("");
+    // This won't be triggered anymore as we're handling submission manually
   };
 
   return (
@@ -19,12 +32,16 @@ const App = () => {
         {history.map((item, i) => <Text key={i}>{item}</Text>)}
       </Box>
       <Box height={12} borderStyle="single" borderColor="green" padding={1}>
-        <TextInput
-          value={input}
-          onChange={setInput}
-          onSubmit={handleSubmit}
-          placeholder="Type something..."
-        />
+        <Box flexDirection="column" width="100%">
+          <Text>
+            {input.split('\n').map((line, i) => (
+              <Text key={i}>{line}</Text>
+            ))}
+          </Text>
+          <Text>
+            <Text dimColor>(Press Shift+Enter to submit)</Text>
+          </Text>
+        </Box>
       </Box>
     </Box>
   );
