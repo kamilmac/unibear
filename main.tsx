@@ -1,25 +1,33 @@
 import React, { useEffect, useState } from "npm:react";
-import { Box, render, Text, useStdin } from "npm:ink";
+import { Box, render, Text, useInput } from "npm:ink";
+import TextInput from "npm:ink-text-input";
 
-const Counter = () => {
-  const [counter, setCounter] = useState(0);
+const App = () => {
+  const [input, setInput] = useState("");
+  const [history, setHistory] = useState<string[]>([]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCounter((previousCounter: number) => previousCounter + 1);
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
+  const handleSubmit = (value: string) => {
+    setHistory([...history, value]);
+    setInput("");
+  };
 
   return (
-    <>
-    </>
+    <Box flexDirection="column" height="100%">
+      <Box flexGrow={1} flexDirection="column">
+        {history.map((item, i) => (
+          <Text key={i}>{item}</Text>
+        ))}
+      </Box>
+      <Box height={12} borderStyle="single" borderColor="green" padding={1}>
+        <TextInput
+          value={input}
+          onChange={setInput}
+          onSubmit={handleSubmit}
+          placeholder="Type something..."
+        />
+      </Box>
+    </Box>
   );
 };
 
-const Hello = () => <Text>yoyoyo</Text>;
-
-render(<Counter />);
+render(<App />);
