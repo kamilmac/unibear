@@ -14,6 +14,8 @@ const App = () => {
     if (key.return && key.shift) {
       // Add a newline character to the current input
       setInput(prevInput => prevInput + '\n');
+      // Prevent default behavior
+      return;
     }
   });
 
@@ -37,6 +39,7 @@ const App = () => {
           onChange={setInput}
           onSubmit={handleSubmit}
           placeholder="Type something..."
+          showCursor={true}
         />
       </Box>
     </Box>
