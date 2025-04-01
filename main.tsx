@@ -1,79 +1,113 @@
 import React, { useEffect, useState } from "npm:react";
-import { Box, Newline, render, Text, useInput, useStdin } from "npm:ink";
+import { Box, render, Text, useInput } from "npm:ink";
 import { create } from "npm:zustand";
 import { OpenAI } from "npm:openai";
+
+type ChatItemType = "user" | "ai" | "injector";
 
 type ChatItem = {
   id: number;
   content: string;
-  type: "raw_string" | "context_injection";
-  owner: "user" | "ai";
+  contentOverride?: string;
+  type: ChatItemType;
   title?: string;
   hasCode?: boolean;
   selected?: boolean;
+  status?: string;
 };
 
 type Store = {
   systemMessage: string;
   textArea: string;
   chat: ChatItem[];
-  context: string;
-  onSubmitPrompt: (prompt: string) => void;
-  addRandomChatItem: () => void;
-  sendFileToContext: (path: string) => void;
-  sendTextToContext: (text: string) => void;
+  onSubmitUserPrompt: (prompt: string) => void;
+  appendChatItem: (
+    content: string,
+    type: ChatItemType,
+    contentOverride?: string,
+  ) => ChatItem[];
+  injectContext: (content: string, contentOverride: string) => void;
 };
+
+const openai = new OpenAI({
+  apiKey:
+    "sk-SLVQgBG7ACn1N6vxsAyra9CnQa7e7i4NghA67rt8x4T3BlbkFJwbeX0mRL4IrPBgjhf5D3t4aDAoSLOmuTPIMqaeaysA",
+});
+
+const streamOpenAIResponse = async (
+  content: string,
+  cb: (content: string) => void,
+) => {
+  try {
+    const stream = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content }],
+      stream: true,
+    });
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      cb(content);
+    }
+  } catch (error) {
+    console.error({ error });
+  }
+};
+
+let latestChatItemId = 0;
+
+const getNewChatItemId = () => ++latestChatItemId;
 
 export const useStore = create<Store>((set, get) => ({
   systemMessage: "",
   textArea: "",
   chat: [],
-  context: "",
-  onSubmitPrompt: (prompt) => {
-    set({
-      chat: [...get().chat, {
-        id: performance.now(),
-        content: prompt,
-        owner: "user",
-        type: "raw_string",
-      }],
-    });
-    const item: ChatItem = {
-      id: performance.now(),
-      content: "",
-      owner: "ai",
-      type: "raw_string",
+  appendChatItem: (content, type, contentOverride) => {
+    const newChatItem: ChatItem = {
+      id: getNewChatItemId(),
+      content,
+      type,
     };
-    const chat = [...get().chat];
-    generateCodeStreamingOpenAI(
+    if (contentOverride) {
+      newChatItem.contentOverride = contentOverride;
+    }
+    const newChat = [...get().chat, newChatItem];
+    set({ chat: newChat });
+    return newChat;
+  },
+  onSubmitUserPrompt: (prompt) => {
+    const chat = get().appendChatItem(prompt, "user");
+    const aiChatitem: ChatItem = {
+      id: getNewChatItemId(),
+      content: "",
+      type: "ai",
+    };
+    streamOpenAIResponse(
       chat.map((c) => c.content).join(" \n"),
-      (content) => {
-        item.content += content;
+      (chunk) => {
+        aiChatitem.content += chunk;
         set({
-          chat: [...chat, item],
+          chat: [...chat, aiChatitem],
         });
       },
     );
   },
-  addRandomChatItem: () => {
-    const item: ChatItem = {
-      content:
-        "SFAKa klja slkfjijli ajslkjs flkajs flkajwiljf laksj flkaj sflkj aslkf jalksjf lkaj fklasj fklaj sfjk ajsf \n \n",
-      owner: "ai",
-      type: "raw_string",
-    };
-    set({
-      chat: [...get().chat, item],
-    });
-  },
-  sendFileToContext: (path) => {
-  },
-  sendTextToContext: (text) => {
+  injectContext: (content, contentOverride) => {
+    get().appendChatItem(content, "injector", contentOverride);
   },
 }));
 
 const App = () => {
   const chat = useStore((store) => store.chat);
+  const injectContext = useStore((store) => store.injectContext);
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      injectContext(
+        "My name is Kamil",
+        "Injected context: name...",
+      );
+    }, 1000);
+  }, []);
 
   return (
     <Box
@@ -81,7 +115,9 @@ const App = () => {
       flexDirection="column"
     >
       <Box flexDirection="column">
-        {chat.map((item, index) => <Text key={index}>{item.content}</Text>)}
+        {chat.map((item, index) => (
+          <Text key={index}>{item.contentOverride ?? item.content}</Text>
+        ))}
       </Box>
       <Box borderStyle="round" height={6}>
         <UserInput />
@@ -94,7 +130,7 @@ const UserInput = () => {
   const PREFIX = " > ";
   const CURSOR = "▌";
   const [input, setInput] = useState("");
-  const submit = useStore((store) => store.onSubmitPrompt);
+  const submit = useStore((store) => store.onSubmitUserPrompt);
 
   useInput((_input, key) => {
     if (key.delete) {
@@ -119,30 +155,3 @@ const UserInput = () => {
 };
 
 render(<App />);
-
-// Initialize OpenAI with your API key
-const openai = new OpenAI({
-  apiKey:
-    "sk-SLVQgBG7ACn1N6vxsAyra9CnQa7e7i4NghA67rt8x4T3BlbkFJwbeX0mRL4IrPBgjhf5D3t4aDAoSLOmuTPIMqaeaysA",
-});
-
-async function generateCodeStreamingOpenAI(prompt, cb) {
-  try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o", // Specify the GPT-4o model
-      messages: [{ role: "user", content: prompt }],
-      stream: true, // Enable streaming
-    });
-
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || "";
-      cb(content);
-    }
-  } catch (error) {
-    console.error("failed");
-  }
-}
-
-/**
-
-**/
