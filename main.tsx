@@ -1,110 +1,98 @@
 import React, { useEffect, useState } from "npm:react";
-import { Box, render, Text, useStdin } from "npm:ink";
+import { Box, Newline, render, Text, useInput, useStdin } from "npm:ink";
+import { create } from "npm:zustand";
 
-type Message = {
-  id: number;
-  text: string;
-  sender: "user" | "system";
+type ChatItem = {
+  content: string;
+  type: "raw_string" | "context_injection";
+  owner: "user" | "ai";
+  title?: string;
+  hasCode?: boolean;
+  selected?: boolean;
 };
 
-const ChatApp = () => {
-  const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 0, text: "Welcome to the chat! Type a message and press Shift+Enter to send.", sender: "system" }
-  ]);
-  const [nextId, setNextId] = useState(1);
-  const { stdin, setRawMode } = useStdin();
-  const [isShiftPressed, setIsShiftPressed] = useState(false);
+type Store = {
+  textArea: string;
+  chat: ChatItem[];
+  context: string;
+  onSubmitPrompt: (prompt: string) => void;
+  addRandomChatItem: () => void;
+  sendFileToContext: (path: string) => void;
+  sendTextToContext: (text: string) => void;
+};
 
-  useEffect(() => {
-    setRawMode(true);
-    
-    return () => {
-      setRawMode(false);
+export const useStore = create<Store>((set, get) => ({
+  textArea: "",
+  chat: [],
+  context: "",
+  onSubmitPrompt: (prompt) => {
+    get().addRandomChatItem();
+  },
+  addRandomChatItem: () => {
+    const item: ChatItem = {
+      content:
+        "SFAKa klja slkfjijli ajslkjs flkajs flkajwiljf laksj flkaj sflkj aslkf jalksjf lkaj fklasj fklaj sfjk ajsf \n \n",
+      owner: "ai",
+      type: "raw_string",
     };
-  }, [setRawMode]);
+    set({
+      chat: [...get().chat, item],
+    });
+  },
+  sendFileToContext: (path) => {
+  },
+  sendTextToContext: (text) => {
+  },
+}));
 
-  const sendMessage = () => {
-    if (inputValue.trim() === "") return;
-    
-    setMessages(prev => [
-      ...prev, 
-      { id: nextId, text: inputValue, sender: "user" }
-    ]);
-    setNextId(prev => prev + 1);
-    setInputValue("");
-  };
-
-  useEffect(() => {
-    if (!stdin) return;
-
-    const handleInput = (data: Buffer) => {
-      const key = data.toString();
-      
-      // Check for Shift key
-      if (key === "\u001B[1;2A" || key === "\u001B[1;2B" || 
-          key === "\u001B[1;2C" || key === "\u001B[1;2D") {
-        setIsShiftPressed(true);
-        return;
-      }
-      
-      // Handle special keys
-      if ((key === "\r" || key === "\n") && isShiftPressed) {
-        // Shift+Enter - send message
-        sendMessage();
-        setIsShiftPressed(false);
-      } else if (key === "\r" || key === "\n") {
-        // Regular Enter - add newline
-        setInputValue(prev => prev + "\n");
-      } else if (key === "\u007F" || key === "\b") {
-        // Backspace - remove the last character
-        setInputValue(prev => prev.slice(0, -1));
-      } else if (key === "\u0003") {
-        // Ctrl+C - exit
-        process.exit(0);
-      } else if (key.length === 1 && key.charCodeAt(0) >= 32) {
-        // Printable characters
-        setInputValue(prev => prev + key);
-        setIsShiftPressed(false);
-      } else {
-        // Reset shift state for other keys
-        setIsShiftPressed(false);
-      }
-    };
-
-    stdin.on("data", handleInput);
-
-    return () => {
-      stdin.off("data", handleInput);
-    };
-  }, [stdin, isShiftPressed, inputValue]);
+const App = () => {
+  const chat = useStore((store) => store.chat);
 
   return (
-    <Box flexDirection="column" width={80}>
-      <Box flexDirection="column" height={15} borderStyle="round" paddingX={1}>
-        {messages.map(message => (
-          <Box key={message.id} flexDirection="column" marginY={1}>
-            <Text color={message.sender === "user" ? "green" : "blue"}>
-              {message.sender === "user" ? "You:" : "System:"}
-            </Text>
-            <Text>{message.text}</Text>
-          </Box>
-        ))}
+    <Box
+      width="100%"
+      flexDirection="column"
+    >
+      <Box flexDirection="column">
+        {chat.map((item, index) => <Text key={index}>{item.content}</Text>)}
       </Box>
-
-      <Box flexDirection="column" marginTop={1} borderStyle="round" paddingX={1}>
-        <Text bold>Type your message (Shift+Enter to send):</Text>
-        <Box flexDirection="column">
-          <Text>{inputValue}</Text>
-          <Text>█</Text>
-        </Box>
-      </Box>
-      
-      <Box marginTop={1}>
-        <Text>Press Ctrl+C to exit</Text>
+      <Box borderStyle="round" height={6}>
+        <UserInput />
       </Box>
     </Box>
   );
 };
 
-render(<ChatApp />);
+const UserInput = () => {
+  const PREFIX = " > ";
+  const CURSOR = "▌";
+  const [input, setInput] = useState("");
+  const submit = useStore((store) => store.onSubmitPrompt);
+
+  useInput((_input, key) => {
+    if (key.delete) {
+      setInput(input.slice(0, -1));
+      return;
+    }
+    if (key.return) {
+      submit(input);
+      setInput("");
+      return;
+    }
+    setInput(input + _input);
+  });
+
+  return (
+    <Text>
+      {PREFIX}
+      {input}
+      {CURSOR}
+    </Text>
+  );
+};
+
+render(<App />);
+
+/**
+
+**/
