@@ -57,6 +57,7 @@ let latestChatItemId = 0;
 
 const getNewChatItemId = () => ++latestChatItemId;
 
+// Create the store and export it for the server to use
 export const useStore = create<Store>((set, get) => ({
   systemMessage: "",
   textArea: "",
@@ -100,14 +101,7 @@ const App = () => {
   const chat = useStore((store) => store.chat);
   const injectContext = useStore((store) => store.injectContext);
 
-  React.useEffect(() => {
-    setTimeout(() => {
-      injectContext(
-        "My name is Kamil",
-        "Injected context: name...",
-      );
-    }, 1000);
-  }, []);
+  // No automatic injection on startup - will be handled by the server
 
   return (
     <Box
