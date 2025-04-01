@@ -3,6 +3,7 @@ import { Box, render, Text, useInput } from "npm:ink";
 import { create } from "npm:zustand";
 import { OpenAI } from "npm:openai";
 import { Application, Router } from "jsr:@oak/oak";
+import { handleCliArgs } from "./cli.ts";
 
 type ChatItemType = "user" | "ai" | "injector";
 
@@ -191,9 +192,18 @@ const initServer = async () => {
   await app.listen({ port: 3000 });
 };
 
-// Start the server
-initServer().catch((err) => {
-  console.error("Failed to start server:", err);
+// Check CLI arguments first
+const args = Deno.args;
+handleCliArgs(args).then(handled => {
+  if (!handled) {
+    // Only start the server and render the app if we're not just injecting text
+    initServer().catch((err) => {
+      console.error("Failed to start server:", err);
+    });
+    
+    render(<App />);
+  } else {
+    // Exit after handling the inject command
+    Deno.exit(0);
+  }
 });
-
-render(<App />);
