@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "npm:react";
+import React from "npm:react";
 import { Box, render, Text, useInput } from "npm:ink";
 import { create } from "npm:zustand";
 import { OpenAI } from "npm:openai";
@@ -129,7 +129,7 @@ const App = () => {
 const UserInput = () => {
   const PREFIX = " > ";
   const CURSOR = "▌";
-  const [input, setInput] = useState("");
+  const [input, setInput] = React.useState("");
   const submit = useStore((store) => store.onSubmitUserPrompt);
 
   useInput((_input, key) => {
