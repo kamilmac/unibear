@@ -2,7 +2,7 @@ import React from "npm:react";
 import { Box, render, Text, useInput } from "npm:ink";
 import { create } from "npm:zustand";
 import { OpenAI } from "npm:openai";
-import { Application, Router } from "npm:oak";
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 
 type ChatItemType = "user" | "ai" | "injector";
 

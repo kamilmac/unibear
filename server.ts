@@ -1,4 +1,4 @@
-import { Application, Router } from "npm:oak";
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { useStore } from "./main.tsx";
 
 const app = new Application();
