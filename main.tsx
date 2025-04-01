@@ -2,7 +2,7 @@ import React from "npm:react";
 import { Box, render, Text, useInput } from "npm:ink";
 import { create } from "npm:zustand";
 import { OpenAI } from "npm:openai";
-import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import { Application, Router } from "jsr:@oak/oak";
 
 type ChatItemType = "user" | "ai" | "injector";
 
@@ -100,9 +100,6 @@ export const useStore = create<Store>((set, get) => ({
 
 const App = () => {
   const chat = useStore((store) => store.chat);
-  const injectContext = useStore((store) => store.injectContext);
-
-  // No automatic injection on startup - will be handled by the server
 
   return (
     <Box
@@ -111,7 +108,11 @@ const App = () => {
     >
       <Box flexDirection="column">
         {chat.map((item, index) => (
-          <Text key={index}>{item.contentOverride ?? item.content}</Text>
+          <Box
+            key={index}
+          >
+            <Text>{item.contentOverride ?? item.content}</Text>
+          </Box>
         ))}
       </Box>
       <Box borderStyle="round" height={6}>
@@ -159,18 +160,24 @@ const initServer = async () => {
     try {
       const body = await ctx.request.body.json();
       const { text, override } = body;
-      
+
       if (!text) {
         ctx.response.status = 400;
         ctx.response.body = { error: "Missing 'text' field in request body" };
         return;
       }
 
-      const textOverride = override || `Injected context: ${text.substring(0, 20)}${text.length > 20 ? '...' : ''}`;
+      const textOverride = override ||
+        `Injected context: ${text.substring(0, 20)}${
+          text.length > 20 ? "..." : ""
+        }`;
       useStore.getState().injectContext(text, textOverride);
-      
+
       ctx.response.status = 200;
-      ctx.response.body = { success: true, message: "Text injected successfully" };
+      ctx.response.body = {
+        success: true,
+        message: "Text injected successfully",
+      };
     } catch (error) {
       console.error("Error injecting text:", error);
       ctx.response.status = 500;
@@ -181,12 +188,11 @@ const initServer = async () => {
   app.use(router.routes());
   app.use(router.allowedMethods());
 
-  console.log("Server running on http://localhost:3000");
   await app.listen({ port: 3000 });
 };
 
 // Start the server
-initServer().catch(err => {
+initServer().catch((err) => {
   console.error("Failed to start server:", err);
 });
 
