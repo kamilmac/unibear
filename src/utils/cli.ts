@@ -40,24 +40,17 @@ async function injectText(text: string): Promise<void> {
   }
 }
 
-// Main CLI function
 export async function handleCliArgs(args: string[]): Promise<boolean> {
-  // Check for inject command
   const injectIndex = args.findIndex((arg) => arg === "inject");
 
   if (injectIndex >= 0 && injectIndex < args.length - 1) {
-    // Get everything after "inject"
     const textToInject = args.slice(injectIndex + 1).join(" ");
-
-    // Check if server is already running
     const serverRunning = await isPortInUse(3000);
 
     if (serverRunning) {
-      // If server is running, send the text to the inject endpoint
       await injectText(textToInject);
-      return true; // Indicate we handled the command
+      return true;
     }
   }
-
-  return false; // Indicate normal startup should proceed
+  return false;
 }
