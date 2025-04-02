@@ -1,12 +1,13 @@
 import React from "npm:react";
 import { Box, measureElement, Text, useInput } from "npm:ink";
-import { useStore } from "../store/index.ts";
+import { ChatItem, useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
 
 marked.use(markedTerminal());
 
+const TEXT_AREA_HEIGHT = 6;
 export const App = () => {
   const init = useStore((store) => store.init);
   const chat = useStore((store) => store.chat);
@@ -30,7 +31,9 @@ export const App = () => {
     }
   });
 
-  const chatHeight = opMode === "insert" ? dims.rows - 6 : dims.rows;
+  const chatHeight = opMode === "insert"
+    ? dims.rows - TEXT_AREA_HEIGHT
+    : dims.rows;
 
   return (
     <Box
@@ -49,14 +52,14 @@ export const App = () => {
               key={index}
               flexShrink={0}
             >
-              <Text>{marked.parse(item.contentOverride ?? item.content)}</Text>
+              <ChatItemComp it={item} />
             </Box>
           ))}
         </ScrollArea>
       </Box>
       {opMode === "insert" &&
         (
-          <Box borderStyle="round" height={6}>
+          <Box borderStyle="round" height={TEXT_AREA_HEIGHT}>
             <UserInput />
           </Box>
         )}
@@ -64,8 +67,12 @@ export const App = () => {
   );
 };
 
+const ChatItemComp = ({ it }: { it: ChatItem }) => {
+  return <Text>{marked.parse(it.contentOverride ?? it.content)}</Text>;
+};
+
 function ScrollArea(
-  { height, children }: { height: number; children?: React.Element },
+  { height, children }: { height: number; children?: React.ReactNode },
 ) {
   const opMode = useStore((store) => store.operationMode);
   const [scrollTop, setScrollTop] = React.useState(0);
