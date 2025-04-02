@@ -40,9 +40,41 @@ async function injectText(text: string): Promise<void> {
   }
 }
 
+// Function to send file path to the inject file endpoint
+async function injectFile(filePath: string): Promise<void> {
+  try {
+    // Convert to absolute path if not already
+    const absolutePath = filePath.startsWith("/") 
+      ? filePath 
+      : `${Deno.cwd()}/${filePath}`;
+    
+    const response = await fetch("http://localhost:3000/inject/file", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ filePath: absolutePath }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Server responded with ${response.status}: ${errorData.error || response.statusText}`,
+      );
+    }
+
+    const data = await response.json();
+    console.log(`File injected successfully: ${data.fileName}`);
+  } catch (error) {
+    console.error("Failed to inject file:", error);
+  }
+}
+
 export async function handleCliArgs(args: string[]): Promise<boolean> {
   const injectIndex = args.findIndex((arg) => arg === "inject");
+  const injectFileIndex = args.findIndex((arg) => arg === "inject-file");
 
+  // Handle inject text command
   if (injectIndex >= 0 && injectIndex < args.length - 1) {
     const textToInject = args.slice(injectIndex + 1).join(" ");
     const serverRunning = await isPortInUse(3000);
@@ -52,5 +84,17 @@ export async function handleCliArgs(args: string[]): Promise<boolean> {
       return true;
     }
   }
+  
+  // Handle inject file command
+  if (injectFileIndex >= 0 && injectFileIndex < args.length - 1) {
+    const filePath = args[injectFileIndex + 1];
+    const serverRunning = await isPortInUse(3000);
+
+    if (serverRunning) {
+      await injectFile(filePath);
+      return true;
+    }
+  }
+  
   return false;
 }

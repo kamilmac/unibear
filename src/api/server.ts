@@ -36,6 +36,49 @@ export const initServer = async () => {
     }
   });
 
+  // POST endpoint to inject file content
+  router.post("/inject/file", async (ctx) => {
+    try {
+      const body = await ctx.request.body.json();
+      const { filePath } = body;
+
+      if (!filePath) {
+        ctx.response.status = 400;
+        ctx.response.body = { error: "Missing 'filePath' field in request body" };
+        return;
+      }
+
+      try {
+        // Read the file content
+        const fileContent = await Deno.readTextFile(filePath);
+        
+        // Create a meaningful override message
+        const fileName = filePath.split("/").pop();
+        const textOverride = `Injected file: ${fileName}`;
+        
+        // Inject the file content into the chat
+        useStore.getState().injectContext(fileContent, textOverride);
+
+        ctx.response.status = 200;
+        ctx.response.body = {
+          success: true,
+          message: "File content injected successfully",
+          fileName,
+        };
+      } catch (error) {
+        ctx.response.status = 404;
+        ctx.response.body = { 
+          error: `Failed to read file: ${error.message}`,
+          filePath 
+        };
+      }
+    } catch (error) {
+      console.error("Error injecting file:", error);
+      ctx.response.status = 500;
+      ctx.response.body = { error: "Failed to inject file" };
+    }
+  });
+
   app.use(router.routes());
   app.use(router.allowedMethods());
 
