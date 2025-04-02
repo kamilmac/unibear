@@ -1,6 +1,6 @@
 import { create } from "npm:zustand";
 import { streamOpenAIResponse } from "../services/openai.ts";
-
+import * as clippy from "https://deno.land/x/clippy/mod.ts";
 export type ChatItemType = "user" | "ai" | "injector";
 
 export type ChatItem = {
@@ -14,14 +14,19 @@ export type ChatItem = {
   status?: string;
 };
 
+type OperationMode = "insert" | "normal";
+
 type Store = {
   init: () => void;
   dimensions: {
     cols: number;
     rows: number;
   };
+  operationMode: OperationMode;
+  setOperationMode: (mode: OperationMode) => void;
   systemMessage: string;
   textArea: string;
+  setTextArea: (text: string) => void;
   chat: ChatItem[];
   onSubmitUserPrompt: (prompt: string) => void;
   appendChatItem: (
@@ -30,6 +35,7 @@ type Store = {
     contentOverride?: string,
   ) => ChatItem[];
   isStreamingResponse: boolean;
+  injectClipboard: () => void;
   injectContext: (content: string, contentOverride: string) => void;
 };
 
@@ -48,10 +54,20 @@ export const useStore = create<Store>((set, get) => ({
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
   },
+  injectClipboard: async () => {
+    get().injectContext(await clippy.readText(), "Injected clipboard content");
+  },
   isStreamingResponse: false,
+  operationMode: "insert",
+  setOperationMode: (mode) => {
+    set({ operationMode: mode });
+  },
   dimensions: { cols: 0, rows: 0 },
   systemMessage: "",
   textArea: "",
+  setTextArea: (text) => {
+    set({ textArea: text });
+  },
   chat: [],
   appendChatItem: (content, type, contentOverride) => {
     const newChatItem: ChatItem = {

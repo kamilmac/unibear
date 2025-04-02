@@ -12,10 +12,25 @@ export const App = () => {
   const chat = useStore((store) => store.chat);
   const dims = useStore((store) => store.dimensions);
   const streaming = useStore((store) => store.isStreamingResponse);
+  const opMode = useStore((store) => store.operationMode);
+  const setOpMode = useStore((store) => store.setOperationMode);
 
   React.useEffect(() => {
     init();
   }, []);
+
+  useInput((_input, key) => {
+    if (opMode === "insert" && key.escape) {
+      setOpMode("normal");
+      return;
+    }
+    if (opMode === "normal" && _input === "i") {
+      setOpMode("insert");
+      return;
+    }
+  });
+
+  const chatHeight = opMode === "insert" ? dims.rows - 6 : dims.rows;
 
   return (
     <Box
@@ -26,13 +41,12 @@ export const App = () => {
       <Box
         flexDirection="column"
         borderStyle="round"
-        height={dims.rows - 6}
+        height={chatHeight}
       >
-        <ScrollArea height={dims.rows - 6}>
+        <ScrollArea height={chatHeight}>
           {chat.map((item, index) => (
             <Box
               key={index}
-              width={dims.cols - 2}
               flexShrink={0}
             >
               <Text>{marked.parse(item.contentOverride ?? item.content)}</Text>
@@ -40,10 +54,12 @@ export const App = () => {
           ))}
         </ScrollArea>
       </Box>
-      <Box borderStyle="round" height={6}>
-        {!streaming &&
-          <UserInput />}
-      </Box>
+      {opMode === "insert" &&
+        (
+          <Box borderStyle="round" height={6}>
+            <UserInput />
+          </Box>
+        )}
     </Box>
   );
 };
@@ -51,6 +67,7 @@ export const App = () => {
 function ScrollArea(
   { height, children }: { height: number; children?: React.Element },
 ) {
+  const opMode = useStore((store) => store.operationMode);
   const [scrollTop, setScrollTop] = React.useState(0);
 
   const innerRef = React.useRef();
@@ -72,6 +89,15 @@ function ScrollArea(
 
     if (key.upArrow) {
       setScrollTop(scrollTop - 3);
+    }
+
+    if (opMode === "normal") {
+      if (_input === "j") {
+        setScrollTop(scrollTop + 3);
+      }
+      if (_input === "k") {
+        setScrollTop(scrollTop - 3);
+      }
     }
   });
 

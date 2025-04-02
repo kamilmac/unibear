@@ -7,6 +7,7 @@ export const UserInput = () => {
   const CURSOR = "▌";
   const [input, setInput] = React.useState("");
   const submit = useStore((store) => store.onSubmitUserPrompt);
+  const injectClipboard = useStore((store) => store.injectClipboard);
 
   useInput((_input, key) => {
     if (key.delete) {
@@ -16,6 +17,10 @@ export const UserInput = () => {
     if (key.return) {
       submit(input);
       setInput("");
+      return;
+    }
+    if (key.ctrl && _input === "p") {
+      injectClipboard();
       return;
     }
     setInput(input + _input);
