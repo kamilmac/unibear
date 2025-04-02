@@ -62,9 +62,12 @@ export const useStore = create<Store>((set, get) => ({
     if (contentOverride) {
       newChatItem.contentOverride = contentOverride;
     }
-    const newChat = [...get().chat, newChatItem];
-    set({ chat: newChat });
-    return newChat;
+    set((state) => ({
+      chat: state.chat.concat(newChatItem),
+    }));
+    // const newChat = [...get().chat, newChatItem];
+    // set({ chat: newChat });
+    return get().chat;
   },
   onSubmitUserPrompt: async (prompt) => {
     const chat = get().appendChatItem(prompt, "user");

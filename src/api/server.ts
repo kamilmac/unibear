@@ -44,18 +44,20 @@ export const initServer = async () => {
 
       if (!filePath) {
         ctx.response.status = 400;
-        ctx.response.body = { error: "Missing 'filePath' field in request body" };
+        ctx.response.body = {
+          error: "Missing 'filePath' field in request body",
+        };
         return;
       }
 
       try {
         // Read the file content
         const fileContent = await Deno.readTextFile(filePath);
-        
+
         // Create a meaningful override message
         const fileName = filePath.split("/").pop();
         const textOverride = `Injected file: ${fileName}`;
-        
+
         // Inject the file content into the chat
         useStore.getState().injectContext(fileContent, textOverride);
 
@@ -67,9 +69,9 @@ export const initServer = async () => {
         };
       } catch (error) {
         ctx.response.status = 404;
-        ctx.response.body = { 
-          error: `Failed to read file: ${error.message}`,
-          filePath 
+        ctx.response.body = {
+          error: `Failed to read file: ${error}`,
+          filePath,
         };
       }
     } catch (error) {
