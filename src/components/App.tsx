@@ -15,6 +15,7 @@ export const App = () => {
   const streaming = useStore((store) => store.isStreamingResponse);
   const opMode = useStore((store) => store.operationMode);
   const setOpMode = useStore((store) => store.setOperationMode);
+  const renderedChat = useStore((store) => store.renderedChatContent);
 
   React.useEffect(() => {
     init();
@@ -47,14 +48,11 @@ export const App = () => {
         height={chatHeight}
       >
         <ScrollArea height={chatHeight}>
-          {chat.map((item, index) => (
-            <Box
-              key={index}
-              flexShrink={0}
-            >
-              <ChatItemComp it={item} />
-            </Box>
-          ))}
+          <Box
+            flexShrink={0}
+          >
+            <ChatItemComp it={renderedChat} />
+          </Box>
         </ScrollArea>
       </Box>
       {opMode === "insert" &&
@@ -68,7 +66,7 @@ export const App = () => {
 };
 
 const ChatItemComp = ({ it }: { it: ChatItem }) => {
-  return <Text>{marked.parse(it.contentOverride ?? it.content)}</Text>;
+  return <Text>{marked.parse(it)}</Text>;
 };
 
 function ScrollArea(

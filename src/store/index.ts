@@ -2,6 +2,7 @@ import { create } from "npm:zustand";
 import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 export type ChatItemType = "user" | "ai" | "injector";
+import chalk from "npm:chalk";
 
 export type ChatItem = {
   id: number;
@@ -22,6 +23,7 @@ type Store = {
     cols: number;
     rows: number;
   };
+  renderedChatContent: string;
   operationMode: OperationMode;
   setOperationMode: (mode: OperationMode) => void;
   systemMessage: string;
@@ -57,6 +59,7 @@ export const useStore = create<Store>((set, get) => ({
   injectClipboard: async () => {
     get().injectContext(await clippy.readText(), "Injected clipboard content");
   },
+  renderedChatContent: "",
   isStreamingResponse: false,
   operationMode: "insert",
   setOperationMode: (mode) => {
@@ -79,6 +82,13 @@ export const useStore = create<Store>((set, get) => ({
       newChatItem.contentOverride = contentOverride;
     }
     set((state) => ({
+      renderedChatContent: state.renderedChatContent.concat(
+        chalk.blue(
+          "\n\n" + (newChatItem.contentOverride ?? newChatItem.content),
+        ),
+      ),
+    }));
+    set((state) => ({
       chat: state.chat.concat(newChatItem),
     }));
     // const newChat = [...get().chat, newChatItem];
@@ -93,10 +103,16 @@ export const useStore = create<Store>((set, get) => ({
       type: "ai",
     };
     set({ isStreamingResponse: true });
+    set((state) => ({
+      renderedChatContent: state.renderedChatContent + "\n\n",
+    }));
     await streamOpenAIResponse(
       chat.map((c) => c.content).join(" \n"),
       (chunk) => {
         aiChatitem.content += chunk;
+        set((state) => ({
+          renderedChatContent: state.renderedChatContent.concat(chunk),
+        }));
         set({
           chat: [...chat, aiChatitem],
         });
