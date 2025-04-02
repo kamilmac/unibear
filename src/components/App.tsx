@@ -61,11 +61,11 @@ function ScrollArea(
 
   useInput((_input, key) => {
     if (key.downArrow) {
-      setScrollTop(scrollTop - 1);
+      setScrollTop(scrollTop + 3);
     }
 
     if (key.upArrow) {
-      setScrollTop(scrollTop + 1);
+      setScrollTop(scrollTop - 3);
     }
   });
 
