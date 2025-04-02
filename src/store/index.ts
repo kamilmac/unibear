@@ -29,6 +29,7 @@ type Store = {
     type: ChatItemType,
     contentOverride?: string,
   ) => ChatItem[];
+  isStreamingResponse: boolean;
   injectContext: (content: string, contentOverride: string) => void;
 };
 
@@ -47,6 +48,7 @@ export const useStore = create<Store>((set, get) => ({
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
   },
+  isStreamingResponse: false,
   dimensions: { cols: 0, rows: 0 },
   systemMessage: "",
   textArea: "",
@@ -64,14 +66,15 @@ export const useStore = create<Store>((set, get) => ({
     set({ chat: newChat });
     return newChat;
   },
-  onSubmitUserPrompt: (prompt) => {
+  onSubmitUserPrompt: async (prompt) => {
     const chat = get().appendChatItem(prompt, "user");
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
       content: "",
       type: "ai",
     };
-    streamOpenAIResponse(
+    set({ isStreamingResponse: true });
+    await streamOpenAIResponse(
       chat.map((c) => c.content).join(" \n"),
       (chunk) => {
         aiChatitem.content += chunk;
@@ -80,6 +83,7 @@ export const useStore = create<Store>((set, get) => ({
         });
       },
     );
+    set({ isStreamingResponse: false });
   },
   injectContext: (content, contentOverride) => {
     get().appendChatItem(content, "injector", contentOverride);

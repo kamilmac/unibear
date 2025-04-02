@@ -18,6 +18,7 @@
     "npm:ink-text-input@*": "6.0.0_ink@5.2.0__react@18.3.1_react@18.3.1",
     "npm:ink@*": "5.2.0_react@18.3.1",
     "npm:ink@^5.2.0": "5.2.0_react@18.3.1",
+    "npm:marked-terminal@*": "6.3.0_marked@9.1.6",
     "npm:marked@*": "9.1.6",
     "npm:oak@*": "9.0.0",
     "npm:openai@*": "4.91.0",

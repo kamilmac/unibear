@@ -2,11 +2,16 @@ import React from "npm:react";
 import { Box, measureElement, Text, useInput } from "npm:ink";
 import { useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
+import { marked } from "npm:marked";
+import { markedTerminal } from "npm:marked-terminal";
+
+marked.use(markedTerminal());
 
 export const App = () => {
   const init = useStore((store) => store.init);
   const chat = useStore((store) => store.chat);
   const dims = useStore((store) => store.dimensions);
+  const streaming = useStore((store) => store.isStreamingResponse);
 
   React.useEffect(() => {
     init();
@@ -30,13 +35,14 @@ export const App = () => {
               width={dims.cols - 2}
               flexShrink={0}
             >
-              <Text>{item.contentOverride ?? item.content}</Text>
+              <Text>{marked.parse(item.contentOverride ?? item.content)}</Text>
             </Box>
           ))}
         </ScrollArea>
       </Box>
       <Box borderStyle="round" height={6}>
-        <UserInput />
+        {!streaming &&
+          <UserInput />}
       </Box>
     </Box>
   );
