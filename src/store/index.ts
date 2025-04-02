@@ -15,6 +15,11 @@ export type ChatItem = {
 };
 
 type Store = {
+  init: () => void;
+  dimensions: {
+    cols: number;
+    rows: number;
+  };
   systemMessage: string;
   textArea: string;
   chat: ChatItem[];
@@ -31,8 +36,18 @@ let latestChatItemId = 0;
 
 const getNewChatItemId = () => ++latestChatItemId;
 
-// Create the store and export it for the server to use
 export const useStore = create<Store>((set, get) => ({
+  init: () => {
+    // Enter alt screen
+    Deno.stdout.writeSync(new TextEncoder().encode("\x1b[?1049h"));
+    const setDimensions = () => {
+      const { columns, rows } = Deno.consoleSize();
+      set({ dimensions: { cols: columns, rows } });
+    };
+    Deno.addSignalListener("SIGWINCH", setDimensions);
+    setDimensions();
+  },
+  dimensions: { cols: 0, rows: 0 },
   systemMessage: "",
   textArea: "",
   chat: [],

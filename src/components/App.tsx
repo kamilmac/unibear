@@ -4,14 +4,25 @@ import { useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
 
 export const App = () => {
+  const init = useStore((store) => store.init);
   const chat = useStore((store) => store.chat);
+  const dims = useStore((store) => store.dimensions);
+
+  React.useEffect(() => {
+    init();
+  }, []);
 
   return (
     <Box
-      width="100%"
+      width={dims.cols}
+      height={dims.rows}
       flexDirection="column"
     >
-      <Box flexDirection="column">
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        height={dims.rows - 6}
+      >
         {chat.map((item, index) => (
           <Box
             key={index}

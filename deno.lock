@@ -13,6 +13,7 @@
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.0.8",
     "npm:chalk@*": "5.4.1",
+    "npm:fullscreen-ink@*": "0.0.2_react@18.3.1",
     "npm:ink-markdown@*": "1.0.4_ink@5.2.0__react@18.3.1_react@18.3.1_marked@9.1.6",
     "npm:ink-text-input@*": "6.0.0_ink@5.2.0__react@18.3.1_react@18.3.1",
     "npm:ink@*": "5.2.0_react@18.3.1",
@@ -563,6 +564,13 @@
         "graceful-fs",
         "jsonfile",
         "universalify"
+      ]
+    },
+    "fullscreen-ink@0.0.2_react@18.3.1": {
+      "integrity": "sha512-5AiV01q8EfOvG2BrYlmNQtUxDSEBf4p8EN+3R0GRvdDKSh2sphUE+7UKTMMq4qMWq1XuhcJB7TGR8O+UD5VyQw==",
+      "dependencies": [
+        "ink",
+        "react"
       ]
     },
     "function-bind@1.1.2": {
