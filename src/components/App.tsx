@@ -2,10 +2,7 @@ import React from "npm:react";
 import { Box, measureElement, Text, useInput } from "npm:ink";
 import { ChatItem, useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
-import { marked } from "npm:marked";
-import { markedTerminal } from "npm:marked-terminal";
-
-marked.use(markedTerminal());
+import chalk from "npm:chalk";
 
 const TEXT_AREA_HEIGHT = 6;
 export const App = () => {
@@ -44,16 +41,12 @@ export const App = () => {
     >
       <Box
         flexDirection="column"
-        borderStyle="round"
         height={chatHeight}
       >
-        <ScrollArea height={chatHeight}>
-          <Box
-            flexShrink={0}
-          >
-            <ChatItemComp it={renderedChat} />
-          </Box>
-        </ScrollArea>
+        <Chat
+          height={chatHeight}
+          content={renderedChat}
+        />
       </Box>
       {opMode === "insert" &&
         (
@@ -65,12 +58,8 @@ export const App = () => {
   );
 };
 
-const ChatItemComp = ({ it }: { it: ChatItem }) => {
-  return <Text>{marked.parse(it)}</Text>;
-};
-
-function ScrollArea(
-  { height, children }: { height: number; children?: React.ReactNode },
+function Chat(
+  { height, content }: { height: number; content: string },
 ) {
   const opMode = useStore((store) => store.operationMode);
   const [scrollTop, setScrollTop] = React.useState(0);
@@ -98,16 +87,26 @@ function ScrollArea(
 
     if (opMode === "normal") {
       if (_input === "j") {
-        setScrollTop(scrollTop + 3);
+        setScrollTop(scrollTop + 1);
       }
       if (_input === "k") {
-        setScrollTop(scrollTop - 3);
+        setScrollTop(scrollTop - 1);
       }
     }
   });
 
+  const mid = Math.floor(height / 2);
+  // Write me bubble sort in zig and rust
+
+  const formattedContent = content.split("\n").map((line, i) => {
+    if (i === mid + scrollTop) {
+      return chalk.bgBlack(chalk.inverse(line));
+    }
+    return line;
+  }).join("\n");
   return (
     <Box
+      borderStyle="round"
       height={height}
       flexDirection="column"
       overflow="hidden"
@@ -118,7 +117,7 @@ function ScrollArea(
         flexDirection="column"
         marginTop={-scrollTop}
       >
-        {children}
+        <Text>{formattedContent}</Text>
       </Box>
     </Box>
   );

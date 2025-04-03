@@ -3,6 +3,10 @@ import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 export type ChatItemType = "user" | "ai" | "injector";
 import chalk from "npm:chalk";
+import { marked } from "npm:marked";
+import { markedTerminal } from "npm:marked-terminal";
+
+marked.use(markedTerminal());
 
 export type ChatItem = {
   id: number;
@@ -106,12 +110,13 @@ export const useStore = create<Store>((set, get) => ({
     set((state) => ({
       renderedChatContent: state.renderedChatContent + "\n\n",
     }));
+    const orgContent = get().renderedChatContent;
     await streamOpenAIResponse(
       chat.map((c) => c.content).join(" \n"),
       (chunk) => {
         aiChatitem.content += chunk;
         set((state) => ({
-          renderedChatContent: state.renderedChatContent.concat(chunk),
+          renderedChatContent: orgContent + marked.parse(aiChatitem.content),
         }));
         set({
           chat: [...chat, aiChatitem],
