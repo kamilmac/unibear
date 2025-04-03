@@ -63,7 +63,7 @@ function Chat(
 ) {
   const opMode = useStore((store) => store.operationMode);
   const [scrollTop, setScrollTop] = React.useState(0);
-
+  const [selectionOrigin, setSelectionOrigin] = React.useState(null);
   const innerRef = React.useRef();
 
   React.useEffect(() => {
@@ -78,19 +78,33 @@ function Chat(
 
   useInput((_input, key) => {
     if (key.downArrow) {
-      setScrollTop(scrollTop + 3);
+      setScrollTop(scrollTop + 1);
     }
 
     if (key.upArrow) {
-      setScrollTop(scrollTop - 3);
+      setScrollTop(scrollTop - 1);
     }
 
     if (opMode === "normal") {
+      if (_input === "s") {
+        if (selectionOrigin === null) {
+          setSelectionOrigin(scrollTop);
+        } else {
+          setSelectionOrigin(null);
+        }
+      }
       if (_input === "j") {
-        setScrollTop(scrollTop + 1);
+        const newScrollTop = scrollTop + 1;
+        setScrollTop(newScrollTop);
+        return;
       }
       if (_input === "k") {
-        setScrollTop(scrollTop - 1);
+        let newScrollTop = scrollTop - 1;
+        if (newScrollTop < 0) {
+          newScrollTop = 0;
+        }
+        setScrollTop(newScrollTop);
+        return;
       }
     }
   });
@@ -98,9 +112,17 @@ function Chat(
   const mid = Math.floor(height / 2);
   // Write me bubble sort in zig and rust
 
-  const formattedContent = content.split("\n").map((line, i) => {
-    if (i === mid + scrollTop) {
-      return chalk.bgBlack(chalk.inverse(line));
+  let visibleContent = content.split("\n").slice(
+    scrollTop,
+    scrollTop + height,
+  ).join(
+    "\n",
+  );
+  let formattedContent = visibleContent.split("\n").map((line, i) => {
+    if (selectionOrigin) {
+      if (i + scrollTop < selectionOrigin + mid) {
+        return chalk.bgBlack(chalk.inverse(line));
+      }
     }
     return line;
   }).join("\n");
@@ -115,7 +137,6 @@ function Chat(
         ref={innerRef}
         flexShrink={0}
         flexDirection="column"
-        marginTop={-scrollTop}
       >
         <Text>{formattedContent}</Text>
       </Box>
