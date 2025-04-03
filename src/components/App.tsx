@@ -76,6 +76,7 @@ function Chat(
     // });
   }, []);
 
+  const mid = Math.floor(height / 2);
   useInput((_input, key) => {
     if (key.downArrow) {
       setScrollTop(scrollTop + 1);
@@ -88,7 +89,7 @@ function Chat(
     if (opMode === "normal") {
       if (_input === "s") {
         if (selectionOrigin === null) {
-          setSelectionOrigin(scrollTop);
+          setSelectionOrigin(scrollTop + mid);
         } else {
           setSelectionOrigin(null);
         }
@@ -109,7 +110,6 @@ function Chat(
     }
   });
 
-  const mid = Math.floor(height / 2);
   // Write me bubble sort in zig and rust
 
   let visibleContent = content.split("\n").slice(
@@ -120,8 +120,8 @@ function Chat(
   );
   let formattedContent = visibleContent.split("\n").map((line, i) => {
     if (selectionOrigin) {
-      if (i + scrollTop < selectionOrigin + mid) {
-        return chalk.bgBlack(chalk.inverse(line));
+      if (i + scrollTop + mid > selectionOrigin) {
+        return chalk.bgGray(line);
       }
     }
     return line;
