@@ -3,6 +3,7 @@ import { Box, measureElement, Text, useInput } from "npm:ink";
 import { ChatItem, useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
 import chalk from "npm:chalk";
+import stripAnsi from "npm:strip-ansi";
 
 const TEXT_AREA_HEIGHT = 6;
 
@@ -88,8 +89,8 @@ function Chat(
   let contentLinesNum = 0;
   let wrappedLines = 0;
   for (let i = 0; i < contentLines.length; i += 1) {
-    const w = dims.cols * 1;
-    const wraptimes = Math.floor(contentLines[i].length / w);
+    const w = dims.cols * 1.1;
+    const wraptimes = Math.floor(stripAnsi(contentLines[i]).length / w);
     wrappedLines += wraptimes;
     // contentLinesNum += 1;
     contentLinesNum += 1;
@@ -144,7 +145,7 @@ function Chat(
   let formattedContent = visibleContent.split("\n").map((line, i) => {
     if (startIndex + i === cursorLineIndex) {
       // line = "DDDDDDDDDDDDDDD";
-      return chalk.reset.bgWhite.black(line);
+      return chalk.bgGray(stripAnsi(line));
     }
     // if (selectionOrigin) {
     //   if (i + startIndex + mid > selectionOrigin) {
