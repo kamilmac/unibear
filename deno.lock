@@ -19,7 +19,9 @@
     "npm:ink@*": "5.2.0_react@18.3.1",
     "npm:ink@^5.2.0": "5.2.0_react@18.3.1",
     "npm:marked-terminal@*": "6.3.0_marked@9.1.6",
+    "npm:marked-terminal@7.3.0": "7.3.0_marked@9.1.6",
     "npm:marked@*": "9.1.6",
+    "npm:marked@11.0.1": "11.0.1",
     "npm:oak@*": "9.0.0",
     "npm:openai@*": "4.91.0",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
@@ -720,7 +722,7 @@
         "@types/marked-terminal",
         "ink",
         "marked@9.1.6",
-        "marked-terminal",
+        "marked-terminal@6.3.0_marked@9.1.6",
         "react"
       ]
     },
@@ -834,6 +836,22 @@
         "node-emoji",
         "supports-hyperlinks"
       ]
+    },
+    "marked-terminal@7.3.0_marked@9.1.6": {
+      "integrity": "sha512-t4rBvPsHc57uE/2nJOLmMbZCQ4tgAccAED3ngXQqW6g+TxA488JzJ+FK3lQkzBQOI1mRV/r/Kq+1ZlJ4D0owQw==",
+      "dependencies": [
+        "ansi-escapes@7.0.0",
+        "ansi-regex@6.1.0",
+        "chalk@5.4.1",
+        "cli-highlight",
+        "cli-table3",
+        "marked@9.1.6",
+        "node-emoji",
+        "supports-hyperlinks"
+      ]
+    },
+    "marked@11.0.1": {
+      "integrity": "sha512-P4kDhFEMlvLePBPRwOcMOv6+lYUbhfbSxJFs3Jb4Qx7v6K7l+k8Dxh9CEGfRvK71tL+qIFz5y7Pe4uzt4+/A3A=="
     },
     "marked@6.0.0": {
       "integrity": "sha512-7E3m/xIlymrFL5gWswIT4CheIE3fDeh51NV09M4x8iOc7NDYlyERcQMLAIHcSlrvwliwbPQ4OGD+MpPSYiQcqw=="

@@ -88,7 +88,7 @@ function Chat(
   let contentLinesNum = 0;
   let wrappedLines = 0;
   for (let i = 0; i < contentLines.length; i += 1) {
-    const w = dims.cols - 2;
+    const w = dims.cols * 1;
     const wraptimes = Math.floor(contentLines[i].length / w);
     wrappedLines += wraptimes;
     // contentLinesNum += 1;
@@ -118,7 +118,9 @@ function Chat(
       }
       if (_input === "j") {
         setCursorLineIndex(cursorLineIndex + 1);
-        if (cursorLineIndex > contentLinesNum - CURSOR_SCROLL_PADDING) {
+        if (
+          cursorLineIndex > startIndex + contentLinesNum - CURSOR_SCROLL_PADDING
+        ) {
           setStartIndex(startIndex + 1);
         }
         return;
@@ -142,8 +144,7 @@ function Chat(
   let formattedContent = visibleContent.split("\n").map((line, i) => {
     if (startIndex + i === cursorLineIndex) {
       // line = "DDDDDDDDDDDDDDD";
-      // return cursorLineIndex + "YOYOYOYOYOYOYOYOYOYOYOY";
-      return chalk.bgBlue(chalk.inverse(line));
+      return chalk.reset.bgWhite.black(line);
     }
     // if (selectionOrigin) {
     //   if (i + startIndex + mid > selectionOrigin) {
@@ -151,6 +152,8 @@ function Chat(
     //   }
     // }
     // return i + ":" + startIndex + " " + contentLinesNum + " " + line;
+    // const nl = line.slice(4, line.length);
+    // return contentLinesNum + nl;
     return line;
   }).join("\n");
   return (

@@ -9,18 +9,9 @@ import { markedTerminal } from "npm:marked-terminal";
 marked.use(markedTerminal());
 
 const PLACEHOLDER = `
-![Demo](https://github.com/ratatui/ratatui/blob/87ae72dbc756067c97f6400d3e2a58eeb383776e/examples/demo2-destroy.gif?raw=true)
+## HI
 
-<div align="center">
-
-[![Crate Badge]][Crate] [![Repo Badge]][Repo] [![Docs Badge]][Docs] [![License Badge]][License]  \
-[![CI Badge]][CI] [![Deps Badge]][Deps] [![Codecov Badge]][Codecov] [![Sponsors Badge]][Sponsors]  \
-[Ratatui Website] · [Docs] · [Widget Examples] · [App Examples] · [Changelog]  \
-[Breaking Changes] · [Contributing] · [Report a bug] · [Request a Feature]
-
-</div>
-
-[Ratatui][Ratatui Website] (_ˌræ.təˈtu.i_) is a Rust crate for cooking up terminal user interfaces
+Rust crate for cooking up terminal user interfaces
 (TUIs). It provides a simple and flexible way to create text-based user interfaces in the terminal,
 which can be used for command-line applications, dashboards, and other interactive console programs.
 
