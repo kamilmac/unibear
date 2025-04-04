@@ -5,6 +5,7 @@ import { UserInput } from "./UserInput.tsx";
 import chalk from "npm:chalk";
 
 const TEXT_AREA_HEIGHT = 6;
+
 export const App = () => {
   const init = useStore((store) => store.init);
   const chat = useStore((store) => store.chat);
@@ -58,11 +59,15 @@ export const App = () => {
   );
 };
 
+const CURSOR_SCROLL_PADDING = 5;
 function Chat(
   { height, content }: { height: number; content: string },
 ) {
+  const midLine = Math.floor(height / 3);
   const opMode = useStore((store) => store.operationMode);
-  const [scrollTop, setScrollTop] = React.useState(0);
+  const dims = useStore((store) => store.dimensions);
+  const [startIndex, setStartIndex] = React.useState(0);
+  const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
   const [selectionOrigin, setSelectionOrigin] = React.useState(null);
   const innerRef = React.useRef();
 
@@ -76,35 +81,57 @@ function Chat(
     // });
   }, []);
 
-  const mid = Math.floor(height / 2);
-  useInput((_input, key) => {
-    if (key.downArrow) {
-      setScrollTop(scrollTop + 1);
-    }
+  const contentLines = content.split("\n").slice(
+    startIndex,
+    startIndex + height,
+  );
+  let contentLinesNum = 0;
+  let wrappedLines = 0;
+  for (let i = 0; i < contentLines.length; i += 1) {
+    const w = dims.cols - 2;
+    const wraptimes = Math.floor(contentLines[i].length / w);
+    wrappedLines += wraptimes;
+    // contentLinesNum += 1;
+    contentLinesNum += 1;
+  }
+  contentLinesNum = contentLinesNum - wrappedLines;
+  let visibleContent = contentLines.join(
+    "\n",
+  );
 
-    if (key.upArrow) {
-      setScrollTop(scrollTop - 1);
-    }
+  useInput((_input, key) => {
+    // if (key.downArrow) {
+    //   setStartIndex(startIndex + 1);
+    // }
+
+    // if (key.upArrow) {
+    //   setStartIndex(startIndex - 1);
+    // }
 
     if (opMode === "normal") {
       if (_input === "s") {
         if (selectionOrigin === null) {
-          setSelectionOrigin(scrollTop + mid);
+          setSelectionOrigin(startIndex + midLine);
         } else {
           setSelectionOrigin(null);
         }
       }
       if (_input === "j") {
-        const newScrollTop = scrollTop + 1;
-        setScrollTop(newScrollTop);
+        setCursorLineIndex(cursorLineIndex + 1);
+        if (cursorLineIndex > contentLinesNum - CURSOR_SCROLL_PADDING) {
+          setStartIndex(startIndex + 1);
+        }
         return;
       }
       if (_input === "k") {
-        let newScrollTop = scrollTop - 1;
-        if (newScrollTop < 0) {
-          newScrollTop = 0;
+        setCursorLineIndex(cursorLineIndex - 1);
+        if (cursorLineIndex < CURSOR_SCROLL_PADDING + startIndex) {
+          let newScrollTop = startIndex - 1;
+          if (newScrollTop < 0) {
+            newScrollTop = 0;
+          }
+          setStartIndex(newScrollTop);
         }
-        setScrollTop(newScrollTop);
         return;
       }
     }
@@ -112,18 +139,18 @@ function Chat(
 
   // Write me bubble sort in zig and rust
 
-  let visibleContent = content.split("\n").slice(
-    scrollTop,
-    scrollTop + height,
-  ).join(
-    "\n",
-  );
   let formattedContent = visibleContent.split("\n").map((line, i) => {
-    if (selectionOrigin) {
-      if (i + scrollTop + mid > selectionOrigin) {
-        return chalk.bgGray(line);
-      }
+    if (startIndex + i === cursorLineIndex) {
+      // line = "DDDDDDDDDDDDDDD";
+      // return cursorLineIndex + "YOYOYOYOYOYOYOYOYOYOYOY";
+      return chalk.bgBlue(chalk.inverse(line));
     }
+    // if (selectionOrigin) {
+    //   if (i + startIndex + mid > selectionOrigin) {
+    //     return chalk.bgGray(line);
+    //   }
+    // }
+    // return i + ":" + startIndex + " " + contentLinesNum + " " + line;
     return line;
   }).join("\n");
   return (
