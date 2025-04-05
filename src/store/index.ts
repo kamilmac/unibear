@@ -76,6 +76,7 @@ If you're looking to get started quickly, you can use one of the available templ
 export type ChatItem = {
   id: number;
   content: string;
+  parsedContent: string;
   contentOverride?: string;
   type: ChatItemType;
   title?: string;
@@ -92,7 +93,6 @@ type Store = {
     cols: number;
     rows: number;
   };
-  renderedChatContent: string;
   operationMode: OperationMode;
   setOperationMode: (mode: OperationMode) => void;
   systemMessage: string;
@@ -128,7 +128,6 @@ export const useStore = create<Store>((set, get) => ({
   injectClipboard: async () => {
     get().injectContext(await clippy.readText(), "Injected clipboard content");
   },
-  renderedChatContent: marked.parse(PLACEHOLDER),
   isStreamingResponse: false,
   operationMode: "insert",
   setOperationMode: (mode) => {
@@ -145,23 +144,18 @@ export const useStore = create<Store>((set, get) => ({
     const newChatItem: ChatItem = {
       id: getNewChatItemId(),
       content,
+      parsedContent: "",
       type,
     };
     if (contentOverride) {
       newChatItem.contentOverride = contentOverride;
     }
-    set((state) => ({
-      renderedChatContent: state.renderedChatContent.concat(
-        chalk.blue(
-          "\n\n" + (newChatItem.contentOverride ?? newChatItem.content),
-        ),
-      ),
-    }));
+    newChatItem.parsedContent = marked.parse(chalk.bgMagentaBright.black(
+      "\n " + (newChatItem.contentOverride ?? newChatItem.content) + " ",
+    ));
     set((state) => ({
       chat: state.chat.concat(newChatItem),
     }));
-    // const newChat = [...get().chat, newChatItem];
-    // set({ chat: newChat });
     return get().chat;
   },
   onSubmitUserPrompt: async (prompt) => {
@@ -169,26 +163,22 @@ export const useStore = create<Store>((set, get) => ({
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
       content: "",
+      parsedContent: "\n",
       type: "ai",
     };
     get().setOperationMode("normal");
     set({ isStreamingResponse: true });
-    set((state) => ({
-      renderedChatContent: state.renderedChatContent + "\n\n",
-    }));
-    const orgContent = get().renderedChatContent;
     await streamOpenAIResponse(
-      chat.map((c) => c.content).join(" \n"),
+      chat.map((c) => c.content).join("\n"),
       (chunk) => {
         aiChatitem.content += chunk;
-        set((state) => ({
-          renderedChatContent: orgContent + marked.parse(aiChatitem.content),
-        }));
+        aiChatitem.parsedContent = marked.parse(aiChatitem.content);
         set({
           chat: [...chat, aiChatitem],
         });
       },
     );
+    // get().setOperationMode("insert");
     set({ isStreamingResponse: false });
   },
   injectContext: (content, contentOverride) => {

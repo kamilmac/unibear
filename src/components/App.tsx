@@ -1,6 +1,6 @@
 import React from "npm:react";
-import { Box, measureElement, Text, useInput } from "npm:ink";
-import { ChatItem, useStore } from "../store/index.ts";
+import { Box, Text, useInput } from "npm:ink";
+import { useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
 import chalk from "npm:chalk";
 import stripAnsi from "npm:strip-ansi";
@@ -10,12 +10,13 @@ const TEXT_AREA_HEIGHT = 6;
 
 export const App = () => {
   const init = useStore((store) => store.init);
-  const chat = useStore((store) => store.chat);
   const dims = useStore((store) => store.dimensions);
-  const streaming = useStore((store) => store.isStreamingResponse);
   const opMode = useStore((store) => store.operationMode);
   const setOpMode = useStore((store) => store.setOperationMode);
-  const renderedChat = useStore((store) => store.renderedChatContent);
+  const chat = useStore((store) => store.chat);
+  const renderedChat = chat.map((c) => c.parsedContent).join(
+    "\n",
+  );
 
   React.useEffect(() => {
     init();
@@ -53,10 +54,26 @@ export const App = () => {
       </Box>
       {opMode === "insert" &&
         (
-          <Box borderStyle="round" borderColor="grey" height={TEXT_AREA_HEIGHT}>
-            <UserInput />
-          </Box>
+          <UserInput
+            height={TEXT_AREA_HEIGHT}
+          />
         )}
+      <LegendLine />
+    </Box>
+  );
+};
+
+const LegendLine = () => {
+  const opMode = useStore((store) => store.operationMode);
+  const modes = {
+    insert: chalk.bgGreen.black(" INS "),
+    normal: chalk.bgBlue.black(" NOR "),
+  };
+  return (
+    <Box
+      height={1}
+    >
+      <Text>{modes[opMode]}</Text>
     </Box>
   );
 };
@@ -197,7 +214,7 @@ const Chat = (
     }
     clipboard[chatRenderOffset + i] = null;
     return line;
-  }).join("\n" + cursorLineIndex + fullChatContentLinesNumber);
+  }).join("\n");
 
   return (
     <Box
