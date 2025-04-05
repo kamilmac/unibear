@@ -4,6 +4,7 @@ import { ChatItem, useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
 import chalk from "npm:chalk";
 import stripAnsi from "npm:strip-ansi";
+import * as clippy from "https://deno.land/x/clippy/mod.ts";
 
 const TEXT_AREA_HEIGHT = 6;
 
@@ -52,7 +53,7 @@ export const App = () => {
       </Box>
       {opMode === "insert" &&
         (
-          <Box borderStyle="round" height={TEXT_AREA_HEIGHT}>
+          <Box borderStyle="round" borderColor="grey" height={TEXT_AREA_HEIGHT}>
             <UserInput />
           </Box>
         )}
@@ -61,105 +62,147 @@ export const App = () => {
 };
 
 const CURSOR_SCROLL_PADDING = 5;
-function Chat(
+let clipboard: (string | null)[] = [];
+
+const Chat = (
   { height, content }: { height: number; content: string },
-) {
-  const midLine = Math.floor(height / 3);
+) => {
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
-  const [startIndex, setStartIndex] = React.useState(0);
+  const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
-  const [selectionOrigin, setSelectionOrigin] = React.useState(null);
+  const [selectionOriginLineIndex, setSelectionOriginLineIndex] = React
+    .useState(null);
   const innerRef = React.useRef();
 
-  React.useEffect(() => {
-    const dimensions = measureElement(innerRef.current);
-
-    console.log(dimensions.height);
-    // dispatch({
-    //   type: "SET_INNER_HEIGHT",
-    //   innerHeight: dimensions.height,
-    // });
-  }, []);
-
-  const contentLines = content.split("\n").slice(
-    startIndex,
-    startIndex + height,
+  const fullChatContentLinesNumber = content.split("\n").length;
+  const renderedChatContentLines = content.split("\n").slice(
+    chatRenderOffset,
+    chatRenderOffset + height,
   );
-  let contentLinesNum = 0;
-  let wrappedLines = 0;
-  for (let i = 0; i < contentLines.length; i += 1) {
+  let renderedChatContentWrappedLinesNumber = 0;
+  for (let i = 0; i < renderedChatContentLines.length; i += 1) {
     const w = dims.cols * 1.1;
-    const wraptimes = Math.floor(stripAnsi(contentLines[i]).length / w);
-    wrappedLines += wraptimes;
-    // contentLinesNum += 1;
-    contentLinesNum += 1;
+    const wraptimes = Math.floor(
+      stripAnsi(renderedChatContentLines[i]).length / w,
+    );
+    renderedChatContentWrappedLinesNumber += 1 - wraptimes;
   }
-  contentLinesNum = contentLinesNum - wrappedLines;
-  let visibleContent = contentLines.join(
-    "\n",
-  );
+
+  const scrollUpBy = (num: number) => {
+    let newCursorLineIndex = cursorLineIndex - num;
+    if (newCursorLineIndex < 0) {
+      newCursorLineIndex = 0;
+    }
+    setCursorLineIndex(newCursorLineIndex);
+    if (newCursorLineIndex < CURSOR_SCROLL_PADDING + chatRenderOffset) {
+      let newScrollTop = chatRenderOffset - num;
+      if (newScrollTop < 0) {
+        newScrollTop = 0;
+      }
+      setChatRenderOffset(newScrollTop);
+    }
+  };
+
+  const scrollDownBy = (num: number) => {
+    let newCursorLineIndex = cursorLineIndex + num;
+    if (
+      newCursorLineIndex > fullChatContentLinesNumber + CURSOR_SCROLL_PADDING
+    ) {
+      return;
+    }
+    setCursorLineIndex(newCursorLineIndex);
+    if (
+      newCursorLineIndex >
+        chatRenderOffset + renderedChatContentWrappedLinesNumber -
+          CURSOR_SCROLL_PADDING
+    ) {
+      setChatRenderOffset(chatRenderOffset + num);
+    }
+  };
 
   useInput((_input, key) => {
-    // if (key.downArrow) {
-    //   setStartIndex(startIndex + 1);
-    // }
+    if (key.downArrow) {
+      scrollDownBy(2);
+      return;
+    }
 
-    // if (key.upArrow) {
-    //   setStartIndex(startIndex - 1);
-    // }
+    if (key.upArrow) {
+      scrollUpBy(2);
+      return;
+    }
 
     if (opMode === "normal") {
-      if (_input === "s") {
-        if (selectionOrigin === null) {
-          setSelectionOrigin(startIndex + midLine);
+      if (_input === "v") {
+        if (selectionOriginLineIndex === null) {
+          setSelectionOriginLineIndex(cursorLineIndex);
         } else {
-          setSelectionOrigin(null);
+          // copy to clipboard
+          if (clipboard?.length) {
+            formattedContent;
+            clippy.writeText(
+              stripAnsi(clipboard.filter((c) => c !== null).join("\n")),
+            );
+            clipboard = [];
+          }
+          setSelectionOriginLineIndex(null);
         }
       }
+      if (_input === "G") {
+        setCursorLineIndex(fullChatContentLinesNumber - 4);
+        setChatRenderOffset(fullChatContentLinesNumber - 4);
+        return;
+      }
       if (_input === "j") {
-        setCursorLineIndex(cursorLineIndex + 1);
-        if (
-          cursorLineIndex > startIndex + contentLinesNum - CURSOR_SCROLL_PADDING
-        ) {
-          setStartIndex(startIndex + 1);
-        }
+        scrollDownBy(1);
         return;
       }
       if (_input === "k") {
-        setCursorLineIndex(cursorLineIndex - 1);
-        if (cursorLineIndex < CURSOR_SCROLL_PADDING + startIndex) {
-          let newScrollTop = startIndex - 1;
-          if (newScrollTop < 0) {
-            newScrollTop = 0;
-          }
-          setStartIndex(newScrollTop);
-        }
+        scrollUpBy(1);
+        return;
+      }
+      if (_input === "J") {
+        scrollDownBy(4);
+        return;
+      }
+      if (_input === "K") {
+        scrollUpBy(4);
         return;
       }
     }
   });
 
-  // Write me bubble sort in zig and rust
-
-  let formattedContent = visibleContent.split("\n").map((line, i) => {
-    if (startIndex + i === cursorLineIndex) {
-      // line = "DDDDDDDDDDDDDDD";
-      return chalk.bgGray(stripAnsi(line));
+  let formattedContent = renderedChatContentLines.map((line, i) => {
+    if (chatRenderOffset + i === cursorLineIndex) {
+      const l = chalk.bgGray(stripAnsi(line || " "));
+      return l;
     }
-    // if (selectionOrigin) {
-    //   if (i + startIndex + mid > selectionOrigin) {
-    //     return chalk.bgGray(line);
-    //   }
-    // }
-    // return i + ":" + startIndex + " " + contentLinesNum + " " + line;
-    // const nl = line.slice(4, line.length);
-    // return contentLinesNum + nl;
+    if (
+      selectionOriginLineIndex &&
+      (chatRenderOffset + i) >= selectionOriginLineIndex &&
+      (chatRenderOffset + i) < cursorLineIndex
+    ) {
+      const l = chalk.bgGray(stripAnsi(line));
+      clipboard[chatRenderOffset + i] = l;
+      return l;
+    }
+    if (
+      selectionOriginLineIndex &&
+      (chatRenderOffset + i) < selectionOriginLineIndex &&
+      (chatRenderOffset + i) >= cursorLineIndex
+    ) {
+      const l = chalk.bgGray(stripAnsi(line));
+      clipboard[chatRenderOffset + i] = l;
+      return l;
+    }
+    clipboard[chatRenderOffset + i] = null;
     return line;
-  }).join("\n");
+  }).join("\n" + cursorLineIndex + fullChatContentLinesNumber);
+
   return (
     <Box
       borderStyle="round"
+      borderColor="grey"
       height={height}
       flexDirection="column"
       overflow="hidden"
@@ -168,9 +211,10 @@ function Chat(
         ref={innerRef}
         flexShrink={0}
         flexDirection="column"
+        padding={2}
       >
         <Text>{formattedContent}</Text>
       </Box>
     </Box>
   );
-}
+};

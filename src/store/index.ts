@@ -171,6 +171,7 @@ export const useStore = create<Store>((set, get) => ({
       content: "",
       type: "ai",
     };
+    get().setOperationMode("normal");
     set({ isStreamingResponse: true });
     set((state) => ({
       renderedChatContent: state.renderedChatContent + "\n\n",
