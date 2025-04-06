@@ -93,6 +93,8 @@ type Store = {
     cols: number;
     rows: number;
   };
+  filesInContext: string[];
+  addFileToContext: (filePath: string) => void;
   operationMode: OperationMode;
   setOperationMode: (mode: OperationMode) => void;
   systemMessage: string;
@@ -128,6 +130,16 @@ export const useStore = create<Store>((set, get) => ({
   injectClipboard: async () => {
     get().injectContext(await clippy.readText(), "Injected clipboard content");
   },
+  filesInContext: [],
+  addFileToContext: (filePath) => {
+    set({
+      filesInContext: [
+        ...get().filesInContext,
+        filePath,
+      ],
+    });
+    get().appendChatItem("", "injector", `Added ${filePath} to context.`);
+  },
   isStreamingResponse: false,
   operationMode: "insert",
   setOperationMode: (mode) => {
@@ -159,6 +171,16 @@ export const useStore = create<Store>((set, get) => ({
     return get().chat;
   },
   onSubmitUserPrompt: async (prompt) => {
+    let filesContext = "";
+    for await (const file of get().filesInContext) {
+      const content = await getContentFromFile(file);
+      filesContext += `
+        File:${file}
+
+        ${content}
+
+      `;
+    }
     const chat = get().appendChatItem(prompt, "user");
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
@@ -169,7 +191,7 @@ export const useStore = create<Store>((set, get) => ({
     get().setOperationMode("normal");
     set({ isStreamingResponse: true });
     await streamOpenAIResponse(
-      chat.map((c) => c.content).join("\n"),
+      filesContext + chat.map((c) => c.content).join("\n"),
       (chunk) => {
         aiChatitem.content += chunk;
         aiChatitem.parsedContent = marked.parse(aiChatitem.content);
@@ -185,3 +207,14 @@ export const useStore = create<Store>((set, get) => ({
     get().appendChatItem(content, "injector", contentOverride);
   },
 }));
+
+const getContentFromFile = async (
+  filePath: string,
+): Promise<string | undefined> => {
+  try {
+    const fileContent = await Deno.readTextFile(filePath);
+    return fileContent;
+  } catch (error) {
+    console.error("Error reading file: ", error);
+  }
+};
