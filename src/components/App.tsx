@@ -1,5 +1,5 @@
 import React from "npm:react";
-import { Box, Text, useInput } from "npm:ink";
+import { Box, Text, useApp, useInput } from "npm:ink";
 import { useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
 import chalk from "npm:chalk";
@@ -9,6 +9,7 @@ import * as clippy from "https://deno.land/x/clippy/mod.ts";
 const TEXT_AREA_HEIGHT = 6;
 
 export const App = () => {
+  const { exit } = useApp();
   const init = useStore((store) => store.init);
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
@@ -23,6 +24,12 @@ export const App = () => {
   }, []);
 
   useInput((_input, key) => {
+    if ((key.ctrl && _input === "q") || (key.ctrl && _input === "c")) {
+      exit();
+      Deno.stdout.writeSync(new TextEncoder().encode("\x1b[?1049l")); // Exit alternate screen
+      // process.exit(0);
+    }
+
     if (opMode === "insert" && key.escape) {
       setOpMode("normal");
       return;
@@ -65,6 +72,8 @@ export const App = () => {
 
 const LegendLine = () => {
   const opMode = useStore((store) => store.operationMode);
+  const tokensIn = useStore((store) => store.tokensInput);
+  const tokensOut = useStore((store) => store.tokensOutput);
   const modes = {
     insert: chalk.bgGreen.black(" INS "),
     normal: chalk.bgBlue.black(" NOR "),
@@ -74,6 +83,7 @@ const LegendLine = () => {
       height={1}
     >
       <Text>{modes[opMode]}</Text>
+      <Text>Tokens: {Math.round(tokensIn)} / {Math.round(tokensOut)}</Text>
     </Box>
   );
 };

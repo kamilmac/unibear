@@ -109,6 +109,8 @@ type Store = {
   ) => ChatItem[];
   isStreamingResponse: boolean;
   injectClipboard: () => void;
+  tokensInput: number;
+  tokensOutput: number;
   injectContext: (content: string, contentOverride: string) => void;
 };
 
@@ -131,6 +133,8 @@ export const useStore = create<Store>((set, get) => ({
     get().injectContext(await clippy.readText(), "Injected clipboard content");
   },
   filesInContext: [],
+  tokensInput: 0,
+  tokensOutput: 0,
   addFileToContext: (filePath) => {
     set({
       filesInContext: [
@@ -190,8 +194,14 @@ export const useStore = create<Store>((set, get) => ({
     };
     get().setOperationMode("normal");
     set({ isStreamingResponse: true });
+    const context = filesContext + chat.map((c) => c.content).join("\n");
+    set({
+      tokensInput: context.split("  ").filter((char) =>
+        char !== " "
+      ).join("").length / 3.7,
+    });
     await streamOpenAIResponse(
-      filesContext + chat.map((c) => c.content).join("\n"),
+      context,
       (chunk) => {
         aiChatitem.content += chunk;
         aiChatitem.parsedContent = marked.parse(aiChatitem.content);
@@ -201,7 +211,12 @@ export const useStore = create<Store>((set, get) => ({
       },
     );
     // get().setOperationMode("insert");
-    set({ isStreamingResponse: false });
+    set({
+      isStreamingResponse: false,
+      tokensOutput: aiChatitem.content.split("  ").filter((char) =>
+        char !== " "
+      ).join("").length / 3.7,
+    });
   },
   injectContext: (content, contentOverride) => {
     get().appendChatItem(content, "injector", contentOverride);
