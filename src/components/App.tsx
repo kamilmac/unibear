@@ -14,10 +14,6 @@ export const App = () => {
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
   const setOpMode = useStore((store) => store.setOperationMode);
-  const chat = useStore((store) => store.chat);
-  const renderedChat = chat.map((c) => c.parsedContent).join(
-    "\n",
-  );
 
   React.useEffect(() => {
     init();
@@ -56,7 +52,6 @@ export const App = () => {
       >
         <Chat
           height={chatHeight}
-          content={renderedChat}
         />
       </Box>
       {opMode === "insert" &&
@@ -93,8 +88,9 @@ const CURSOR_SCROLL_PADDING = 5;
 let clipboard: (string | null)[] = [];
 
 const Chat = (
-  { height, content }: { height: number; content: string },
+  { height }: { height: number },
 ) => {
+  const chat = useStore((store) => store.chat);
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
@@ -103,8 +99,9 @@ const Chat = (
     .useState(null);
   const innerRef = React.useRef();
 
-  const fullChatContentLinesNumber = content.split("\n").length;
-  const renderedChatContentLines = content.split("\n").slice(
+  const content = chat.flatMap((c) => c.parsedContent);
+  const fullChatContentLinesNumber = content.length;
+  const renderedChatContentLines = content.slice(
     chatRenderOffset,
     chatRenderOffset + height,
   );
@@ -166,19 +163,22 @@ const Chat = (
           setSelectionOriginLineIndex(cursorLineIndex);
         } else {
           // copy to clipboard
-          if (clipboard?.length) {
-            formattedContent;
-            clippy.writeText(
-              stripAnsi(clipboard.filter((c) => c !== null).join("\n")),
-            );
-            clipboard = [];
-          }
+          // if (clipboard?.length) {
+          //   formattedContent;
+          //   clippy.writeText(
+          //     stripAnsi(clipboard.filter((c) => c !== null).join("\n")),
+          //   );
+          //   clipboard = [];
+          // }
           setSelectionOriginLineIndex(null);
         }
       }
       if (_input === "G") {
         setCursorLineIndex(fullChatContentLinesNumber - 4);
         setChatRenderOffset(fullChatContentLinesNumber - 4);
+        return;
+      }
+      if (_input === "d") {
         return;
       }
       if (_input === "j") {

@@ -76,8 +76,8 @@ If you're looking to get started quickly, you can use one of the available templ
 export type ChatItem = {
   id: number;
   content: string;
-  parsedContent: string;
-  contentOverride?: string;
+  parsedContent: string[];
+  contentOverride?: string[];
   type: ChatItemType;
   title?: string;
   hasCode?: boolean;
@@ -160,15 +160,15 @@ export const useStore = create<Store>((set, get) => ({
     const newChatItem: ChatItem = {
       id: getNewChatItemId(),
       content,
-      parsedContent: "",
+      parsedContent: [],
       type,
     };
     if (contentOverride) {
-      newChatItem.contentOverride = contentOverride;
+      newChatItem.contentOverride = contentOverride.split("/n");
     }
     newChatItem.parsedContent = marked.parse(chalk.bgMagentaBright.black(
       "\n " + (newChatItem.contentOverride ?? newChatItem.content) + " ",
-    ));
+    )).split("\n");
     set((state) => ({
       chat: state.chat.concat(newChatItem),
     }));
@@ -189,7 +189,7 @@ export const useStore = create<Store>((set, get) => ({
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
       content: "",
-      parsedContent: "\n",
+      parsedContent: [],
       type: "ai",
     };
     get().setOperationMode("normal");
@@ -204,7 +204,7 @@ export const useStore = create<Store>((set, get) => ({
       context,
       (chunk) => {
         aiChatitem.content += chunk;
-        aiChatitem.parsedContent = marked.parse(aiChatitem.content);
+        aiChatitem.parsedContent = marked.parse(aiChatitem.content).split("\n");
         set({
           chat: [...chat, aiChatitem],
         });
