@@ -92,12 +92,52 @@ const LegendLine = () => {
 const CURSOR_SCROLL_PADDING = 5;
 let clipboard: (string | null)[] = [];
 
+const getGitDiffToBaseBranch = async () => {
+  const checkBranchExists = async (branch: string) => {
+    const command = new Deno.Command("git", {
+      args: ["show-ref", "--quiet", `refs/heads/${branch}`],
+    });
+    const { code } = await command.output();
+    return code === 0; // 0 means the branch exists
+  };
+
+  // Determine which branch exists
+  let baseBranch = "main";
+  if (await checkBranchExists("main")) {
+    baseBranch = "main";
+  } else if (await checkBranchExists("master")) {
+    baseBranch = "master";
+  } else {
+    console.error("Neither 'main' nor 'master' branch exists.");
+    return null;
+  }
+  const command = new Deno.Command("git", {
+    args: ["diff", baseBranch],
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  const { code, stdout, stderr } = await command.output();
+
+  if (code === 0) {
+    // If the command was successful, stdout will be the output of the command
+    const output = new TextDecoder().decode(stdout);
+    return output;
+    console.log("Output:", output);
+  } else {
+    // If there was an error, stderr will contain the error message
+    const error = new TextDecoder().decode(stderr);
+    console.error("Error:", error);
+  }
+};
+
 const Chat = (
   { height, content }: { height: number; content: string },
 ) => {
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
+  const submit = useStore((store) => store.onSubmitUserPrompt);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
   const [selectionOriginLineIndex, setSelectionOriginLineIndex] = React
     .useState(null);
@@ -196,6 +236,11 @@ const Chat = (
       if (_input === "K") {
         scrollUpBy(4);
         return;
+      }
+      if (_input === "g") {
+        getGitDiffToBaseBranch().then((resp) => {
+          submit(resp);
+        });
       }
     }
   });
