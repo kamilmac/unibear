@@ -75,11 +75,12 @@ const LegendLine = () => {
   const tokensIn = useStore((store) => store.tokensInput);
   const tokensOut = useStore((store) => store.tokensOutput);
   const modes = {
-    insert: chalk.bgGreen.black(" INS "),
-    normal: chalk.bgBlue.black(" NOR "),
+    insert: chalk.bgGreen.black(" PROMPT "),
+    normal: chalk.bgBlue.black(" VISUAL "),
   };
   return (
     <Box
+      justifyContent="space-between"
       height={1}
     >
       <Text>{modes[opMode]}</Text>
