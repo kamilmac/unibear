@@ -10,6 +10,7 @@ const TEXT_AREA_HEIGHT = 6;
 
 export const App = () => {
   const { exit } = useApp();
+  const chat = useStore((store) => store.chat);
   const init = useStore((store) => store.init);
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
@@ -54,7 +55,7 @@ export const App = () => {
           height={chatHeight}
         />
       </Box>
-      {opMode === "insert" &&
+      {opMode === "insert" && chat.length === 0 &&
         (
           <UserInput
             height={TEXT_AREA_HEIGHT}
@@ -87,11 +88,20 @@ const LegendLine = () => {
 const CURSOR_SCROLL_PADDING = 5;
 let clipboard: (string | null)[] = [];
 
+let elem = null;
+let index = null;
+let onUpdate = null;
+let indexesToRemoveAfterPromptInjection = [];
 const Chat = (
   { height }: { height: number },
 ) => {
+  const [_, setCounter] = React.useState<number>(0);
   const chat = useStore((store) => store.chat);
   const opMode = useStore((store) => store.operationMode);
+  const setOpMode = useStore((store) => store.setOperationMode);
+  const submit = useStore((store) => store.onSubmitUserPrompt);
+  const deleteLine = useStore((store) => store.deleteLineByIndex);
+  const insertLine = useStore((store) => store.insertLineAtIndex);
   const dims = useStore((store) => store.dimensions);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
@@ -114,6 +124,7 @@ const Chat = (
     renderedChatContentWrappedLinesNumber += 1 - wraptimes;
   }
 
+  const forceUpdate = () => setCounter((counter) => counter + 1);
   const scrollUpBy = (num: number) => {
     let newCursorLineIndex = cursorLineIndex - num;
     if (newCursorLineIndex < 0) {
@@ -157,6 +168,21 @@ const Chat = (
       return;
     }
 
+    if (elem && opMode === "insert") {
+      if (key.return) {
+        submit("");
+        elem[index] = "";
+        setTimeout(() => {
+          onUpdate();
+          forceUpdate();
+        }, 1000);
+        return;
+      }
+      elem[index] = elem[index] + _input;
+      onUpdate();
+      forceUpdate();
+      return;
+    }
     if (opMode === "normal") {
       if (_input === "v") {
         if (selectionOriginLineIndex === null) {
@@ -179,6 +205,19 @@ const Chat = (
         return;
       }
       if (_input === "d") {
+        deleteLine(cursorLineIndex);
+        forceUpdate();
+        return;
+      }
+      if (_input === "I") {
+        insertLine(cursorLineIndex, (_elem, _index, _onUpdate) => {
+          elem = _elem;
+          index = _index;
+          onUpdate = _onUpdate;
+        });
+        indexesToRemoveAfterPromptInjection.push(cursorLineIndex);
+        setOpMode("insert");
+        forceUpdate();
         return;
       }
       if (_input === "j") {

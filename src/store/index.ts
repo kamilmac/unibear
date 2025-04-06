@@ -107,6 +107,8 @@ type Store = {
     type: ChatItemType,
     contentOverride?: string,
   ) => ChatItem[];
+  deleteLineByIndex: (index: number) => void;
+  insertLineAtIndex: (index: number) => void;
   isStreamingResponse: boolean;
   injectClipboard: () => void;
   tokensInput: number;
@@ -173,6 +175,58 @@ export const useStore = create<Store>((set, get) => ({
       chat: state.chat.concat(newChatItem),
     }));
     return get().chat;
+  },
+  deleteLineByIndex: (index) => {
+    let _index = 0;
+    let indexToRemove = null;
+    const chat = get().chat;
+    for (let i = 0; i < chat.length; i += 1) {
+      for (let j = 0; j < chat[i].parsedContent.length; j += 1) {
+        chat[i].parsedContent[j];
+        if (_index === index) {
+          indexToRemove = [i, j];
+        }
+        _index += 1;
+      }
+    }
+    if (indexToRemove) {
+      chat[indexToRemove[0]].parsedContent.splice(
+        indexToRemove[1],
+        1,
+      );
+      set({ chat });
+    }
+  },
+  insertLineAtIndex: (index, callback) => {
+    let _index = 0;
+    let indexToRemove = null;
+    const chat = get().chat;
+    for (let i = 0; i < chat.length; i += 1) {
+      for (let j = 0; j < chat[i].parsedContent.length; j += 1) {
+        chat[i].parsedContent[j];
+        if (_index === index) {
+          indexToRemove = [i, j];
+        }
+        _index += 1;
+      }
+    }
+    if (indexToRemove) {
+      chat[indexToRemove[0]].parsedContent.splice(
+        indexToRemove[1],
+        0,
+        "RESPOND TO THIS LINE AI> ",
+      );
+      set({ chat });
+      callback(
+        chat[indexToRemove[0]].parsedContent,
+        indexToRemove[1],
+        () => {
+          chat[indexToRemove[0]].content = chat[indexToRemove[0]].parsedContent
+            .join("\n");
+          set({ chat });
+        },
+      );
+    }
   },
   onSubmitUserPrompt: async (prompt) => {
     let filesContext = "";
