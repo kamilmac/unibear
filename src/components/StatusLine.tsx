@@ -12,14 +12,27 @@ export const StatusLine = () => {
     insert: chalk.bgGreen.black(" PROMPT "),
     normal: chalk.bgBlue.black(" VISUAL "),
   };
+
+  const gitDiffEnabled = true;
   return (
     <Box
       justifyContent="space-between"
       height={1}
     >
       <Text>{modes[opMode]}</Text>
-      <Text>{files.length}F</Text>
-      <Text>Tokens: {Math.round(tokensIn)} / {Math.round(tokensOut)}</Text>
+      <Box justifyContent="flex-end">
+        <Text color="green">{files.length}F</Text>
+        <Text>{" "}</Text>
+        {gitDiffEnabled && (
+          <>
+            <Text backgroundColor="green" color="black">GD</Text>
+            <Text>{" "}</Text>
+          </>
+        )}
+        <Text>
+          {Math.round(tokensIn)}/{Math.round(tokensOut)}
+        </Text>
+      </Box>
     </Box>
   );
 };
