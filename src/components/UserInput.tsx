@@ -1,6 +1,8 @@
 import React from "npm:react";
 import { Box, Text, useFocus, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/index.ts";
+import { COMMAND_PREFIX } from "../utils/constants.ts";
+import { commands } from "../utils/cli.ts";
 
 export const UserInput = ({ height }: { height: number }) => {
   const [input, setInput] = React.useState("");
@@ -19,7 +21,12 @@ export const UserInput = ({ height }: { height: number }) => {
       return;
     }
     if (key.return) {
-      submit(input);
+      if (input.startsWith(COMMAND_PREFIX)) {
+        const command = input.slice(1);
+        commands[command]?.process?.();
+      } else {
+        submit(input);
+      }
       setInput("");
       return;
     }

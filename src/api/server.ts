@@ -11,7 +11,7 @@ export const initServer = async () => {
   router.post("/inject/text", async (ctx) => {
     try {
       const body = await ctx.request.body.json();
-      const { text, override } = body;
+      const { text } = body;
 
       if (!text) {
         ctx.response.status = 400;
@@ -19,11 +19,10 @@ export const initServer = async () => {
         return;
       }
 
-      const textOverride = override ||
-        `Injected context: ${text.substring(0, 20)}${
-          text.length > 20 ? "..." : ""
-        }`;
-      useStore.getState().injectContext(text, textOverride);
+      const visibleMessage = `Injected context: ${text.substring(0, 20)}${
+        text.length > 20 ? "..." : ""
+      }`;
+      useStore.getState().injectContext(text, visibleMessage);
 
       ctx.response.status = 200;
       ctx.response.body = {

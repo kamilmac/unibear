@@ -1,3 +1,4 @@
+import { useStore } from "../store/index.ts";
 import { PORT } from "./constants.ts";
 
 // Function to check if a port is in use
@@ -100,3 +101,15 @@ export async function handleCliArgs(args: string[]): Promise<boolean> {
 
   return false;
 }
+
+export const commands = {
+  "enable_git_diff": {
+    process: (args: any) => {
+    },
+  },
+  "clear": {
+    process: (args: any) => {
+      useStore.getState().clearChatHistory();
+    },
+  },
+};

@@ -11,12 +11,8 @@ marked.use(markedTerminal());
 export type ChatItem = {
   id: number;
   content: string;
-  parsedContent: string;
-  contentOverride?: string;
+  visibleContent: string;
   type: ChatItemType;
-  title?: string;
-  hasCode?: boolean;
-  selected?: boolean;
   status?: string;
 };
 
@@ -28,6 +24,7 @@ type Store = {
     cols: number;
     rows: number;
   };
+  clearChatHistory: () => void;
   filesInContext: string[];
   addFileToContext: (filePath: string) => void;
   operationMode: OperationMode;
@@ -39,14 +36,14 @@ type Store = {
   onSubmitUserPrompt: (prompt: string) => void;
   appendChatItem: (
     content: string,
+    visibleContent?: string,
     type: ChatItemType,
-    contentOverride?: string,
   ) => ChatItem[];
   isStreamingResponse: boolean;
   injectClipboard: () => void;
   tokensInput: number;
   tokensOutput: number;
-  injectContext: (content: string, contentOverride: string) => void;
+  injectContext: (content: string, visibleContent: string) => void;
 };
 
 let latestChatItemId = 0;
@@ -67,6 +64,16 @@ export const useStore = create<Store>((set, get) => ({
   injectClipboard: async () => {
     get().injectContext(await clippy.readText(), "Injected clipboard content");
   },
+  clearChatHistory: () => {
+    set({
+      chat: [],
+      tokensInput: 0,
+      tokensOutput: 0,
+      filesInContext: [],
+      operationMode: "insert",
+    });
+    get().appendChatItem("", "Context and chat history cleared!", "user");
+  },
   filesInContext: [],
   tokensInput: 0,
   tokensOutput: 0,
@@ -78,7 +85,7 @@ export const useStore = create<Store>((set, get) => ({
         filePath,
       ],
     });
-    get().appendChatItem("", "injector", `Added ${filePath} to context.`);
+    get().appendChatItem("", `Added ${filePath} to context.`, "injector");
   },
   isStreamingResponse: false,
   operationMode: "insert",
@@ -92,18 +99,15 @@ export const useStore = create<Store>((set, get) => ({
     set({ textArea: text });
   },
   chat: [],
-  appendChatItem: (content, type, contentOverride) => {
+  appendChatItem: (content, visibleContent, type) => {
     const newChatItem: ChatItem = {
       id: getNewChatItemId(),
       content,
-      parsedContent: "",
+      visibleContent: "",
       type,
     };
-    if (contentOverride) {
-      newChatItem.contentOverride = contentOverride;
-    }
-    newChatItem.parsedContent = marked.parse(chalk.bgMagentaBright.black(
-      "\n " + (newChatItem.contentOverride ?? newChatItem.content) + " ",
+    newChatItem.visibleContent = marked.parse(chalk.bgMagentaBright.black(
+      "\n " + visibleContent + " ",
     ));
     set((state) => ({
       chat: state.chat.concat(newChatItem),
@@ -121,11 +125,11 @@ export const useStore = create<Store>((set, get) => ({
 
       `;
     }
-    const chat = get().appendChatItem(prompt, "user");
+    const chat = get().appendChatItem(prompt, prompt, "user");
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
       content: "",
-      parsedContent: "\n",
+      visibleContent: "\n",
       type: "ai",
     };
     get().setOperationMode("normal");
@@ -140,13 +144,12 @@ export const useStore = create<Store>((set, get) => ({
       context,
       (chunk) => {
         aiChatitem.content += chunk;
-        aiChatitem.parsedContent = marked.parse(aiChatitem.content);
+        aiChatitem.visibleContent = marked.parse(aiChatitem.content);
         set({
           chat: [...chat, aiChatitem],
         });
       },
     );
-    // get().setOperationMode("insert");
     set({
       isStreamingResponse: false,
       tokensOutput: aiChatitem.content.split("  ").filter((char) =>
@@ -154,8 +157,8 @@ export const useStore = create<Store>((set, get) => ({
       ).join("").length / 3.7,
     });
   },
-  injectContext: (content, contentOverride) => {
-    get().appendChatItem(content, "injector", contentOverride);
+  injectContext: (content, visibleContent) => {
+    get().appendChatItem(content, visibleContent, "injector");
   },
 }));
 
