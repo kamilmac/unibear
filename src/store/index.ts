@@ -71,6 +71,7 @@ export const useStore = create<Store>((set, get) => ({
   tokensInput: 0,
   tokensOutput: 0,
   addFileToContext: (filePath) => {
+    if (get().filesInContext.includes(filePath)) return;
     set({
       filesInContext: [
         ...get().filesInContext,

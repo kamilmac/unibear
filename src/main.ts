@@ -12,8 +12,8 @@ handleCliArgs(args).then((handled) => {
       console.error("Failed to start server:", err);
     });
 
-    // withFullScreen(React.createElement(App)).start();
-    render(React.createElement(App));
+    withFullScreen(React.createElement(App)).start();
+    // render(React.createElement(App));
   } else {
     Deno.exit(0);
   }

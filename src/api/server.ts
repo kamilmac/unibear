@@ -1,5 +1,6 @@
 import { Application, Router } from "jsr:@oak/oak";
 import { useStore } from "../store/index.ts";
+import { PORT } from "../utils/constants.ts";
 
 // Initialize the server
 export const initServer = async () => {
@@ -66,5 +67,5 @@ export const initServer = async () => {
   app.use(router.routes());
   app.use(router.allowedMethods());
 
-  await app.listen({ port: 3000 });
+  await app.listen({ port: PORT });
 };

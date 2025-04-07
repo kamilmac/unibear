@@ -74,6 +74,7 @@ const LegendLine = () => {
   const opMode = useStore((store) => store.operationMode);
   const tokensIn = useStore((store) => store.tokensInput);
   const tokensOut = useStore((store) => store.tokensOutput);
+  const files = useStore((store) => store.filesInContext);
   const modes = {
     insert: chalk.bgGreen.black(" PROMPT "),
     normal: chalk.bgBlue.black(" VISUAL "),
@@ -84,6 +85,7 @@ const LegendLine = () => {
       height={1}
     >
       <Text>{modes[opMode]}</Text>
+      <Text>{files.length}F</Text>
       <Text>Tokens: {Math.round(tokensIn)} / {Math.round(tokensOut)}</Text>
     </Box>
   );
@@ -239,7 +241,7 @@ const Chat = (
       }
       if (_input === "g") {
         getGitDiffToBaseBranch().then((resp) => {
-          submit(resp);
+          submit(resp || "");
         });
       }
     }
