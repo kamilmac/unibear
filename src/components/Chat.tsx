@@ -162,7 +162,7 @@ export const Chat = (
   });
 
   let formattedContent = renderedChatContentLines.map((line, i) => {
-    if (chatRenderOffset + i === cursorLineIndex) {
+    if (chatRenderOffset + i === cursorLineIndex && opMode === "normal") {
       const l = chalk.bgGray(stripAnsi(line || " "));
       return l;
     }

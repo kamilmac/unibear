@@ -112,4 +112,18 @@ export const commands = {
       useStore.getState().clearChatHistory();
     },
   },
+  "help": {
+    process: (args: any) => {
+      useStore.getState().appendChatItem(
+        "",
+        `
+## Supported commands:
+  - /enable_git_diff -> attach git diff with your base (master|main) branch to context  
+  - /clear -> clear whole context and history
+  - /help -> you are here you majestic donkey
+        `,
+        "command",
+      );
+    },
+  },
 };

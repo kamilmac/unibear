@@ -72,7 +72,7 @@ export const useStore = create<Store>((set, get) => ({
       filesInContext: [],
       operationMode: "insert",
     });
-    get().appendChatItem("", "Context and chat history cleared!", "user");
+    get().appendChatItem("", "Context and chat history cleared!", "command");
   },
   filesInContext: [],
   tokensInput: 0,
@@ -106,9 +106,15 @@ export const useStore = create<Store>((set, get) => ({
       visibleContent: "",
       type,
     };
-    newChatItem.visibleContent = marked.parse(chalk.bgMagentaBright.black(
-      "\n " + visibleContent + " ",
-    ));
+    if (type === "command") {
+      newChatItem.visibleContent = marked.parse(
+        "\n " + visibleContent + " ",
+      );
+    } else {
+      newChatItem.visibleContent = marked.parse(chalk.bgMagentaBright.black(
+        "\n " + visibleContent + " ",
+      ));
+    }
     set((state) => ({
       chat: state.chat.concat(newChatItem),
     }));
