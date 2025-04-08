@@ -99,24 +99,32 @@ export const Chat = (
     }
 
     if (opMode === "normal") {
+      if (key.escape) {
+        setSelectionOriginLineIndex(null);
+      }
       if (_input === "v") {
         if (selectionOriginLineIndex === null) {
           setSelectionOriginLineIndex(cursorLineIndex);
         } else {
-          // copy to clipboard
-          if (clipboard?.length) {
-            formattedContent;
-            clippy.writeText(
-              stripAnsi(clipboard.filter((c) => c !== null).join("\n")),
-            );
-            clipboard = [];
-          }
           setSelectionOriginLineIndex(null);
         }
       }
+      if (_input === "y") {
+        if (clipboard?.length) {
+          formattedContent;
+          clippy.writeText(
+            stripAnsi(clipboard.filter((c) => c !== null).join("\n")),
+          );
+          clipboard = [];
+        }
+      }
       if (_input === "G") {
-        setCursorLineIndex(fullChatLinesNumber - 4);
-        setChatRenderOffset(fullChatLinesNumber - 4);
+        const newPos = Math.max(
+          0,
+          fullChatLinesNumber - Math.round(height / 4),
+        );
+        setCursorLineIndex(fullChatLinesNumber - 1);
+        setChatRenderOffset(newPos);
         return;
       }
       if (_input === "j") {

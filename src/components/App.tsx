@@ -13,8 +13,6 @@ export const App = () => {
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
   const setOpMode = useStore((store) => store.setOperationMode);
-  const chat = useStore((store) => store.chat);
-  const renderedChat = chat.flatMap((c) => c.visibleContent);
 
   React.useEffect(() => {
     init();
@@ -53,7 +51,6 @@ export const App = () => {
       >
         <Chat
           height={chatHeight}
-          content={renderedChat}
         />
       </Box>
       {opMode === "insert" &&
