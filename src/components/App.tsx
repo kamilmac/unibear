@@ -53,12 +53,9 @@ export const App = () => {
           height={chatHeight}
         />
       </Box>
-      {opMode === "insert" &&
-        (
-          <UserInput
-            height={TEXT_AREA_HEIGHT}
-          />
-        )}
+      <UserInput
+        height={TEXT_AREA_HEIGHT}
+      />
       <StatusLine />
     </Box>
   );

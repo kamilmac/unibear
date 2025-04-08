@@ -9,18 +9,21 @@ export const UserInput = ({ height }: { height: number }) => {
   const submit = useStore((store) => store.onSubmitUserPrompt);
   const dims = useStore((store) => store.dimensions);
   const { enableFocus } = useFocusManager();
-  const injectClipboard = useStore((store) => store.injectClipboard);
+  const isStreaming = useStore((store) => store.isStreamingResponse);
+  const opMode = useStore((store) => store.operationMode);
 
   React.useEffect(() => {
     enableFocus();
   }, []);
 
   useInput((_input, key) => {
+    if (opMode === "normal") return;
     if (key.delete) {
       setInput(input.slice(0, -1));
       return;
     }
     if (key.return) {
+      if (isStreaming) return;
       if (input.startsWith(COMMAND_PREFIX)) {
         const command = input.slice(1);
         commands[command]?.process?.();
@@ -30,12 +33,10 @@ export const UserInput = ({ height }: { height: number }) => {
       setInput("");
       return;
     }
-    if (key.ctrl && _input === "p") {
-      injectClipboard();
-      return;
-    }
     setInput(input + _input);
   });
+
+  if (opMode == "normal") return null;
 
   return (
     <Box
@@ -54,7 +55,7 @@ export const UserInput = ({ height }: { height: number }) => {
         height={height - 2}
         overflow="hidden"
       >
-        <Text>
+        <Text color={isStreaming ? "grey" : "white"}>
           {input + "█"}
         </Text>
         {!input &&
