@@ -124,7 +124,7 @@ export const Chat = (
         });
         if (clipped.length > 0) {
           clippy.writeText(
-            stripAnsi(clipped.filter((c) => c !== null).join("\n")),
+            stripAnsi(clipped.filter((c) => c !== null).join("\n")) + "\n",
           );
         }
       }
