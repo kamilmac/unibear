@@ -48,7 +48,7 @@ const getGitDiffToBaseBranch = async () => {
 };
 
 export const Chat = (
-  { height, content }: { height: number; content: string },
+  { height, content }: { height: number; content: string[] },
 ) => {
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
@@ -59,8 +59,8 @@ export const Chat = (
     .useState(null);
   const innerRef = React.useRef();
 
-  const fullChatContentLinesNumber = content.split("\n").length;
-  const renderedChatContentLines = content.split("\n").slice(
+  const fullChatContentLinesNumber = content.length;
+  const renderedChatContentLines = content.slice(
     chatRenderOffset,
     chatRenderOffset + height,
   );

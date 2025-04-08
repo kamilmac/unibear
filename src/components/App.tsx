@@ -14,9 +14,7 @@ export const App = () => {
   const opMode = useStore((store) => store.operationMode);
   const setOpMode = useStore((store) => store.setOperationMode);
   const chat = useStore((store) => store.chat);
-  const renderedChat = chat.map((c) => c.visibleContent).join(
-    "\n",
-  );
+  const renderedChat = chat.flatMap((c) => c.visibleContent);
 
   React.useEffect(() => {
     init();

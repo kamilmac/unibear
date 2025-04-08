@@ -13,7 +13,7 @@ export type ChatItemType = "user" | "ai" | "injector" | "command";
 export type ChatItem = {
   id: number;
   content: string;
-  visibleContent: string;
+  visibleContent: string[];
   type: ChatItemType;
   status?: string;
 };
@@ -108,17 +108,17 @@ export const useStore = create<Store>((set, get) => ({
     const newChatItem: ChatItem = {
       id: getNewChatItemId(),
       content,
-      visibleContent: "",
+      visibleContent: [],
       type,
     };
     if (type === "command") {
       newChatItem.visibleContent = marked.parse(
         "\n " + visibleContent + " ",
-      );
+      ).split("\n");
     } else {
       newChatItem.visibleContent = marked.parse(chalk.bgMagentaBright.black(
         "\n " + visibleContent + " ",
-      ));
+      )).split("\n");
     }
     set((state) => ({
       chat: state.chat.concat(newChatItem),
@@ -140,7 +140,7 @@ export const useStore = create<Store>((set, get) => ({
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
       content: "",
-      visibleContent: "\n",
+      visibleContent: [],
       type: "ai",
     };
     get().setOperationMode("normal");
@@ -155,7 +155,9 @@ export const useStore = create<Store>((set, get) => ({
       context,
       (chunk) => {
         aiChatitem.content += chunk;
-        aiChatitem.visibleContent = marked.parse(aiChatitem.content);
+        aiChatitem.visibleContent = marked.parse(aiChatitem.content).split(
+          "\n",
+        );
         set({
           chat: [...chat, aiChatitem],
         });
