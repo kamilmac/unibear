@@ -11,21 +11,30 @@ export const UserInput = () => {
   const { enableFocus } = useFocusManager();
   const isStreaming = useStore((store) => store.isStreamingResponse);
   const opMode = useStore((store) => store.operationMode);
+  const setOpMode = useStore((store) => store.setOperationMode);
 
   React.useEffect(() => {
-    enableFocus();
+    setTimeout(enableFocus, 30);
   }, []);
 
   useInput((_input, key) => {
     if (opMode === "normal") return;
     if (key.delete) {
+      if (input.length === 0) {
+        setOpMode("insert");
+      }
       setInput(input.slice(0, -1));
+      return;
+    }
+    if (input === "" && _input === COMMAND_PREFIX) {
+      setOpMode("command");
       return;
     }
     if (key.return) {
       if (isStreaming) return;
-      if (input.startsWith(COMMAND_PREFIX)) {
-        const command = input.slice(1);
+      if (opMode === "command" && input.length > 0) {
+        const command = input.trim();
+        setOpMode("insert");
         commands[command]?.process?.();
       } else {
         submit(input);
@@ -36,7 +45,7 @@ export const UserInput = () => {
     setInput(input + _input);
   });
 
-  if (opMode == "normal") return null;
+  if (opMode === "normal") return null;
 
   return (
     <Box
@@ -48,7 +57,10 @@ export const UserInput = () => {
       <Box
         width={3}
       >
-        <Text>{" > "}</Text>
+        {opMode === "insert" &&
+          <Text>{" > "}</Text>}
+        {opMode === "command" &&
+          <Text>{` ${COMMAND_PREFIX} `}</Text>}
       </Box>
       <Box
         width={dims.cols - 6}
@@ -58,13 +70,6 @@ export const UserInput = () => {
         <Text color={isStreaming ? "grey" : "white"}>
           {input + "█"}
         </Text>
-        {!input &&
-          (
-            <Text color="grey">
-              {" "}
-              /help
-            </Text>
-          )}
       </Box>
     </Box>
   );

@@ -15,6 +15,7 @@ export const StatusLine = () => {
   const modes = {
     insert: chalk.bgGreen.black(" PROMPT "),
     normal: chalk.bgBlue.black(" VISUAL "),
+    command: chalk.bgMagenta.black(" COMMAND "),
   };
 
   return (

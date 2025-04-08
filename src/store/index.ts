@@ -19,7 +19,7 @@ export type ChatItem = {
   status?: string;
 };
 
-type OperationMode = "insert" | "normal";
+type OperationMode = "insert" | "normal" | "command";
 
 type Store = {
   init: () => void;

@@ -23,7 +23,7 @@ export const App = () => {
       Deno.stdout.writeSync(new TextEncoder().encode("\x1b[?1049l")); // Exit alternate screen
     }
 
-    if (opMode === "insert" && key.escape) {
+    if (opMode !== "normal" && key.escape) {
       setOpMode("normal");
       return;
     }
@@ -33,9 +33,9 @@ export const App = () => {
     }
   });
 
-  const chatHeight = opMode === "insert"
-    ? dims.rows - TEXT_AREA_HEIGHT
-    : dims.rows;
+  const chatHeight = opMode === "normal"
+    ? dims.rows
+    : dims.rows - TEXT_AREA_HEIGHT;
 
   return (
     <Box

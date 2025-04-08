@@ -1,5 +1,5 @@
 export const PORT = 12492;
-export const COMMAND_PREFIX = "/";
+export const COMMAND_PREFIX = ":";
 export const IS_DEV = Deno.env.get("DEV") === "true";
 export const TEXT_AREA_HEIGHT = 6;
 export const CURSOR_SCROLL_PADDING = 5;
