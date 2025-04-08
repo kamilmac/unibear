@@ -6,7 +6,12 @@ import stripAnsi from "npm:strip-ansi";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 
 const CURSOR_SCROLL_PADDING = 5;
-let clipboard: (string | null)[] = [];
+
+function isBetween(number: number, a: number, b: number): boolean {
+  const min = Math.min(a, b);
+  const max = Math.max(a, b);
+  return number >= min && number <= max;
+}
 
 export const Chat = (
   { height }: { height: number },
@@ -110,12 +115,17 @@ export const Chat = (
         }
       }
       if (_input === "y") {
-        if (clipboard?.length) {
-          formattedContent;
-          clippy.writeText(
-            stripAnsi(clipboard.filter((c) => c !== null).join("\n")),
+        const clipped = fullChatLines.filter((line, index) => {
+          return isBetween(
+            index,
+            selectionOriginLineIndex || cursorLineIndex,
+            cursorLineIndex,
           );
-          clipboard = [];
+        });
+        if (clipped.length > 0) {
+          clippy.writeText(
+            stripAnsi(clipped.filter((c) => c !== null).join("\n")),
+          );
         }
       }
       if (_input === "G") {
@@ -146,30 +156,24 @@ export const Chat = (
     }
   });
 
-  let formattedContent = renderedChatContentLines.map((line, i) => {
+  const formattedContent = renderedChatContentLines.map((line, i) => {
     if (chatRenderOffset + i === cursorLineIndex && opMode === "normal") {
-      const l = chalk.bgGray(stripAnsi(line || " "));
-      return l;
+      return chalk.bgGray(stripAnsi(line || " "));
     }
     if (
       selectionOriginLineIndex &&
       (chatRenderOffset + i) >= selectionOriginLineIndex &&
       (chatRenderOffset + i) < cursorLineIndex
     ) {
-      const l = chalk.bgGray(stripAnsi(line));
-      clipboard[chatRenderOffset + i] = l;
-      return l;
+      return chalk.bgGray(stripAnsi(line));
     }
     if (
       selectionOriginLineIndex &&
       (chatRenderOffset + i) < selectionOriginLineIndex &&
       (chatRenderOffset + i) >= cursorLineIndex
     ) {
-      const l = chalk.bgGray(stripAnsi(line));
-      clipboard[chatRenderOffset + i] = l;
-      return l;
+      return chalk.bgGray(stripAnsi(line));
     }
-    clipboard[chatRenderOffset + i] = null;
     return line;
   }).join("\n");
 

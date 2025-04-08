@@ -124,7 +124,7 @@ export const useStore = create<Store>((set, get) => ({
     {
       id: getNewChatItemId(),
       content: "",
-      visibleContent: BANNER.split("\n"),
+      visibleContent: chalk.red(BANNER).split("\n"),
       type: "ai",
     },
   ],
