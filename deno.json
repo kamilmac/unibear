@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --watch -A src/main.ts",
+    "dev": "DEV='true' deno run --watch -A src/main.ts",
     "compile": "deno compile -A -o bin/logan src/main.ts"
   },
   "imports": {

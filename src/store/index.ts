@@ -1,12 +1,14 @@
 import { create } from "npm:zustand";
 import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
-export type ChatItemType = "user" | "ai" | "injector";
 import chalk from "npm:chalk";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
+import { DEV_CHAT_PLACEHOLDER, IS_DEV } from "../utils/constants.ts";
 
 marked.use(markedTerminal());
+
+export type ChatItemType = "user" | "ai" | "injector" | "command";
 
 export type ChatItem = {
   id: number;
@@ -36,7 +38,7 @@ type Store = {
   onSubmitUserPrompt: (prompt: string) => void;
   appendChatItem: (
     content: string,
-    visibleContent?: string,
+    visibleContent: string,
     type: ChatItemType,
   ) => ChatItem[];
   isStreamingResponse: boolean;
@@ -60,6 +62,9 @@ export const useStore = create<Store>((set, get) => ({
     };
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
+    if (IS_DEV) {
+      get().appendChatItem("", DEV_CHAT_PLACEHOLDER, "ai");
+    }
   },
   injectClipboard: async () => {
     get().injectContext(await clippy.readText(), "Injected clipboard content");
