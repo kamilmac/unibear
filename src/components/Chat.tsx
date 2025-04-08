@@ -91,6 +91,14 @@ export const Chat = (
     renderedChatWrappedLinesNumber,
   ]);
 
+  // Hack-ish solution to scroll to the top when chat got cleared
+  React.useEffect(() => {
+    if (fullChatLinesNumber < 4) {
+      setChatRenderOffset(0);
+      setCursorLineIndex(0);
+    }
+  }, [fullChatLinesNumber]);
+
   useInput((_input, key) => {
     if (key.downArrow) {
       scrollDownBy(2);
