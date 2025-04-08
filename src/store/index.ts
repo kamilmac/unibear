@@ -4,7 +4,8 @@ import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import chalk from "npm:chalk";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import { DEV_CHAT_PLACEHOLDER, IS_DEV } from "../utils/constants.ts";
+import { BANNER, HELP_TEXT, IS_DEV } from "../utils/constants.ts";
+import { getGitDiffToBaseBranch } from "../utils/git.ts";
 
 marked.use(markedTerminal());
 
@@ -26,6 +27,8 @@ type Store = {
     cols: number;
     rows: number;
   };
+  isGitBaseDiffInjectionEnabled: boolean;
+  toggleGitDiffToBaseBranchInContext: () => void;
   clearChatHistory: () => void;
   filesInContext: string[];
   addFileToContext: (filePath: string) => void;
@@ -70,9 +73,15 @@ export const useStore = create<Store>((set, get) => ({
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
     if (IS_DEV) {
-      get().appendChatItem("", DEV_CHAT_PLACEHOLDER, "ai");
+      get().appendChatItem("", marked.parse(HELP_TEXT), "command");
     }
   },
+  toggleGitDiffToBaseBranchInContext: () => {
+    set({
+      isGitBaseDiffInjectionEnabled: !get().isGitBaseDiffInjectionEnabled,
+    });
+  },
+  isGitBaseDiffInjectionEnabled: false,
   injectClipboard: async () => {
     get().injectContext(await clippy.readText(), "Injected clipboard content");
   },
@@ -83,6 +92,7 @@ export const useStore = create<Store>((set, get) => ({
       tokensOutput: 0,
       filesInContext: [],
       operationMode: "insert",
+      isGitBaseDiffInjectionEnabled: false,
     });
     get().appendChatItem("", "Context and chat history cleared!", "command");
   },
@@ -110,7 +120,14 @@ export const useStore = create<Store>((set, get) => ({
   setTextArea: (text) => {
     set({ textArea: text });
   },
-  chat: [],
+  chat: [
+    {
+      id: getNewChatItemId(),
+      content: "",
+      visibleContent: BANNER.split("\n"),
+      type: "ai",
+    },
+  ],
   appendChatItem: (content, visibleContent, type) => {
     const newChatItem: ChatItem = {
       id: getNewChatItemId(),
@@ -138,9 +155,15 @@ export const useStore = create<Store>((set, get) => ({
       const content = await getContentFromFile(file);
       filesContext += `
         File:${file}
-
         ${content}
-
+      `;
+    }
+    let gitContext = "";
+    if (get().isGitBaseDiffInjectionEnabled) {
+      const content = await getGitDiffToBaseBranch();
+      gitContext = `
+        Git diff to base branch:
+        ${content}  
       `;
     }
     const chat = get().appendChatItem(prompt, prompt, "user");
@@ -151,7 +174,8 @@ export const useStore = create<Store>((set, get) => ({
       type: "ai",
     };
     get().setOperationMode("normal");
-    const context = filesContext + chat.map((c) => c.content).join("\n");
+    const context = gitContext + filesContext +
+      chat.map((c) => c.content).join("\n");
     set({
       isStreamingResponse: true,
       tokensInput: countTokens(context),

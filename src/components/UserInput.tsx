@@ -57,6 +57,13 @@ export const UserInput = ({ height }: { height: number }) => {
         <Text>
           {input + "█"}
         </Text>
+        {!input &&
+          (
+            <Text color="grey">
+              {" "}
+              /help
+            </Text>
+          )}
       </Box>
     </Box>
   );

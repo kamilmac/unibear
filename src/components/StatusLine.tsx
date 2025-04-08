@@ -8,12 +8,15 @@ export const StatusLine = () => {
   const tokensIn = useStore((store) => store.tokensInput);
   const tokensOut = useStore((store) => store.tokensOutput);
   const files = useStore((store) => store.filesInContext);
+  const gitDiffEnabled = useStore((store) =>
+    store.isGitBaseDiffInjectionEnabled
+  );
+
   const modes = {
     insert: chalk.bgGreen.black(" PROMPT "),
     normal: chalk.bgBlue.black(" VISUAL "),
   };
 
-  const gitDiffEnabled = true;
   return (
     <Box
       justifyContent="space-between"
@@ -21,14 +24,23 @@ export const StatusLine = () => {
     >
       <Text>{modes[opMode]}</Text>
       <Box justifyContent="flex-end">
-        <Text color="green">{files.length}F</Text>
+        {files.length > 0
+          ? <Text color="green" backgroundColor="green">{files.length}F</Text>
+          : <Text color="white">{files.length}F</Text>}
         <Text>{" "}</Text>
-        {gitDiffEnabled && (
-          <>
-            <Text backgroundColor="green" color="black">GD</Text>
-            <Text>{" "}</Text>
-          </>
-        )}
+        {gitDiffEnabled
+          ? (
+            <>
+              <Text backgroundColor="green" color="black">GD</Text>
+              <Text>{" "}</Text>
+            </>
+          )
+          : (
+            <>
+              <Text color="white">GD</Text>
+              <Text>{" "}</Text>
+            </>
+          )}
         <Text>
           {Math.round(tokensIn)}/{Math.round(tokensOut)}
         </Text>

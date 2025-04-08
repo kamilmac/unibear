@@ -8,72 +8,49 @@ import * as clippy from "https://deno.land/x/clippy/mod.ts";
 const CURSOR_SCROLL_PADDING = 5;
 let clipboard: (string | null)[] = [];
 
-const getGitDiffToBaseBranch = async () => {
-  const checkBranchExists = async (branch: string) => {
-    const command = new Deno.Command("git", {
-      args: ["show-ref", "--quiet", `refs/heads/${branch}`],
-    });
-    const { code } = await command.output();
-    return code === 0; // 0 means the branch exists
-  };
-
-  // Determine which branch exists
-  let baseBranch = "main";
-  if (await checkBranchExists("main")) {
-    baseBranch = "main";
-  } else if (await checkBranchExists("master")) {
-    baseBranch = "master";
-  } else {
-    console.error("Neither 'main' nor 'master' branch exists.");
-    return null;
-  }
-  const command = new Deno.Command("git", {
-    args: ["diff", baseBranch],
-    stdout: "piped",
-    stderr: "piped",
-  });
-
-  const { code, stdout, stderr } = await command.output();
-
-  if (code === 0) {
-    // If the command was successful, stdout will be the output of the command
-    const output = new TextDecoder().decode(stdout);
-    return output;
-    console.log("Output:", output);
-  } else {
-    // If there was an error, stderr will contain the error message
-    const error = new TextDecoder().decode(stderr);
-    console.error("Error:", error);
-  }
-};
-
 export const Chat = (
-  { height, content }: { height: number; content: string[] },
+  { height }: { height: number },
 ) => {
+  const chat = useStore((store) => store.chat);
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
-  const submit = useStore((store) => store.onSubmitUserPrompt);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
   const [selectionOriginLineIndex, setSelectionOriginLineIndex] = React
     .useState(null);
   const innerRef = React.useRef();
 
-  const fullChatContentLinesNumber = content.length;
-  const renderedChatContentLines = content.slice(
-    chatRenderOffset,
-    chatRenderOffset + height,
+  const fullChatLines: string[] = React.useMemo(
+    () => chat.flatMap((c) => c.visibleContent),
+    [
+      chat,
+    ],
   );
-  let renderedChatContentWrappedLinesNumber = 0;
-  for (let i = 0; i < renderedChatContentLines.length; i += 1) {
-    const w = dims.cols * 1.1;
-    const wraptimes = Math.floor(
-      stripAnsi(renderedChatContentLines[i]).length / w,
-    );
-    renderedChatContentWrappedLinesNumber += 1 - wraptimes;
-  }
 
-  const scrollUpBy = (num: number) => {
+  const fullChatLinesNumber = fullChatLines.length;
+
+  const renderedChatContentLines: string[] = React.useMemo(
+    () =>
+      fullChatLines.slice(
+        chatRenderOffset,
+        chatRenderOffset + height,
+      ),
+    [chatRenderOffset, height, fullChatLines],
+  );
+
+  let renderedChatWrappedLinesNumber: number = React.useMemo(() => {
+    let num = 0;
+    for (let i = 0; i < renderedChatContentLines.length; i += 1) {
+      const w = dims.cols * 1.1;
+      const wraptimes = Math.floor(
+        stripAnsi(renderedChatContentLines[i]).length / w,
+      );
+      num += 1 - wraptimes;
+    }
+    return num;
+  }, [renderedChatContentLines, dims]);
+
+  const scrollUpBy = React.useCallback((num: number) => {
     let newCursorLineIndex = cursorLineIndex - num;
     if (newCursorLineIndex < 0) {
       newCursorLineIndex = 0;
@@ -86,24 +63,29 @@ export const Chat = (
       }
       setChatRenderOffset(newScrollTop);
     }
-  };
+  }, [cursorLineIndex, chatRenderOffset]);
 
-  const scrollDownBy = (num: number) => {
+  const scrollDownBy = React.useCallback((num: number) => {
     let newCursorLineIndex = cursorLineIndex + num;
     if (
-      newCursorLineIndex > fullChatContentLinesNumber + CURSOR_SCROLL_PADDING
+      newCursorLineIndex > fullChatLinesNumber + CURSOR_SCROLL_PADDING
     ) {
       return;
     }
     setCursorLineIndex(newCursorLineIndex);
     if (
       newCursorLineIndex >
-        chatRenderOffset + renderedChatContentWrappedLinesNumber -
+        chatRenderOffset + renderedChatWrappedLinesNumber -
           CURSOR_SCROLL_PADDING
     ) {
       setChatRenderOffset(chatRenderOffset + num);
     }
-  };
+  }, [
+    cursorLineIndex,
+    fullChatLinesNumber,
+    chatRenderOffset,
+    renderedChatWrappedLinesNumber,
+  ]);
 
   useInput((_input, key) => {
     if (key.downArrow) {
@@ -133,8 +115,8 @@ export const Chat = (
         }
       }
       if (_input === "G") {
-        setCursorLineIndex(fullChatContentLinesNumber - 4);
-        setChatRenderOffset(fullChatContentLinesNumber - 4);
+        setCursorLineIndex(fullChatLinesNumber - 4);
+        setChatRenderOffset(fullChatLinesNumber - 4);
         return;
       }
       if (_input === "j") {
@@ -152,11 +134,6 @@ export const Chat = (
       if (_input === "K") {
         scrollUpBy(4);
         return;
-      }
-      if (_input === "g") {
-        getGitDiffToBaseBranch().then((resp) => {
-          submit(resp || "");
-        });
       }
     }
   });
@@ -200,7 +177,7 @@ export const Chat = (
         ref={innerRef}
         flexShrink={0}
         flexDirection="column"
-        padding={2}
+        padding={1}
       >
         <Text>{formattedContent}</Text>
       </Box>

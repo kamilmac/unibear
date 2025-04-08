@@ -1,5 +1,5 @@
 import { useStore } from "../store/index.ts";
-import { PORT } from "./constants.ts";
+import { HELP_TEXT, PORT } from "./constants.ts";
 
 // Function to check if a port is in use
 async function isPortInUse(port: number): Promise<boolean> {
@@ -102,26 +102,35 @@ export async function handleCliArgs(args: string[]): Promise<boolean> {
   return false;
 }
 
-export const commands = {
-  "enable_git_diff": {
-    process: (args: any) => {
+type Command = {
+  process: () => void;
+};
+
+export const commands: Record<string, Command> = {
+  "toggle_git_diff": {
+    process: () => {
+      useStore.getState().toggleGitDiffToBaseBranchInContext();
+      let msg = "Enabled Git Diff to Base branch injection";
+      if (!useStore.getState().isGitBaseDiffInjectionEnabled) {
+        msg = "Disabled Git Diff to Base branch injection";
+      }
+      useStore.getState().appendChatItem(
+        "",
+        msg,
+        "command",
+      );
     },
   },
   "clear": {
-    process: (args: any) => {
+    process: () => {
       useStore.getState().clearChatHistory();
     },
   },
   "help": {
-    process: (args: any) => {
+    process: () => {
       useStore.getState().appendChatItem(
         "",
-        `
-## Supported commands:
-  - /enable_git_diff -> attach git diff with your base (master|main) branch to context  
-  - /clear -> clear whole context and history
-  - /help -> you are here you majestic donkey
-        `,
+        HELP_TEXT,
         "command",
       );
     },
