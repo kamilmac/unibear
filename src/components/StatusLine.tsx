@@ -2,6 +2,7 @@ import chalk from "npm:chalk";
 import React from "npm:react";
 import { Box, Text } from "npm:ink";
 import { useStore } from "../store/index.ts";
+import { COLORS } from "../utils/constants.ts";
 
 export const StatusLine = () => {
   const opMode = useStore((store) => store.operationMode);
@@ -13,9 +14,9 @@ export const StatusLine = () => {
   );
 
   const modes = {
-    insert: chalk.bgGreen.black(" PROMPT "),
-    normal: chalk.bgBlue.black(" VISUAL "),
-    command: chalk.bgMagenta.black(" COMMAND "),
+    insert: COLORS.promptIndicator(" PROMPT "),
+    normal: COLORS.visualIndicator(" VISUAL "),
+    command: COLORS.commandIndicator(" COMMAND "),
   };
 
   return (
@@ -25,25 +26,16 @@ export const StatusLine = () => {
     >
       <Text>{modes[opMode]}</Text>
       <Box justifyContent="flex-end">
-        {files.length > 0
-          ? <Text color="black" backgroundColor="green">{files.length}F</Text>
-          : <Text color="white">{files.length}F</Text>}
-        <Text>{" "}</Text>
-        {gitDiffEnabled
-          ? (
-            <>
-              <Text backgroundColor="green" color="black">GD</Text>
-              <Text>{" "}</Text>
-            </>
-          )
-          : (
-            <>
-              <Text color="white">GD</Text>
-              <Text>{" "}</Text>
-            </>
-          )}
         <Text>
-          {Math.round(tokensIn)}/{Math.round(tokensOut)}
+          {files.length > 0
+            ? COLORS.statusLineActive(`${files.length}F `)
+            : COLORS.statusLineInactive(`${files.length}F `)}
+          {gitDiffEnabled
+            ? COLORS.statusLineActive("GD ")
+            : COLORS.statusLineInactive("GD ")}
+          {COLORS.statusLineInactive(
+            `${Math.round(tokensIn)}/${Math.round(tokensOut)}`,
+          )}
         </Text>
       </Box>
     </Box>
