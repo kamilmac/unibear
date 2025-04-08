@@ -4,8 +4,7 @@ import { useStore } from "../store/index.ts";
 import chalk from "npm:chalk";
 import stripAnsi from "npm:strip-ansi";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
-
-const CURSOR_SCROLL_PADDING = 5;
+import { CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
 
 function isBetween(number: number, a: number, b: number): boolean {
   const min = Math.min(a, b);
@@ -43,7 +42,7 @@ export const Chat = (
     [chatRenderOffset, height, fullChatLines],
   );
 
-  let renderedChatWrappedLinesNumber: number = React.useMemo(() => {
+  const renderedChatWrappedLinesNumber: number = React.useMemo(() => {
     let num = 0;
     for (let i = 0; i < renderedChatContentLines.length; i += 1) {
       const w = dims.cols * 1.1;
@@ -71,7 +70,7 @@ export const Chat = (
   }, [cursorLineIndex, chatRenderOffset]);
 
   const scrollDownBy = React.useCallback((num: number) => {
-    let newCursorLineIndex = cursorLineIndex + num;
+    const newCursorLineIndex = cursorLineIndex + num;
     if (
       newCursorLineIndex > fullChatLinesNumber + CURSOR_SCROLL_PADDING
     ) {
@@ -115,7 +114,7 @@ export const Chat = (
         }
       }
       if (_input === "y") {
-        const clipped = fullChatLines.filter((line, index) => {
+        const clipped = fullChatLines.filter((_, index) => {
           return isBetween(
             index,
             selectionOriginLineIndex || cursorLineIndex,

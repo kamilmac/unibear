@@ -1,10 +1,10 @@
 import React from "npm:react";
-import { Box, Text, useFocus, useFocusManager, useInput } from "npm:ink";
+import { Box, Text, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/index.ts";
-import { COMMAND_PREFIX } from "../utils/constants.ts";
+import { COMMAND_PREFIX, TEXT_AREA_HEIGHT } from "../utils/constants.ts";
 import { commands } from "../utils/cli.ts";
 
-export const UserInput = ({ height }: { height: number }) => {
+export const UserInput = () => {
   const [input, setInput] = React.useState("");
   const submit = useStore((store) => store.onSubmitUserPrompt);
   const dims = useStore((store) => store.dimensions);
@@ -42,7 +42,7 @@ export const UserInput = ({ height }: { height: number }) => {
     <Box
       borderStyle="round"
       borderColor="grey"
-      height={height}
+      height={TEXT_AREA_HEIGHT}
       flexDirection="row"
     >
       <Box
@@ -52,7 +52,7 @@ export const UserInput = ({ height }: { height: number }) => {
       </Box>
       <Box
         width={dims.cols - 6}
-        height={height - 2}
+        height={TEXT_AREA_HEIGHT - 2}
         overflow="hidden"
       >
         <Text color={isStreaming ? "grey" : "white"}>

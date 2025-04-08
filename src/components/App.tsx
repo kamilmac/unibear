@@ -4,8 +4,7 @@ import { useStore } from "../store/index.ts";
 import { UserInput } from "./UserInput.tsx";
 import { StatusLine } from "./StatusLine.tsx";
 import { Chat } from "./Chat.tsx";
-
-const TEXT_AREA_HEIGHT = 6;
+import { TEXT_AREA_HEIGHT } from "../utils/constants.ts";
 
 export const App = () => {
   const { exit } = useApp();
@@ -22,7 +21,6 @@ export const App = () => {
     if ((key.ctrl && _input === "q") || (key.ctrl && _input === "c")) {
       exit();
       Deno.stdout.writeSync(new TextEncoder().encode("\x1b[?1049l")); // Exit alternate screen
-      // process.exit(0);
     }
 
     if (opMode === "insert" && key.escape) {
@@ -53,9 +51,7 @@ export const App = () => {
           height={chatHeight}
         />
       </Box>
-      <UserInput
-        height={TEXT_AREA_HEIGHT}
-      />
+      <UserInput />
       <StatusLine />
     </Box>
   );

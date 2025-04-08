@@ -1,8 +1,7 @@
 import { OpenAI } from "npm:openai";
 
 const openai = new OpenAI({
-  apiKey:
-    "sk-SLVQgBG7ACn1N6vxsAyra9CnQa7e7i4NghA67rt8x4T3BlbkFJwbeX0mRL4IrPBgjhf5D3t4aDAoSLOmuTPIMqaeaysA",
+  apiKey: Deno.env.get("OPENAI_API_KEY"),
 });
 
 export const streamOpenAIResponse = async (

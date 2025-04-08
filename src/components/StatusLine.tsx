@@ -25,7 +25,7 @@ export const StatusLine = () => {
       <Text>{modes[opMode]}</Text>
       <Box justifyContent="flex-end">
         {files.length > 0
-          ? <Text color="green" backgroundColor="green">{files.length}F</Text>
+          ? <Text color="black" backgroundColor="green">{files.length}F</Text>
           : <Text color="white">{files.length}F</Text>}
         <Text>{" "}</Text>
         {gitDiffEnabled
