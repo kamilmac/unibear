@@ -31,6 +31,10 @@ export const App = () => {
       setOpMode("insert");
       return;
     }
+    if (opMode === "normal" && key.shift && _input === ":") {
+      setOpMode("command");
+      return;
+    }
   });
 
   const chatHeight = opMode === "normal"
