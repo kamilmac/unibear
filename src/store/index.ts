@@ -52,6 +52,13 @@ let latestChatItemId = 0;
 
 const getNewChatItemId = () => ++latestChatItemId;
 
+const countTokens = (str: string): number => {
+  return str
+    .split("  ")
+    .filter((char) => char !== " ")
+    .join("").length / 3.7;
+};
+
 export const useStore = create<Store>((set, get) => ({
   init: () => {
     // Enter alt screen
@@ -144,12 +151,10 @@ export const useStore = create<Store>((set, get) => ({
       type: "ai",
     };
     get().setOperationMode("normal");
-    set({ isStreamingResponse: true });
     const context = filesContext + chat.map((c) => c.content).join("\n");
     set({
-      tokensInput: context.split("  ").filter((char) =>
-        char !== " "
-      ).join("").length / 3.7,
+      isStreamingResponse: true,
+      tokensInput: countTokens(context),
     });
     await streamOpenAIResponse(
       context,
@@ -165,9 +170,7 @@ export const useStore = create<Store>((set, get) => ({
     );
     set({
       isStreamingResponse: false,
-      tokensOutput: aiChatitem.content.split("  ").filter((char) =>
-        char !== " "
-      ).join("").length / 3.7,
+      tokensOutput: countTokens(aiChatitem.content),
     });
   },
   injectContext: (content, visibleContent) => {
