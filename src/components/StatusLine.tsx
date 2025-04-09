@@ -13,9 +13,9 @@ export const StatusLine = () => {
   );
 
   const modes = {
-    insert: COLORS.promptIndicator(" PROMPT "),
-    normal: COLORS.visualIndicator(" VISUAL "),
-    command: COLORS.commandIndicator(" COMMAND "),
+    insert: COLORS.prompt(" PROMPT "),
+    normal: COLORS.visual(" VISUAL "),
+    command: COLORS.command(" COMMAND "),
   };
 
   return (
@@ -23,7 +23,7 @@ export const StatusLine = () => {
       justifyContent="space-between"
       height={1}
     >
-      <Text>{modes[opMode]}</Text>
+      <Text inverse>{modes[opMode]}</Text>
       <Box justifyContent="flex-end">
         <Text>
           {files.length > 0

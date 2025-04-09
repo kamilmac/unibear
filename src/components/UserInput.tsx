@@ -71,8 +71,8 @@ export const UserInput = () => {
         height={TEXT_AREA_HEIGHT - 2}
         overflow="hidden"
       >
-        <Text color={isStreaming ? COLORS.textDisabled : COLORS.text}>
-          {input + "█"}
+        <Text dimColor={isStreaming}>
+          {input + COLORS.cursor("█")}
         </Text>
       </Box>
     </Box>
