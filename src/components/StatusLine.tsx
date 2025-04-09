@@ -1,4 +1,3 @@
-import chalk from "npm:chalk";
 import React from "npm:react";
 import { Box, Text } from "npm:ink";
 import { useStore } from "../store/index.ts";

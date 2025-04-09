@@ -1,7 +1,11 @@
 import React from "npm:react";
 import { Box, Text, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/index.ts";
-import { COMMAND_PREFIX, TEXT_AREA_HEIGHT } from "../utils/constants.ts";
+import {
+  COLORS,
+  COMMAND_PREFIX,
+  TEXT_AREA_HEIGHT,
+} from "../utils/constants.ts";
 import { commands } from "../utils/cli.ts";
 
 export const UserInput = () => {
@@ -50,7 +54,7 @@ export const UserInput = () => {
   return (
     <Box
       borderStyle="round"
-      borderColor="grey"
+      borderColor={COLORS.border}
       height={TEXT_AREA_HEIGHT}
       flexDirection="row"
     >
@@ -58,16 +62,16 @@ export const UserInput = () => {
         width={3}
       >
         {opMode === "insert" &&
-          <Text>{" > "}</Text>}
+          <Text>{COLORS.prompt(" > ")}</Text>}
         {opMode === "command" &&
-          <Text>{` ${COMMAND_PREFIX} `}</Text>}
+          <Text>{COLORS.command(` ${COMMAND_PREFIX} `)}</Text>}
       </Box>
       <Box
         width={dims.cols - 6}
         height={TEXT_AREA_HEIGHT - 2}
         overflow="hidden"
       >
-        <Text color={isStreaming ? "grey" : "white"}>
+        <Text color={isStreaming ? COLORS.textDisabled : COLORS.text}>
           {input + "█"}
         </Text>
       </Box>

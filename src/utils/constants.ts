@@ -30,13 +30,24 @@ const HEX_COLORS = {
   green: "#00ff00",
   blue: "#0000ff",
   grey: "#999999",
+  darkGrey: "#333333",
 };
-export const COLORS = {
+
+const DARK_THEME = {
+  prompt: chalk.hex(HEX_COLORS.green),
+  command: chalk.hex(HEX_COLORS.red),
+  visual: chalk.hex(HEX_COLORS.blue),
   promptIndicator: chalk.bgHex(HEX_COLORS.green).hex(HEX_COLORS.black),
   commandIndicator: chalk.bgHex(HEX_COLORS.red).hex(HEX_COLORS.black),
   visualIndicator: chalk.bgHex(HEX_COLORS.blue).hex(HEX_COLORS.black),
   statusLineInactive: chalk.hex(HEX_COLORS.grey),
   statusLineActive: chalk.bgHex(HEX_COLORS.green).hex(HEX_COLORS.black),
   banner: chalk.hex(HEX_COLORS.red),
-  text: chalk.hex(HEX_COLORS.white),
+  text: HEX_COLORS.white,
+  textDisabled: HEX_COLORS.grey,
+  border: HEX_COLORS.darkGrey,
+  cursor: HEX_COLORS.white,
+  selectedLineBg: chalk.bgHex(HEX_COLORS.darkGrey),
 };
+
+export const COLORS = DARK_THEME;

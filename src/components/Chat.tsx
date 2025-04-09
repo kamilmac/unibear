@@ -1,10 +1,9 @@
 import React from "npm:react";
 import { Box, Text, useInput } from "npm:ink";
 import { useStore } from "../store/index.ts";
-import chalk from "npm:chalk";
 import stripAnsi from "npm:strip-ansi";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
-import { CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
+import { COLORS, CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
 
 function isBetween(number: number, a: number, b: number): boolean {
   const min = Math.min(a, b);
@@ -165,21 +164,21 @@ export const Chat = (
 
   const formattedContent = renderedChatContentLines.map((line, i) => {
     if (chatRenderOffset + i === cursorLineIndex && opMode === "normal") {
-      return chalk.bgGray(stripAnsi(line || " "));
+      return COLORS.selectedLineBg(stripAnsi(line || " "));
     }
     if (
       selectionOriginLineIndex &&
       (chatRenderOffset + i) >= selectionOriginLineIndex &&
       (chatRenderOffset + i) < cursorLineIndex
     ) {
-      return chalk.bgGray(stripAnsi(line));
+      return COLORS.selectedLineBg(stripAnsi(line));
     }
     if (
       selectionOriginLineIndex &&
       (chatRenderOffset + i) < selectionOriginLineIndex &&
       (chatRenderOffset + i) >= cursorLineIndex
     ) {
-      return chalk.bgGray(stripAnsi(line));
+      return COLORS.selectedLineBg(stripAnsi(line));
     }
     return line;
   }).join("\n");
@@ -187,7 +186,7 @@ export const Chat = (
   return (
     <Box
       borderStyle="round"
-      borderColor="grey"
+      borderColor={COLORS.border}
       height={height}
       flexDirection="column"
       overflow="hidden"

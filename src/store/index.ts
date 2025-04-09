@@ -1,10 +1,9 @@
 import { create } from "npm:zustand";
 import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
-import chalk from "npm:chalk";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import { BANNER, HELP_TEXT, IS_DEV } from "../utils/constants.ts";
+import { BANNER, COLORS, HELP_TEXT, IS_DEV } from "../utils/constants.ts";
 import { getGitDiffToBaseBranch } from "../utils/git.ts";
 
 marked.use(markedTerminal());
@@ -124,8 +123,8 @@ export const useStore = create<Store>((set, get) => ({
     {
       id: getNewChatItemId(),
       content: "",
-      visibleContent: chalk.red(BANNER).split("\n"),
-      type: "ai",
+      visibleContent: COLORS.banner(BANNER).split("\n"),
+      type: "command",
     },
   ],
   appendChatItem: (content, visibleContent, type) => {
@@ -135,14 +134,16 @@ export const useStore = create<Store>((set, get) => ({
       visibleContent: [],
       type,
     };
-    if (type === "command") {
-      newChatItem.visibleContent = marked.parse(
-        "\n " + visibleContent + " ",
-      ).split("\n");
+    if (type === "injector") {
+      newChatItem.visibleContent = [COLORS.command(visibleContent)];
+    } else if (type === "command") {
+      newChatItem.visibleContent = marked.parse(visibleContent)
+        .split("\n");
+    } else if (type === "user") {
+      newChatItem.visibleContent = marked.parse(COLORS.prompt(visibleContent))
+        .split("\n");
     } else {
-      newChatItem.visibleContent = marked.parse(chalk.bgMagentaBright.black(
-        "\n " + visibleContent + " ",
-      )).split("\n");
+      newChatItem.visibleContent = marked.parse(visibleContent).split("\n");
     }
     set((state) => ({
       chat: state.chat.concat(newChatItem),
