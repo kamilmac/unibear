@@ -199,6 +199,7 @@ export const Chat = (
       >
         <Text>{formattedContent}</Text>
       </Box>
+      <Text>GENERATING....</Text>
     </Box>
   );
 };

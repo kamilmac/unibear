@@ -3,7 +3,13 @@ import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import { BANNER, COLORS, HELP_TEXT, IS_DEV } from "../utils/constants.ts";
+import {
+  BANNER,
+  COLORS,
+  HELP_TEXT,
+  IS_DEV,
+  SYSTEM,
+} from "../utils/constants.ts";
 import { getGitDiffToBaseBranch } from "../utils/git.ts";
 
 marked.use(markedTerminal());
@@ -135,13 +141,16 @@ export const useStore = create<Store>((set, get) => ({
       type,
     };
     if (type === "injector") {
-      newChatItem.visibleContent = [COLORS.command(visibleContent)];
+      newChatItem.visibleContent = [
+        COLORS.command("COMMAND: ") + visibleContent + "\n",
+      ];
     } else if (type === "command") {
       newChatItem.visibleContent = marked.parse(visibleContent)
         .split("\n");
     } else if (type === "user") {
-      newChatItem.visibleContent = marked.parse(COLORS.prompt(visibleContent))
-        .split("\n");
+      newChatItem.visibleContent = [
+        COLORS.prompt("USER: ") + visibleContent + "\n",
+      ];
     } else {
       newChatItem.visibleContent = marked.parse(visibleContent).split("\n");
     }
@@ -179,7 +188,8 @@ export const useStore = create<Store>((set, get) => ({
     set({
       isStreamingResponse: true,
       tokensInput: countTokens(
-        gitContext + filesContext + chat.map((c) => c.content).join("\n"),
+        SYSTEM + gitContext + filesContext +
+          chat.map((c) => c.content).join("\n"),
       ),
     });
     await streamOpenAIResponse(
