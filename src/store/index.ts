@@ -178,7 +178,9 @@ export const useStore = create<Store>((set, get) => ({
     const context = gitContext + filesContext;
     set({
       isStreamingResponse: true,
-      tokensInput: countTokens(context),
+      tokensInput: countTokens(
+        gitContext + filesContext + chat.map((c) => c.content).join("\n"),
+      ),
     });
     await streamOpenAIResponse(
       context,
