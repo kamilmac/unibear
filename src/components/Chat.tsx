@@ -175,7 +175,7 @@ export const Chat = (
     }
     if (
       selectionOriginLineIndex &&
-      (chatRenderOffset + i) < selectionOriginLineIndex &&
+      (chatRenderOffset + i) <= selectionOriginLineIndex &&
       (chatRenderOffset + i) >= cursorLineIndex
     ) {
       return COLORS.selectedLineBg(stripAnsi(line));
