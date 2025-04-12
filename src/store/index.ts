@@ -175,14 +175,14 @@ export const useStore = create<Store>((set, get) => ({
       type: "ai",
     };
     get().setOperationMode("normal");
-    const context = gitContext + filesContext +
-      chat.map((c) => c.content).join("\n");
+    const context = gitContext + filesContext;
     set({
       isStreamingResponse: true,
       tokensInput: countTokens(context),
     });
     await streamOpenAIResponse(
       context,
+      chat,
       (chunk) => {
         aiChatitem.content += chunk;
         aiChatitem.visibleContent = marked.parse(aiChatitem.content).split(
