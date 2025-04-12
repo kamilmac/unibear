@@ -191,6 +191,7 @@ export const useStore = create<Store>((set, get) => ({
         SYSTEM + gitContext + filesContext +
           chat.map((c) => c.content).join("\n"),
       ),
+      chat: [...chat, aiChatitem],
     });
     await streamOpenAIResponse(
       context,

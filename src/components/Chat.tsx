@@ -199,7 +199,34 @@ export const Chat = (
       >
         <Text>{formattedContent}</Text>
       </Box>
-      <Text>GENERATING....</Text>
+      {chat[chat.length - 1].type === "ai" &&
+        chat[chat.length - 1].content === "" && <Status />}
     </Box>
   );
 };
+
+const Status = () => {
+  const [char, setChar] = React.useState("j");
+
+  React.useEffect(() => {
+    const int = setInterval(() => {
+      setChar(
+        randomizeCharacter(
+          "asjfehkljasghdfijaseifhgyuaggDKYHJFGKYHJGHJLGHJKGJY837265489723958",
+        ),
+      );
+    }, 100);
+    return () => clearInterval(int);
+  }, []);
+
+  return <Text>{char}</Text>;
+};
+
+function randomizeCharacter(str: string): string {
+  if (!str) {
+    return "";
+  }
+  const characters = str.split("");
+  const randomIndex = Math.floor(Math.random() * characters.length);
+  return characters[randomIndex];
+}
