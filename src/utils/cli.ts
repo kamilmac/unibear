@@ -140,6 +140,7 @@ export const commands: Record<string, Command> = {
   "commit": {
     process: async () => {
       const diff = await getGitDiffToLatestCommit();
+      if (!diff) return;
       const commitMsg = await generateCommitMessage(diff);
       commitAllChanges(commitMsg);
       useStore.getState().appendChatItem(
