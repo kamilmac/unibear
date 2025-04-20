@@ -139,6 +139,7 @@ export const commands: Record<string, Command> = {
   },
   "commit": {
     process: async () => {
+      useStore.setState(() => ({ isCommandInFlight: true }));
       const diff = await getGitDiffToLatestCommit();
       if (!diff) {
         useStore.getState().appendChatItem(
@@ -146,10 +147,12 @@ export const commands: Record<string, Command> = {
           "No changes to commit",
           "command",
         );
+        useStore.setState(() => ({ isCommandInFlight: false }));
         return;
       }
       const commitMsg = await generateCommitMessage(diff);
       commitAllChanges(commitMsg);
+      useStore.setState(() => ({ isCommandInFlight: false }));
       useStore.getState().appendChatItem(
         "",
         `Commited all changes: ${commitMsg}`,

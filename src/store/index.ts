@@ -50,6 +50,7 @@ type Store = {
     type: ChatItemType,
   ) => ChatItem[];
   isStreamingResponse: boolean;
+  isCommandInFlight: boolean;
   injectClipboard: () => void;
   tokensInput: number;
   tokensOutput: number;
@@ -114,6 +115,7 @@ export const useStore = create<Store>((set, get) => ({
     });
     get().appendChatItem("", `Added ${filePath} to context.`, "injector");
   },
+  isCommandInFlight: false,
   isStreamingResponse: false,
   operationMode: "insert",
   setOperationMode: (mode) => {

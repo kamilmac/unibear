@@ -17,6 +17,7 @@ export const Chat = (
   const chat = useStore((store) => store.chat);
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
+  const isCommandInFlight = useStore((store) => store.isCommandInFlight);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
   const [selectionOriginLineIndex, setSelectionOriginLineIndex] = React
@@ -199,8 +200,9 @@ export const Chat = (
       >
         <Text>{formattedContent}</Text>
       </Box>
-      {chat[chat.length - 1].type === "ai" &&
-        chat[chat.length - 1].content === "" && <Status />}
+      {(chat[chat.length - 1].type === "ai" &&
+        chat[chat.length - 1].content === "") ||
+        isCommandInFlight && <Status />}
     </Box>
   );
 };
