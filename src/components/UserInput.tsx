@@ -6,12 +6,12 @@ import {
   COMMAND_PREFIX,
   TEXT_AREA_HEIGHT,
 } from "../utils/constants.ts";
-import { commands } from "../utils/cli.ts";
 
 export const UserInput = () => {
   const [input, setInput] = React.useState("");
   const submit = useStore((store) => store.onSubmitUserPrompt);
   const dims = useStore((store) => store.dimensions);
+  const commands = useStore((store) => store.commands);
   const { enableFocus } = useFocusManager();
   const isStreaming = useStore((store) => store.isStreamingResponse);
   const opMode = useStore((store) => store.operationMode);

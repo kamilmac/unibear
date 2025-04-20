@@ -1,5 +1,9 @@
 import { create } from "npm:zustand";
-import { streamOpenAIResponse } from "../services/openai.ts";
+import {
+  generateCommitMessage,
+  generatePRDescription,
+  streamOpenAIResponse,
+} from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
@@ -10,7 +14,11 @@ import {
   IS_DEV,
   SYSTEM,
 } from "../utils/constants.ts";
-import { getGitDiffToBaseBranch } from "../utils/git.ts";
+import {
+  commitAllChanges,
+  getGitDiffToBaseBranch,
+  getGitDiffToLatestCommit,
+} from "../utils/git.ts";
 
 marked.use(markedTerminal());
 
@@ -25,6 +33,10 @@ export type ChatItem = {
 };
 
 type OperationMode = "insert" | "normal" | "command";
+
+type Command = {
+  process: () => void;
+};
 
 type Store = {
   init: () => void;
@@ -55,6 +67,7 @@ type Store = {
   tokensInput: number;
   tokensOutput: number;
   injectContext: (content: string, visibleContent: string) => void;
+  commands: Record<string, Command>;
 };
 
 let latestChatItemId = 0;
@@ -215,6 +228,81 @@ export const useStore = create<Store>((set, get) => ({
   },
   injectContext: (content, visibleContent) => {
     get().appendChatItem(content, visibleContent, "injector");
+  },
+  commands: {
+    "toggle_git_diff": {
+      process: () => {
+        useStore.getState().toggleGitDiffToBaseBranchInContext();
+        let msg = "Enabled Git Diff to Base branch injection";
+        if (!useStore.getState().isGitBaseDiffInjectionEnabled) {
+          msg = "Disabled Git Diff to Base branch injection";
+        }
+        useStore.getState().appendChatItem(
+          "",
+          msg,
+          "command",
+        );
+      },
+    },
+    "clear": {
+      process: () => {
+        useStore.getState().clearChatHistory();
+      },
+    },
+    "help": {
+      process: () => {
+        useStore.getState().appendChatItem(
+          "",
+          HELP_TEXT,
+          "command",
+        );
+      },
+    },
+    "commit": {
+      process: async () => {
+        useStore.setState(() => ({ isCommandInFlight: true }));
+        const diff = await getGitDiffToLatestCommit();
+        if (!diff) {
+          useStore.getState().appendChatItem(
+            "",
+            "No changes to commit",
+            "command",
+          );
+          useStore.setState(() => ({ isCommandInFlight: false }));
+          return;
+        }
+        const commitMsg = await generateCommitMessage(diff);
+        commitAllChanges(commitMsg);
+        useStore.setState(() => ({ isCommandInFlight: false }));
+        useStore.getState().appendChatItem(
+          "",
+          `Commited all changes: ${commitMsg}`,
+          "command",
+        );
+      },
+    },
+    "pr": {
+      process: async () => {
+        useStore.setState(() => ({ isCommandInFlight: true }));
+        const diff = await getGitDiffToBaseBranch();
+        if (!diff) {
+          useStore.getState().appendChatItem(
+            "",
+            "No changes to base branch",
+            "command",
+          );
+          useStore.setState(() => ({ isCommandInFlight: false }));
+          return;
+        }
+        const prDesc = await generatePRDescription(diff);
+        useStore.setState(() => ({ isCommandInFlight: false }));
+        useStore.getState().appendChatItem(
+          "",
+          `Commited all changes: ${prDesc}`,
+          "command",
+        );
+      },
+    },
   },
 }));
 
