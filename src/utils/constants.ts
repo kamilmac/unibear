@@ -26,20 +26,27 @@ export const HELP_TEXT = `
 const HEX_COLORS = {
   white: "#ffffff",
   black: "#000000",
-  red: "#ff0000",
   green: "#00ff00",
   blue: "#0000ff",
   grey: "#999999",
   darkGrey: "#333333",
   lightGrey: "#cccccc",
+  navy: "#2C3E50", // deep base
+  teal: "#1ABC9C", // calm accent
+  skyBlue: "#3498DB", // bright highlight
+  orange: "#E67E22", // warm contrast
+  red: "#E74C3C", // alert/danger
+  purple: "#9B59B6", // secondary accent
+  greyLight: "#ECF0F1", // backgrounds
+  greyDark: "#95A5A6", // text/lines
 };
 
 const DARK_THEME = {
-  prompt: chalk.bold.hex(HEX_COLORS.green),
+  prompt: chalk.bold.hex(HEX_COLORS.teal),
   command: chalk.hex(HEX_COLORS.red),
   visual: chalk.hex(HEX_COLORS.white),
   statusLineInactive: chalk.hex(HEX_COLORS.grey),
-  statusLineActive: chalk.bgHex(HEX_COLORS.green).hex(HEX_COLORS.black),
+  statusLineActive: chalk.bgHex(HEX_COLORS.teal).hex(HEX_COLORS.black),
   banner: chalk.hex(HEX_COLORS.red),
   border: HEX_COLORS.darkGrey,
   cursor: chalk.hex(HEX_COLORS.lightGrey),

@@ -1,5 +1,7 @@
+import { generateCommitMessage } from "../services/openai.ts";
 import { useStore } from "../store/index.ts";
 import { HELP_TEXT, PORT } from "./constants.ts";
+import { commitAllChanges, getGitDiffToLatestCommit } from "./git.ts";
 
 // Function to check if a port is in use
 async function isPortInUse(port: number): Promise<boolean> {
@@ -131,6 +133,18 @@ export const commands: Record<string, Command> = {
       useStore.getState().appendChatItem(
         "",
         HELP_TEXT,
+        "command",
+      );
+    },
+  },
+  "commit": {
+    process: async () => {
+      const diff = await getGitDiffToLatestCommit();
+      const commitMsg = await generateCommitMessage(diff);
+      commitAllChanges(commitMsg);
+      useStore.getState().appendChatItem(
+        "",
+        `Commited all changes: ${commitMsg}`,
         "command",
       );
     },
