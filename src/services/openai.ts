@@ -78,3 +78,40 @@ export const generateCommitMessage = async (
     throw err;
   }
 };
+
+export const generatePRDescription = async (
+  diff: string,
+): Promise<string> => {
+  if (!diff.trim()) {
+    throw new Error("Empty diff provided");
+  }
+
+  // Build messages
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    {
+      role: "system",
+      content: "You are an expert Git PR description generator. " +
+        "Given a unified diff, produse a concise, well-formatted PR description summarizing the changes in markdown format.",
+    },
+    {
+      role: "user",
+      content: `Here is the diff:\n\n${diff}`,
+    },
+  ];
+
+  try {
+    const res = await openai.chat.completions.create({
+      model: MODEL,
+      messages,
+    });
+
+    const msg = res.choices[0]?.message?.content;
+    if (!msg) {
+      throw new Error("No content returned from OpenAI");
+    }
+    return msg.trim();
+  } catch (err) {
+    console.error("generatePRDescription error:", err);
+    throw err;
+  }
+};

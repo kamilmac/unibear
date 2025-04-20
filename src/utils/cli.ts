@@ -1,7 +1,14 @@
-import { generateCommitMessage } from "../services/openai.ts";
+import {
+  generateCommitMessage,
+  generatePRDescription,
+} from "../services/openai.ts";
 import { useStore } from "../store/index.ts";
 import { HELP_TEXT, PORT } from "./constants.ts";
-import { commitAllChanges, getGitDiffToLatestCommit } from "./git.ts";
+import {
+  commitAllChanges,
+  getGitDiffToBaseBranch,
+  getGitDiffToLatestCommit,
+} from "./git.ts";
 
 // Function to check if a port is in use
 async function isPortInUse(port: number): Promise<boolean> {
@@ -156,6 +163,28 @@ export const commands: Record<string, Command> = {
       useStore.getState().appendChatItem(
         "",
         `Commited all changes: ${commitMsg}`,
+        "command",
+      );
+    },
+  },
+  "pr": {
+    process: async () => {
+      useStore.setState(() => ({ isCommandInFlight: true }));
+      const diff = await getGitDiffToBaseBranch();
+      if (!diff) {
+        useStore.getState().appendChatItem(
+          "",
+          "No changes to base branch",
+          "command",
+        );
+        useStore.setState(() => ({ isCommandInFlight: false }));
+        return;
+      }
+      const prDesc = await generatePRDescription(diff);
+      useStore.setState(() => ({ isCommandInFlight: false }));
+      useStore.getState().appendChatItem(
+        "",
+        `Commited all changes: ${prDesc}`,
         "command",
       );
     },
