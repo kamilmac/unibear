@@ -2,6 +2,7 @@ import { StoreApi } from "npm:zustand/vanilla";
 import {
   generateCommitMessage,
   generatePRDescription,
+  generatePRReview,
 } from "../services/openai.ts";
 import {
   getGitDiffToBaseBranch,
@@ -38,7 +39,7 @@ export function buildCommands(
         get().appendChatItem("", helpText, "command");
       },
     },
-    commit: {
+    "git-commit": {
       desc: "Creates relevant messages and commits all changes",
       process: async () => {
         set({ isCommandInFlight: true });
@@ -53,8 +54,8 @@ export function buildCommands(
         get().appendChatItem("", `Committed all changes: ${msg}`, "command");
       },
     },
-    pr: {
-      desc: "Creates description for GH PR",
+    "git-pr": {
+      desc: "Creates description for GH PR (diff to base branch)",
       process: async () => {
         set({ isCommandInFlight: true });
         const diff = await getGitDiffToBaseBranch();
@@ -64,7 +65,21 @@ export function buildCommands(
         }
         const desc = await generatePRDescription(diff);
         set({ isCommandInFlight: false });
-        get().appendChatItem("", `PR description: ${desc}`, "command");
+        get().appendChatItem(desc, `PR description: ${desc}`, "command");
+      },
+    },
+    "git-review": {
+      desc: "Reviews your changes (diff to base branch)",
+      process: async () => {
+        set({ isCommandInFlight: true });
+        const diff = await getGitDiffToBaseBranch();
+        if (!diff) {
+          get().appendChatItem("", "No changes to base branch", "command");
+          return set({ isCommandInFlight: false });
+        }
+        const review = await generatePRReview(diff);
+        set({ isCommandInFlight: false });
+        get().appendChatItem(review, `PR review: ${review}`, "command");
       },
     },
     "inject-file": {

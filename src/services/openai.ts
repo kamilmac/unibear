@@ -96,3 +96,9 @@ export const generatePRDescription = (diff: string) =>
     diff,
     "You are an expert Git PR description generator. Given a unified diff, produce a concise, well‑formatted PR description summarizing the changes in markdown format.",
   );
+
+export const generatePRReview = (diff: string) =>
+  genFromDiff(
+    diff,
+    "You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format",
+  );
