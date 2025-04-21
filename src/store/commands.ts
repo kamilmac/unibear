@@ -103,7 +103,7 @@ export function buildCommands(
       },
     },
     "inject-file": {
-      desc: "Injects file in the context.",
+      desc: "Injects file in the context",
       process: (arg?: string) => {
         if (!arg) return;
         get().appendChatItem(

@@ -8,9 +8,6 @@ export const StatusLine = () => {
   const tokensIn = useStore((store) => store.tokensInput);
   const tokensOut = useStore((store) => store.tokensOutput);
   const files = useStore((store) => store.filesInContext);
-  const gitDiffEnabled = useStore((store) =>
-    store.isGitBaseDiffInjectionEnabled
-  );
 
   const modes = {
     insert: COLORS.prompt(" PROMPT "),
@@ -29,9 +26,6 @@ export const StatusLine = () => {
           {files.length > 0
             ? COLORS.statusLineActive(`${files.length}F `)
             : COLORS.statusLineInactive(`${files.length}F `)}
-          {gitDiffEnabled
-            ? COLORS.statusLineActive("GD ")
-            : COLORS.statusLineInactive("GD ")}
           {COLORS.statusLineInactive(
             `${Math.round(tokensIn)}/${Math.round(tokensOut)}`,
           )}

@@ -20,8 +20,6 @@ type Store = {
     cols: number;
     rows: number;
   };
-  isGitBaseDiffInjectionEnabled: boolean;
-  toggleGitDiffToBaseBranchInContext: () => void;
   clearChatHistory: () => void;
   filesInContext: string[];
   addFileToContext: (filePath: string) => void;

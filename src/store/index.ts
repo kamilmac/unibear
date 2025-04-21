@@ -10,7 +10,6 @@ import {
   SYSTEM,
   THE_AI_NAME,
 } from "../utils/constants.ts";
-import { getGitDiffToBaseBranch } from "../utils/git.ts";
 import { buildCommands } from "./commands.ts";
 import { countTokens, getContentFromFile } from "../utils/helpers.ts";
 
@@ -34,11 +33,6 @@ export const useStore = create<Store>((set, get) => ({
       get().commands.help.process();
     }
   },
-  toggleGitDiffToBaseBranchInContext: () => {
-    set({
-      isGitBaseDiffInjectionEnabled: !get().isGitBaseDiffInjectionEnabled,
-    });
-  },
   isGitBaseDiffInjectionEnabled: false,
   injectClipboard: async () => {
     get().injectContext(await clippy.readText(), "Injected clipboard content");
@@ -50,7 +44,6 @@ export const useStore = create<Store>((set, get) => ({
       tokensOutput: 0,
       filesInContext: [],
       operationMode: "insert",
-      isGitBaseDiffInjectionEnabled: false,
     });
   },
   filesInContext: [],
@@ -119,14 +112,6 @@ export const useStore = create<Store>((set, get) => ({
         ${content}
       `;
     }
-    let gitContext = "";
-    if (get().isGitBaseDiffInjectionEnabled) {
-      const content = await getGitDiffToBaseBranch();
-      gitContext = `
-        Git diff to base branch:
-        ${content}  
-      `;
-    }
     const chat = get().appendChatItem(prompt, prompt, "user");
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
@@ -135,17 +120,16 @@ export const useStore = create<Store>((set, get) => ({
       type: "ai",
     };
     get().setOperationMode("normal");
-    const context = gitContext + filesContext;
     set({
       isStreamingResponse: true,
       tokensInput: countTokens(
-        SYSTEM + gitContext + filesContext +
+        SYSTEM + filesContext +
           chat.map((c) => c.content).join("\n"),
       ),
       chat: [...chat, aiChatitem],
     });
     await streamOpenAIResponse(
-      context,
+      filesContext,
       chat,
       (chunk) => {
         aiChatitem.content += chunk;
