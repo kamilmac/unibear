@@ -8,6 +8,7 @@ export const StatusLine = () => {
   const tokensIn = useStore((store) => store.tokensInput);
   const tokensOut = useStore((store) => store.tokensOutput);
   const files = useStore((store) => store.filesInContext);
+  const ws = useStore((store) => store.workspaceName);
 
   const modes = {
     insert: COLORS.prompt(" PROMPT "),
@@ -21,6 +22,7 @@ export const StatusLine = () => {
       height={1}
     >
       <Text inverse>{modes[opMode]}</Text>
+      <Text>{COLORS.statusLineInactive(ws)}</Text>
       <Box justifyContent="flex-end">
         <Text>
           {files.length > 0

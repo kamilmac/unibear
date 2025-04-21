@@ -35,6 +35,7 @@ type Store = {
     visibleContent: string,
     type: ChatItemType,
   ) => ChatItem[];
+  workspaceName: string;
   isStreamingResponse: boolean;
   injectClipboard: () => void;
   tokensInput: number;

@@ -12,6 +12,7 @@ import {
 } from "../utils/constants.ts";
 import { buildCommands } from "./commands.ts";
 import { countTokens, getContentFromFile } from "../utils/helpers.ts";
+import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 marked.use(markedTerminal());
 
@@ -46,6 +47,7 @@ export const useStore = create<Store>((set, get) => ({
       operationMode: "insert",
     });
   },
+  workspaceName: basename(Deno.cwd()),
   filesInContext: [],
   tokensInput: 0,
   tokensOutput: 0,
