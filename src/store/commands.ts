@@ -8,8 +8,7 @@ import {
   getGitDiffToLatestCommit,
 } from "../utils/git.ts";
 import { commitAllChanges } from "../utils/git.ts";
-import type { Command, Store } from "./index.ts";
-import { HELP_TEXT } from "../utils/constants.ts";
+import { COLORS } from "../utils/constants.ts";
 
 type GetState<T> = StoreApi<T>["getState"];
 type SetState<T> = StoreApi<T>["setState"];
@@ -19,18 +18,28 @@ export function buildCommands(
   set: SetState<Store>,
   get: GetState<Store>,
 ): Record<string, Command> {
-  return {
-    clear: {
+  const commands: Record<string, Command> = {
+    reset: {
+      desc: "Clears whole context and history",
       process: () => {
         get().clearChatHistory();
       },
     },
     help: {
+      desc: "HELP!",
       process: () => {
-        get().appendChatItem("", HELP_TEXT, "command");
+        // build a nice summary
+        const lines = Object.entries(commands).map(
+          ([name, cmd]) =>
+            `- :${COLORS.command(name.padEnd(12))} – ${cmd.desc}`,
+        );
+        lines.unshift("## Available commands: ");
+        const helpText = lines.join("\n");
+        get().appendChatItem("", helpText, "command");
       },
     },
     commit: {
+      desc: "Creates relevant messages and commits all changes",
       process: async () => {
         set({ isCommandInFlight: true });
         const diff = await getGitDiffToLatestCommit();
@@ -45,6 +54,7 @@ export function buildCommands(
       },
     },
     pr: {
+      desc: "Creates description for GH PR",
       process: async () => {
         set({ isCommandInFlight: true });
         const diff = await getGitDiffToBaseBranch();
@@ -58,6 +68,7 @@ export function buildCommands(
       },
     },
     "inject-file": {
+      desc: "Injects file in the context.",
       process: async (arg?: string) => {
         if (!arg) return;
         const absolute = arg.startsWith("/") ? arg : `${Deno.cwd()}/${arg}`;
@@ -65,4 +76,5 @@ export function buildCommands(
       },
     },
   };
+  return commands;
 }

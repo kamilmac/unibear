@@ -1,0 +1,48 @@
+type ChatItemType = "user" | "ai" | "injector" | "command";
+
+type ChatItem = {
+  id: number;
+  content: string;
+  visibleContent: string[];
+  type: ChatItemType;
+  status?: string;
+};
+
+type OperationMode = "insert" | "normal" | "command";
+
+type Command = {
+  desc: string;
+  process: (arg?: string) => void;
+};
+
+type Store = {
+  init: () => void;
+  dimensions: {
+    cols: number;
+    rows: number;
+  };
+  isGitBaseDiffInjectionEnabled: boolean;
+  toggleGitDiffToBaseBranchInContext: () => void;
+  clearChatHistory: () => void;
+  filesInContext: string[];
+  addFileToContext: (filePath: string) => void;
+  operationMode: OperationMode;
+  setOperationMode: (mode: OperationMode) => void;
+  systemMessage: string;
+  textArea: string;
+  setTextArea: (text: string) => void;
+  chat: ChatItem[];
+  onSubmitUserPrompt: (prompt: string) => void;
+  appendChatItem: (
+    content: string,
+    visibleContent: string,
+    type: ChatItemType,
+  ) => ChatItem[];
+  isStreamingResponse: boolean;
+  isCommandInFlight: boolean;
+  injectClipboard: () => void;
+  tokensInput: number;
+  tokensOutput: number;
+  injectContext: (content: string, visibleContent: string) => void;
+  commands: Record<string, Command>;
+};

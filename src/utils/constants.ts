@@ -17,12 +17,6 @@ export const BANNER = `
    ░        ░ ░           ░ ░  ░      ░  ░   ░  ░
  ░                                               
 `;
-export const HELP_TEXT = `
-  ## Supported commands:
-  **:toggle_git_diff** -> attach git diff with your base (master|main) branch to context  
-  **:clear** -> clear whole context and history
-  **:help** -> you are here you majestic donkey
-`;
 const HEX_COLORS = {
   white: "#ffffff",
   black: "#000000",

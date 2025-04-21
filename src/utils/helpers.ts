@@ -47,3 +47,21 @@ export async function handleCliArgs(): Promise<boolean> {
 
   return true;
 }
+
+export const getContentFromFile = async (
+  filePath: string,
+): Promise<string | undefined> => {
+  try {
+    const fileContent = await Deno.readTextFile(filePath);
+    return fileContent;
+  } catch (error) {
+    console.error("Error reading file: ", error);
+  }
+};
+
+export const countTokens = (str: string): number => {
+  return str
+    .split("  ")
+    .filter((char) => char !== " ")
+    .join("").length / 3.7;
+};

@@ -3,76 +3,16 @@ import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import {
-  BANNER,
-  COLORS,
-  HELP_TEXT,
-  IS_DEV,
-  SYSTEM,
-} from "../utils/constants.ts";
+import { BANNER, COLORS, IS_DEV, SYSTEM } from "../utils/constants.ts";
 import { getGitDiffToBaseBranch } from "../utils/git.ts";
 import { buildCommands } from "./commands.ts";
+import { countTokens, getContentFromFile } from "../utils/helpers.ts";
 
 marked.use(markedTerminal());
-
-export type ChatItemType = "user" | "ai" | "injector" | "command";
-
-export type ChatItem = {
-  id: number;
-  content: string;
-  visibleContent: string[];
-  type: ChatItemType;
-  status?: string;
-};
-
-type OperationMode = "insert" | "normal" | "command";
-
-export type Command = {
-  process: (arg?: string) => void;
-};
-
-export type Store = {
-  init: () => void;
-  dimensions: {
-    cols: number;
-    rows: number;
-  };
-  isGitBaseDiffInjectionEnabled: boolean;
-  toggleGitDiffToBaseBranchInContext: () => void;
-  clearChatHistory: () => void;
-  filesInContext: string[];
-  addFileToContext: (filePath: string) => void;
-  operationMode: OperationMode;
-  setOperationMode: (mode: OperationMode) => void;
-  systemMessage: string;
-  textArea: string;
-  setTextArea: (text: string) => void;
-  chat: ChatItem[];
-  onSubmitUserPrompt: (prompt: string) => void;
-  appendChatItem: (
-    content: string,
-    visibleContent: string,
-    type: ChatItemType,
-  ) => ChatItem[];
-  isStreamingResponse: boolean;
-  isCommandInFlight: boolean;
-  injectClipboard: () => void;
-  tokensInput: number;
-  tokensOutput: number;
-  injectContext: (content: string, visibleContent: string) => void;
-  commands: Record<string, Command>;
-};
 
 let latestChatItemId = 0;
 
 const getNewChatItemId = () => ++latestChatItemId;
-
-const countTokens = (str: string): number => {
-  return str
-    .split("  ")
-    .filter((char) => char !== " ")
-    .join("").length / 3.7;
-};
 
 export const useStore = create<Store>((set, get) => ({
   init: () => {
@@ -85,7 +25,7 @@ export const useStore = create<Store>((set, get) => ({
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
     if (IS_DEV) {
-      get().appendChatItem("", marked.parse(HELP_TEXT), "command");
+      get().commands.help.process();
     }
   },
   toggleGitDiffToBaseBranchInContext: () => {
@@ -224,14 +164,3 @@ export const useStore = create<Store>((set, get) => ({
   },
   commands: buildCommands(set, get),
 }));
-
-const getContentFromFile = async (
-  filePath: string,
-): Promise<string | undefined> => {
-  try {
-    const fileContent = await Deno.readTextFile(filePath);
-    return fileContent;
-  } catch (error) {
-    console.error("Error reading file: ", error);
-  }
-};
