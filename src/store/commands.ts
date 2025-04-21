@@ -69,7 +69,7 @@ export function buildCommands(
       process: async () => {
         get().appendChatItem(
           "",
-          ":git-pr",
+          "git-pr",
           "command",
         );
         set({ isStreamingResponse: true });
@@ -88,7 +88,7 @@ export function buildCommands(
       process: async () => {
         get().appendChatItem(
           "",
-          ":git-review",
+          "git-review",
           "command",
         );
         set({ isStreamingResponse: true });
@@ -108,7 +108,7 @@ export function buildCommands(
         if (!arg) return;
         get().appendChatItem(
           "",
-          `:inject-file ${arg}`,
+          `inject-file ${arg}`,
           "command",
         );
         const absolute = arg.startsWith("/") ? arg : `${Deno.cwd()}/${arg}`;
