@@ -1,4 +1,3 @@
-import { useStore } from "../store/index.ts";
 import { PORT } from "./constants.ts";
 
 // Function to check if a port is in use
