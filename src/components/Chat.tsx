@@ -96,7 +96,7 @@ export const Chat = (
   React.useEffect(() => {
     if (fullChatLinesNumber < 4) {
       setChatRenderOffset(0);
-      setCursorLineIndex(0);
+      setCursorLineIndex(1);
     }
   }, [fullChatLinesNumber]);
 

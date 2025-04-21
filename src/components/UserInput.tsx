@@ -38,7 +38,7 @@ export const UserInput = () => {
       if (isStreaming) return;
       if (opMode === "command" && input.length > 0) {
         const command = input.trim();
-        setOpMode("insert");
+        setOpMode("normal");
         commands[command]?.process?.();
       } else {
         submit(input);

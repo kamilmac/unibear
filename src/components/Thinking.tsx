@@ -1,7 +1,6 @@
 // WaveLoader.tsx
 import React from "react";
 import { Box, Text } from "ink";
-import { useStore } from "../store/index.ts";
 
 export const framesSets: Record<string, string[]> = {
   line: ["-", "\\", "|", "/"],
