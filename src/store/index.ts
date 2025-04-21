@@ -88,11 +88,7 @@ export const useStore = create<Store>((set, get) => ({
       visibleContent: [],
       type,
     };
-    if (type === "injector") {
-      newChatItem.visibleContent = [
-        COLORS.command("COMMAND: ") + visibleContent + "\n",
-      ];
-    } else if (type === "command") {
+    if (type === "command") {
       newChatItem.visibleContent = marked.parse(visibleContent)
         .split("\n");
     } else if (type === "user") {

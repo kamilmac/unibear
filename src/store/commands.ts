@@ -40,7 +40,7 @@ export function buildCommands(
       },
     },
     "git-commit": {
-      desc: "Creates relevant messages and commits all changes",
+      desc: "Commits all changes with relevant message",
       process: async () => {
         set({ isCommandInFlight: true });
         const diff = await getGitDiffToLatestCommit();
@@ -77,6 +77,14 @@ export function buildCommands(
           get().appendChatItem("", "No changes to base branch", "command");
           return set({ isCommandInFlight: false });
         }
+        if (!diff) {
+          get().appendChatItem(
+            "",
+            "Requested review of all changes to base branch...",
+            "command",
+          );
+          return set({ isCommandInFlight: false });
+        }
         const review = await generatePRReview(diff);
         set({ isCommandInFlight: false });
         get().appendChatItem(review, `PR review: ${review}`, "command");
@@ -84,7 +92,7 @@ export function buildCommands(
     },
     "inject-file": {
       desc: "Injects file in the context.",
-      process: async (arg?: string) => {
+      process: (arg?: string) => {
         if (!arg) return;
         const absolute = arg.startsWith("/") ? arg : `${Deno.cwd()}/${arg}`;
         get().addFileToContext(absolute);
