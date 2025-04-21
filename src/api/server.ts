@@ -7,59 +7,20 @@ export const initServer = async () => {
   const app = new Application();
   const router = new Router();
 
-  // POST endpoint to inject text
-  router.post("/inject/text", async (ctx) => {
+  router.post("/command/:command", async (ctx) => {
     try {
-      const body = await ctx.request.body.json();
-      const { text } = body;
-
-      if (!text) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Missing 'text' field in request body" };
-        return;
-      }
-
-      const visibleMessage = `Injected context: ${text.substring(0, 20)}${
-        text.length > 20 ? "..." : ""
-      }`;
-      useStore.getState().injectContext(text, visibleMessage);
-
+      const arg = await ctx.request.body.text();
+      useStore.getState().commands[ctx.params.command].process(arg || "");
       ctx.response.status = 200;
       ctx.response.body = {
         success: true,
-        message: "Text injected successfully",
+        message: "Succesfully parsed external command",
+        arg,
       };
     } catch (error) {
-      console.error("Error injecting text:", error);
+      console.error("Failed to parse external command", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Failed to inject text" };
-    }
-  });
-
-  // POST endpoint to inject file content
-  router.post("/inject/file", async (ctx) => {
-    try {
-      const body = await ctx.request.body.json();
-      const { filePath } = body;
-
-      if (!filePath) {
-        ctx.response.status = 400;
-        ctx.response.body = {
-          error: "Missing 'filePath' field in request body",
-        };
-        return;
-      }
-      useStore.getState().addFileToContext(filePath);
-      ctx.response.status = 200;
-      ctx.response.body = {
-        success: true,
-        message: "File content injected successfully",
-        filePath,
-      };
-    } catch (error) {
-      console.error("Error injecting file:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Failed to inject file" };
+      ctx.response.body = { error: "Failed to parse external command" };
     }
   });
 

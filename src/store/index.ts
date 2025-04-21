@@ -307,7 +307,8 @@ export const useStore = create<Store>((set, get) => ({
     "inject-file": {
       process: async (arg) => {
         if (!arg) return;
-        await injectFile(arg);
+        const absolutePath = arg.startsWith("/") ? arg : `${Deno.cwd()}/${arg}`;
+        get().addFileToContext(absolutePath);
       },
     },
   },
@@ -323,34 +324,3 @@ const getContentFromFile = async (
     console.error("Error reading file: ", error);
   }
 };
-
-// Function to send file path to the inject file endpoint
-async function injectFile(filePath: string): Promise<void> {
-  try {
-    // Convert to absolute path if not already
-    const absolutePath = filePath.startsWith("/")
-      ? filePath
-      : `${Deno.cwd()}/${filePath}`;
-
-    const response = await fetch(`http://localhost:${PORT}/inject/file`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ filePath: absolutePath }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        `Server responded with ${response.status}: ${
-          errorData.error || response.statusText
-        }`,
-      );
-    }
-
-    console.log(`File injected successfully: ${filePath}`);
-  } catch (error) {
-    console.error("Failed to inject file:", error);
-  }
-}
