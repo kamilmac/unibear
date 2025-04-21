@@ -4,6 +4,7 @@ import { useStore } from "../store/index.ts";
 import stripAnsi from "npm:strip-ansi";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { COLORS, CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
+import { Thinking } from "./Thinking.tsx";
 
 function isBetween(number: number, a: number, b: number): boolean {
   const min = Math.min(a, b);
@@ -199,34 +200,8 @@ export const Chat = (
         padding={1}
       >
         <Text>{formattedContent}</Text>
+        {isStreaming && <Thinking />}
       </Box>
-      {isStreaming && <Status />}
     </Box>
   );
 };
-
-const Status = () => {
-  const [char, setChar] = React.useState("j");
-
-  React.useEffect(() => {
-    const int = setInterval(() => {
-      setChar(
-        randomizeCharacter(
-          "asjfehkljasghdfijaseifhgyuaggDKYHJFGKYHJGHJLGHJKGJY837265489723958",
-        ),
-      );
-    }, 100);
-    return () => clearInterval(int);
-  }, []);
-
-  return <Text>{char}</Text>;
-};
-
-function randomizeCharacter(str: string): string {
-  if (!str) {
-    return "";
-  }
-  const characters = str.split("");
-  const randomIndex = Math.floor(Math.random() * characters.length);
-  return characters[randomIndex];
-}
