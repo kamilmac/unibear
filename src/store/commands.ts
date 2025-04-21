@@ -9,7 +9,7 @@ import {
   getGitDiffToLatestCommit,
 } from "../utils/git.ts";
 import { commitAllChanges } from "../utils/git.ts";
-import { COLORS } from "../utils/constants.ts";
+import { COLORS, COMMAND_PREFIX } from "../utils/constants.ts";
 
 type GetState<T> = StoreApi<T>["getState"];
 type SetState<T> = StoreApi<T>["setState"];
@@ -30,10 +30,15 @@ export function buildCommands(
     help: {
       desc: "HELP!",
       process: () => {
-        const lines = Object.entries(commands).map(
-          ([name, cmd]) =>
-            `- :${COLORS.command(name.padEnd(12))} – ${cmd.desc}`,
-        );
+        const lines = Object
+          .entries(commands)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(
+            ([name, cmd]) =>
+              `- ${COMMAND_PREFIX}${
+                COLORS.command(name.padEnd(12))
+              } – ${cmd.desc}`,
+          );
         lines.unshift("## Available commands: ");
         const helpText = lines.join("\n");
         get().appendChatItem("", helpText, "ai");
@@ -47,15 +52,15 @@ export function buildCommands(
           "git-commit",
           "command",
         );
-        set({ isCommandInFlight: true });
+        set({ isStreamingResponse: true });
         const diff = await getGitDiffToLatestCommit();
         if (!diff) {
           get().appendChatItem("", "No changes to commit", "command");
-          return set({ isCommandInFlight: false });
+          return set({ isStreamingResponse: false });
         }
         const msg = await generateCommitMessage(diff);
         commitAllChanges(msg);
-        set({ isCommandInFlight: false });
+        set({ isStreamingResponse: false });
         get().appendChatItem("", `Committed all changes: ${msg}`, "ai");
       },
     },
@@ -67,14 +72,14 @@ export function buildCommands(
           ":git-pr",
           "command",
         );
-        set({ isCommandInFlight: true });
+        set({ isStreamingResponse: true });
         const diff = await getGitDiffToBaseBranch();
         if (!diff) {
           get().appendChatItem("", "No changes to base branch", "command");
-          return set({ isCommandInFlight: false });
+          return set({ isStreamingResponse: false });
         }
         const desc = await generatePRDescription(diff);
-        set({ isCommandInFlight: false });
+        set({ isStreamingResponse: false });
         get().appendChatItem(desc, `PR description: ${desc}`, "ai");
       },
     },
@@ -86,14 +91,14 @@ export function buildCommands(
           ":git-review",
           "command",
         );
-        set({ isCommandInFlight: true });
+        set({ isStreamingResponse: true });
         const diff = await getGitDiffToBaseBranch();
         if (!diff) {
           get().appendChatItem("", "No changes to base branch", "command");
-          return set({ isCommandInFlight: false });
+          return set({ isStreamingResponse: false });
         }
         const review = await generatePRReview(diff);
-        set({ isCommandInFlight: false });
+        set({ isStreamingResponse: false });
         get().appendChatItem(review, `PR review: ${review}`, "ai");
       },
     },

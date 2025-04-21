@@ -5,7 +5,6 @@ type ChatItem = {
   content: string;
   visibleContent: string[];
   type: ChatItemType;
-  status?: string;
 };
 
 type OperationMode = "insert" | "normal" | "command";
@@ -39,7 +38,6 @@ type Store = {
     type: ChatItemType,
   ) => ChatItem[];
   isStreamingResponse: boolean;
-  isCommandInFlight: boolean;
   injectClipboard: () => void;
   tokensInput: number;
   tokensOutput: number;
