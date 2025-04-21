@@ -24,24 +24,29 @@ export function buildCommands(
       desc: "Clears whole context and history",
       process: () => {
         get().clearChatHistory();
+        get().appendChatItem("", "Context and chat history cleared!", "ai");
       },
     },
     help: {
       desc: "HELP!",
       process: () => {
-        // build a nice summary
         const lines = Object.entries(commands).map(
           ([name, cmd]) =>
             `- :${COLORS.command(name.padEnd(12))} – ${cmd.desc}`,
         );
         lines.unshift("## Available commands: ");
         const helpText = lines.join("\n");
-        get().appendChatItem("", helpText, "command");
+        get().appendChatItem("", helpText, "ai");
       },
     },
     "git-commit": {
       desc: "Commits all changes with relevant message",
       process: async () => {
+        get().appendChatItem(
+          "",
+          "git-commit",
+          "command",
+        );
         set({ isCommandInFlight: true });
         const diff = await getGitDiffToLatestCommit();
         if (!diff) {
@@ -51,12 +56,17 @@ export function buildCommands(
         const msg = await generateCommitMessage(diff);
         commitAllChanges(msg);
         set({ isCommandInFlight: false });
-        get().appendChatItem("", `Committed all changes: ${msg}`, "command");
+        get().appendChatItem("", `Committed all changes: ${msg}`, "ai");
       },
     },
     "git-pr": {
       desc: "Creates description for GH PR (diff to base branch)",
       process: async () => {
+        get().appendChatItem(
+          "",
+          ":git-pr",
+          "command",
+        );
         set({ isCommandInFlight: true });
         const diff = await getGitDiffToBaseBranch();
         if (!diff) {
@@ -65,37 +75,40 @@ export function buildCommands(
         }
         const desc = await generatePRDescription(diff);
         set({ isCommandInFlight: false });
-        get().appendChatItem(desc, `PR description: ${desc}`, "command");
+        get().appendChatItem(desc, `PR description: ${desc}`, "ai");
       },
     },
     "git-review": {
       desc: "Reviews your changes (diff to base branch)",
       process: async () => {
+        get().appendChatItem(
+          "",
+          ":git-review",
+          "command",
+        );
         set({ isCommandInFlight: true });
         const diff = await getGitDiffToBaseBranch();
         if (!diff) {
           get().appendChatItem("", "No changes to base branch", "command");
           return set({ isCommandInFlight: false });
         }
-        if (!diff) {
-          get().appendChatItem(
-            "",
-            "Requested review of all changes to base branch...",
-            "command",
-          );
-          return set({ isCommandInFlight: false });
-        }
         const review = await generatePRReview(diff);
         set({ isCommandInFlight: false });
-        get().appendChatItem(review, `PR review: ${review}`, "command");
+        get().appendChatItem(review, `PR review: ${review}`, "ai");
       },
     },
     "inject-file": {
       desc: "Injects file in the context.",
       process: (arg?: string) => {
         if (!arg) return;
+        get().appendChatItem(
+          "",
+          `:inject-file ${arg}`,
+          "command",
+        );
         const absolute = arg.startsWith("/") ? arg : `${Deno.cwd()}/${arg}`;
         get().addFileToContext(absolute);
+        get().appendChatItem("", `Added ${absolute} to context.`, "ai");
       },
     },
   };

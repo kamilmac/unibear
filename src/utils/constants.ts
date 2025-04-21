@@ -38,6 +38,7 @@ const HEX_COLORS = {
 const DARK_THEME = {
   prompt: chalk.bold.hex(HEX_COLORS.teal),
   command: chalk.hex(HEX_COLORS.red),
+  ai: chalk.hex(HEX_COLORS.purple),
   visual: chalk.hex(HEX_COLORS.white),
   statusLineInactive: chalk.hex(HEX_COLORS.grey),
   statusLineActive: chalk.bgHex(HEX_COLORS.teal).hex(HEX_COLORS.black),

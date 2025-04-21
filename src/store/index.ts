@@ -46,7 +46,6 @@ export const useStore = create<Store>((set, get) => ({
       operationMode: "insert",
       isGitBaseDiffInjectionEnabled: false,
     });
-    get().appendChatItem("", "Context and chat history cleared!", "command");
   },
   filesInContext: [],
   tokensInput: 0,
@@ -59,7 +58,6 @@ export const useStore = create<Store>((set, get) => ({
         filePath,
       ],
     });
-    get().appendChatItem("", `Added ${filePath} to context.`, "injector");
   },
   isCommandInFlight: false,
   isStreamingResponse: false,
@@ -89,14 +87,17 @@ export const useStore = create<Store>((set, get) => ({
       type,
     };
     if (type === "command") {
-      newChatItem.visibleContent = marked.parse(visibleContent)
-        .split("\n");
+      newChatItem.visibleContent = marked.parse(
+        COLORS.command("COMMAND: ") + visibleContent,
+      ).split("\n");
     } else if (type === "user") {
       newChatItem.visibleContent = [
         COLORS.prompt("USER: ") + visibleContent + "\n",
       ];
-    } else {
-      newChatItem.visibleContent = marked.parse(visibleContent).split("\n");
+    } else if (type === "ai") {
+      newChatItem.visibleContent = marked.parse(
+        COLORS.ai("UNIBEAR:\n") + visibleContent,
+      ).split("\n");
     }
     set((state) => ({
       chat: state.chat.concat(newChatItem),
@@ -142,7 +143,9 @@ export const useStore = create<Store>((set, get) => ({
       chat,
       (chunk) => {
         aiChatitem.content += chunk;
-        aiChatitem.visibleContent = marked.parse(aiChatitem.content).split(
+        aiChatitem.visibleContent = marked.parse(
+          COLORS.ai("UNIBEAR:\n") + aiChatitem.content,
+        ).split(
           "\n",
         );
         set({
