@@ -16,6 +16,7 @@ export const Chat = (
   { height }: { height: number },
 ) => {
   const chat = useStore((store) => store.chat);
+  const [seqBuffer, setSeqBuffer] = React.useState("");
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
   const isStreaming = useStore((store) => store.isStreamingResponse);
@@ -92,6 +93,12 @@ export const Chat = (
     renderedChatWrappedLinesNumber,
   ]);
 
+  React.useEffect(() => {
+    if (!seqBuffer) return;
+    const t = setTimeout(() => setSeqBuffer(""), 500);
+    return () => clearTimeout(t);
+  }, [seqBuffer]);
+
   // Hack-ish solution to scroll to the top when chat got cleared
   React.useEffect(() => {
     if (fullChatLinesNumber < 4) {
@@ -136,13 +143,22 @@ export const Chat = (
           );
         }
       }
-      if (_input === "G") {
-        const newPos = Math.max(
-          0,
-          fullChatLinesNumber - Math.round(height / 4),
-        );
-        setCursorLineIndex(fullChatLinesNumber - 1);
-        setChatRenderOffset(newPos);
+      if (_input === "g" || _input === "e") {
+        const buf = seqBuffer + _input;
+        setSeqBuffer(buf);
+        if (buf === "ge") {
+          const newPos = Math.max(
+            0,
+            fullChatLinesNumber - Math.round(height / 4),
+          );
+          setCursorLineIndex(fullChatLinesNumber - 1);
+          setChatRenderOffset(newPos);
+          setSeqBuffer("");
+        } else if (buf === "gg") {
+          setCursorLineIndex(1);
+          setChatRenderOffset(0);
+          setSeqBuffer("");
+        }
         return;
       }
       if (_input === "j") {
