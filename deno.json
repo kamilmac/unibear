@@ -7,5 +7,8 @@
     "@std/assert": "jsr:@std/assert@1",
     "ink": "npm:ink@^5.2.0",
     "react": "npm:react@^18.3.1"
+  },
+  "compilerOptions": {
+    "types": ["./src/types.d.ts"]
   }
 }
