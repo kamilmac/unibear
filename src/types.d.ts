@@ -16,7 +16,8 @@ type CommandKey =
   | "git-commit"
   | "git-pr"
   | "git-review"
-  | "inject-file";
+  | "inject-file"
+  | "list-files";
 
 type Command = {
   desc: string;

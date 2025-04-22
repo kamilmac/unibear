@@ -6,8 +6,14 @@ UNIBEAR - AI assistant in CLI form
 
 - [ ] add ':' character as command-key
 - [ ] remove token counter for now
-- [ ] handle missing files (deleted)
+- [x] handle missing files (deleted)
 - [x] disable selection on 'copy'
 - [x] add 'quit' command
 - [ ] Improve the banner
 - [ ] Add help output as default
+- [ ] Support Gemini and Claude
+- [ ] Support config file
+- [ ] Do not commit when changed branch meanwhile
+- [ ] disallow commands from alien workspace
+- [ ] Check for binary deployment options
+- [x] list files command

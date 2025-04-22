@@ -124,6 +124,13 @@ export function buildCommands(
         get().appendChatItem("", `Added ${absolute} to context.`, "ai");
       },
     },
+    "list-files": {
+      desc: "Lists files in context",
+      process: () => {
+        const files = get().filesInContext.join("\n");
+        get().appendChatItem("", `Files in context:\n${files}`, "ai");
+      },
+    },
   };
   return commands;
 }
