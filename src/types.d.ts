@@ -10,6 +10,7 @@ type ChatItem = {
 type OperationMode = "insert" | "normal" | "command";
 
 type CommandKey =
+  | "q"
   | "reset"
   | "help"
   | "git-commit"

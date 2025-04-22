@@ -65,3 +65,8 @@ export const countTokens = (str: string): number => {
     .filter((char) => char !== " ")
     .join("").length / 3.7;
 };
+
+export const quit = () => {
+  Deno.stdout.writeSync(new TextEncoder().encode("\x1b[?1049l"));
+  Deno.exit(0);
+};

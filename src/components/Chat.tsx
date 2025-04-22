@@ -141,12 +141,13 @@ export const Chat = (
           clippy.writeText(
             stripAnsi(clipped.filter((c) => c !== null).join("\n")) + "\n",
           );
+          setSelectionOriginLineIndex(null);
         }
       }
-      if (_input === "g" || _input === "e") {
+      if (_input === "g" || _input === "e" || _input === "G") {
         const buf = seqBuffer + _input;
         setSeqBuffer(buf);
-        if (buf === "ge") {
+        if (buf === "ge" || buf === "G") {
           const newPos = Math.max(
             0,
             fullChatLinesNumber - Math.round(height / 4),

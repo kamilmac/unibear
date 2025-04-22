@@ -1,9 +1,13 @@
 ## What is this ?
 
-This is (another) ai assistent -> thsi time for cli.
+UNIBEAR - AI assistant in CLI form
 
 ## TODO:
 
-- Write code that supports "/" commands in prompt window
-- Plan styling (colors, paddings etc...)
-- Maybe, just maybe its good idea to add an option to delete lines from context and insert prompt in there somehow
+- [ ] add ':' character as command-key
+- [ ] remove token counter for now
+- [ ] handle missing files (deleted)
+- [x] disable selection on 'copy'
+- [x] add 'quit' command
+- [ ] Improve the banner
+- [ ] Add help output as default

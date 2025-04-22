@@ -5,9 +5,9 @@ import { UserInput } from "./UserInput.tsx";
 import { StatusLine } from "./StatusLine.tsx";
 import { Chat } from "./Chat.tsx";
 import { TEXT_AREA_HEIGHT } from "../utils/constants.ts";
+import { quit } from "../utils/helpers.ts";
 
 export const App = () => {
-  const { exit } = useApp();
   const init = useStore((store) => store.init);
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
@@ -18,9 +18,8 @@ export const App = () => {
   }, []);
 
   useInput((_input, key) => {
-    if ((key.ctrl && _input === "q") || (key.ctrl && _input === "c")) {
-      exit();
-      Deno.stdout.writeSync(new TextEncoder().encode("\x1b[?1049l")); // Exit alternate screen
+    if (key.ctrl && _input === "q") {
+      quit();
     }
 
     if (opMode !== "normal" && key.escape) {

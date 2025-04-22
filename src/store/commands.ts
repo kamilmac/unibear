@@ -10,6 +10,7 @@ import {
 } from "../utils/git.ts";
 import { commitAllChanges } from "../utils/git.ts";
 import { COLORS, COMMAND_PREFIX } from "../utils/constants.ts";
+import { quit } from "../utils/helpers.ts";
 
 type GetState<T> = StoreApi<T>["getState"];
 type SetState<T> = StoreApi<T>["setState"];
@@ -20,6 +21,13 @@ export function buildCommands(
   get: GetState<Store>,
 ): Record<string, Command> {
   const commands: Record<CommandKey, Command> = {
+    q: {
+      desc: "Quit",
+      process: () => {
+        get().appendChatItem("", "Bye!", "ai");
+        setTimeout(() => quit, 400);
+      },
+    },
     reset: {
       desc: "Clears whole context and history",
       process: () => {
