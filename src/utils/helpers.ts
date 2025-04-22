@@ -1,3 +1,4 @@
+import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 import { PORT } from "./constants.ts";
 
 // Function to check if a port is in use
@@ -21,12 +22,14 @@ async function isPortInUse(port: number): Promise<boolean> {
 export async function handleCliArgs(): Promise<boolean> {
   const args = Deno.args;
   if (!args[0]) return false;
+  const workspaceName = basename(Deno.cwd());
   try {
     const response = await fetch(
       `http://localhost:${PORT}/command/${args[0]}`,
       {
         method: "POST",
         headers: {
+          "workspace": workspaceName,
           "Content-Type": "application/json",
         },
         body: args[1] || "",
@@ -34,11 +37,7 @@ export async function handleCliArgs(): Promise<boolean> {
     );
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(
-        `Server responded with ${response.status}: ${
-          errorData.error || response.statusText
-        }`,
-      );
+      throw new Error(errorData.error || response.statusText);
     }
     console.log(`Command ${args[0]} successfull`);
   } catch (error) {

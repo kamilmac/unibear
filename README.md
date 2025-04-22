@@ -14,6 +14,7 @@ UNIBEAR - AI assistant in CLI form
 - [ ] Support Gemini and Claude
 - [ ] Support config file
 - [ ] Do not commit when changed branch meanwhile
-- [ ] disallow commands from alien workspace
+- [x] disallow commands from alien workspace
 - [ ] Check for binary deployment options
 - [x] list files command
+- [ ] shorten commit messages
