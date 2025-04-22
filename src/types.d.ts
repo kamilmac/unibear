@@ -9,6 +9,14 @@ type ChatItem = {
 
 type OperationMode = "insert" | "normal" | "command";
 
+type CommandKey =
+  | "reset"
+  | "help"
+  | "git-commit"
+  | "git-pr"
+  | "git-review"
+  | "inject-file";
+
 type Command = {
   desc: string;
   process: (arg?: string) => void;

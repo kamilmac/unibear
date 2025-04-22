@@ -19,7 +19,7 @@ export function buildCommands(
   set: SetState<Store>,
   get: GetState<Store>,
 ): Record<string, Command> {
-  const commands: Record<string, Command> = {
+  const commands: Record<CommandKey, Command> = {
     reset: {
       desc: "Clears whole context and history",
       process: () => {
