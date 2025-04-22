@@ -32,6 +32,7 @@ type Store = {
   clearChatHistory: () => void;
   filesInContext: string[];
   addFileToContext: (filePath: string) => void;
+  removeFileFromContext: (filePath: string) => void;
   operationMode: OperationMode;
   setOperationMode: (mode: OperationMode) => void;
   systemMessage: string;

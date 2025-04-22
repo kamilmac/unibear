@@ -60,6 +60,13 @@ export const useStore = create<Store>((set, get) => ({
       ],
     });
   },
+  removeFileFromContext: (filePath) => {
+    set({
+      filesInContext: get()
+        .filesInContext
+        .filter((f) => f !== filePath),
+    });
+  },
   isCommandInFlight: false,
   isStreamingResponse: false,
   operationMode: "insert",
@@ -107,14 +114,24 @@ export const useStore = create<Store>((set, get) => ({
   },
   onSubmitUserPrompt: async (prompt) => {
     let filesContext = "";
+    get().appendChatItem(prompt, prompt, "user");
     for await (const file of get().filesInContext) {
       const content = await getContentFromFile(file);
-      filesContext += `
-        File:${file}
-        ${content}
-      `;
+      if (!content) {
+        get().removeFileFromContext(file);
+        get().appendChatItem(
+          "",
+          `Failed loading ${file}. Removing from context.`,
+          "ai",
+        );
+      } else {
+        filesContext += `
+          File:${file}
+          ${content}
+        `;
+      }
     }
-    const chat = get().appendChatItem(prompt, prompt, "user");
+    const chat = get().chat;
     const aiChatitem: ChatItem = {
       id: getNewChatItemId(),
       content: "",
