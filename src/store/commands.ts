@@ -25,7 +25,7 @@ export function buildCommands(
       desc: "Quit",
       process: () => {
         get().appendChatItem("", "Bye!", "ai");
-        setTimeout(() => quit, 400);
+        setTimeout(quit, 400);
       },
     },
     reset: {
