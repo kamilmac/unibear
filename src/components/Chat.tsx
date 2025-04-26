@@ -102,9 +102,9 @@ export const Chat = (
 
   // Hack-ish solution to scroll to the top when chat got cleared
   React.useEffect(() => {
-    if (fullChatLinesNumber < 4) {
+    if (fullChatLinesNumber < 5) {
       setChatRenderOffset(0);
-      setCursorLineIndex(1);
+      setCursorLineIndex(0);
     }
   }, [fullChatLinesNumber]);
 
