@@ -19,6 +19,7 @@ export const Chat = (
   const [seqBuffer, setSeqBuffer] = React.useState("");
   const opMode = useStore((store) => store.operationMode);
   const dims = useStore((store) => store.dimensions);
+  const injectClipboard = useStore((store) => store.injectClipboard);
   const isStreaming = useStore((store) => store.isStreamingResponse);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
@@ -119,6 +120,14 @@ export const Chat = (
     }
 
     if (opMode === "normal") {
+      if (
+        opMode === "normal" &&
+        selectionOriginLineIndex === null &&
+        _input === "p"
+      ) {
+        injectClipboard();
+        return;
+      }
       if (key.escape) {
         setSelectionOriginLineIndex(null);
       }

@@ -36,7 +36,14 @@ export const useStore = create<Store>((set, get) => ({
   },
   isGitBaseDiffInjectionEnabled: false,
   injectClipboard: async () => {
-    get().injectContext(await clippy.readText(), "Injected clipboard content");
+    const clipboardContent = await clippy.readText();
+    get().appendChatItem(
+      clipboardContent,
+      `Pasted content from clipboard:\n${
+        COLORS.prompt(clipboardContent.slice(0, 128))
+      }\n...`,
+      "ai",
+    );
   },
   clearChatHistory: () => {
     set({

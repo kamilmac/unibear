@@ -18,3 +18,6 @@ UNIBEAR - AI assistant in CLI form
 - [ ] Check for binary deployment options
 - [x] list files command
 - [ ] shorten commit messages
+- [ ] try git repo insstead of workspace for cli whitelisting
+- [ ] add transparent message after each ai response saying "Press I to write prompt"
+- [ ] Go to top on reset
