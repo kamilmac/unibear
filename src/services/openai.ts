@@ -1,5 +1,8 @@
 import { OpenAI } from "npm:openai";
 import { SYSTEM } from "../utils/constants.ts";
+import { functions, mcpClient } from "./mcp.ts";
+
+import { CallToolRequestSchema } from "npm:@modelcontextprotocol/sdk/types.js";
 
 const MODEL = "o4-mini";
 const openai = new OpenAI({
@@ -12,21 +15,80 @@ interface SendChatOpts {
   onData?: (chunk: string) => void;
 }
 
+async function getWeather(latitude: string, longitude: string) {
+  const response = await fetch(
+    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m`,
+  );
+  const data = await response.json();
+  return data.current.temperature_2m;
+}
+
+const tools = [{
+  "type": "function",
+  "name": "get_weather",
+  "description": "Get current temperature for a given location.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "latitude": { "type": "number" },
+      "longitude": { "type": "number" },
+    },
+    "required": ["latitude", "longitude"],
+    "additionalProperties": false,
+  },
+}];
+
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
   opts: SendChatOpts = {},
 ): Promise<string> {
   const model = opts.model || MODEL;
 
+  let fnName = "";
+  let fnArgs = "";
   if (opts.stream && opts.onData) {
     const stream = await openai.chat.completions.create({
       model,
       messages,
       stream: true,
+      functions,
     });
     for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
+      const delta = chunk.choices[0]?.delta;
+      if (delta.function_call) {
+        fnName ||= delta.function_call.name || "";
+        fnArgs += delta.function_call.arguments || "";
+        continue;
+      }
+      const content = delta?.content;
       if (content) opts.onData(content);
+    }
+    if (fnName) {
+      const args = JSON.parse(fnArgs);
+      opts.onData("TOOL CALL FOUND");
+      opts.onData(fnName);
+      opts.onData(fnArgs);
+      const result = await mcpClient.callTool(
+        CallToolRequestSchema,
+        { name: fnName, arguments: fnArgs },
+      );
+      opts.onData(JSON.stringify(result));
+
+      // 3) second streaming call with function result
+      const round2 = [
+        ...messages,
+        { role: "assistant", name: fnName, content: fnArgs },
+        { role: "function", name: fnName, content: JSON.stringify(result) },
+      ];
+      const stream2 = await openai.chat.completions.create({
+        model,
+        messages: round2,
+        stream: true,
+      });
+      for await (const chunk of stream2) {
+        const c = chunk.choices[0]?.delta?.content;
+        if (c) opts.onData(c);
+      }
     }
     return "";
   }
