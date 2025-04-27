@@ -28,9 +28,12 @@ const { tools } = await mcpClient.listTools(
 
 // 4) map to OpenAI function defs
 export const functions = tools.map((t) => ({
-  name: t.name,
-  description: t.description,
-  parameters: t.inputSchema,
+  function: {
+    name: t.name,
+    description: t.description,
+    parameters: t.inputSchema,
+  },
+  type: "function",
 }));
 
 // the OpenAI client

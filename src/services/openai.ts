@@ -15,28 +15,28 @@ interface SendChatOpts {
   onData?: (chunk: string) => void;
 }
 
-async function getWeather(latitude: string, longitude: string) {
-  const response = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m`,
-  );
-  const data = await response.json();
-  return data.current.temperature_2m;
-}
+// async function getWeather(latitude: string, longitude: string) {
+//   const response = await fetch(
+//     `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m`,
+//   );
+//   const data = await response.json();
+//   return data.current.temperature_2m;
+// }
 
-const tools = [{
-  "type": "function",
-  "name": "get_weather",
-  "description": "Get current temperature for a given location.",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "latitude": { "type": "number" },
-      "longitude": { "type": "number" },
-    },
-    "required": ["latitude", "longitude"],
-    "additionalProperties": false,
-  },
-}];
+// const tools = [{
+//   "type": "function",
+//   "name": "get_weather",
+//   "description": "Get current temperature for a given location.",
+//   "parameters": {
+//     "type": "object",
+//     "properties": {
+//       "latitude": { "type": "number" },
+//       "longitude": { "type": "number" },
+//     },
+//     "required": ["latitude", "longitude"],
+//     "additionalProperties": false,
+//   },
+// }];
 
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
@@ -46,46 +46,90 @@ async function sendChat(
 
   let fnName = "";
   let fnArgs = "";
+  let id = "";
+  let firstContent = "";
   if (opts.stream && opts.onData) {
     const stream = await openai.chat.completions.create({
       model,
       messages,
       stream: true,
-      functions,
+      // functions,
+      tools: functions,
     });
     for await (const chunk of stream) {
       const delta = chunk.choices[0]?.delta;
-      if (delta.function_call) {
-        fnName ||= delta.function_call.name || "";
-        fnArgs += delta.function_call.arguments || "";
+      // opts.onData(JSON.stringify(chunk));
+      // opts.onData("\n");
+      if (delta.tool_calls) {
+        fnName ||= delta.tool_calls[0].function.name || "";
+        fnArgs += delta.tool_calls[0].function.arguments || "";
+        id = id || delta.tool_calls[0].id;
+        // opts.onData("\n\n");
+        // opts.onData(id);
         continue;
       }
       const content = delta?.content;
-      if (content) opts.onData(content);
+      if (content) {
+        opts.onData(content);
+        firstContent += content;
+      }
     }
     if (fnName) {
       const args = JSON.parse(fnArgs);
-      opts.onData("TOOL CALL FOUND");
-      opts.onData(fnName);
-      opts.onData(fnArgs);
+      // opts.onData("TOOL CALL FOUND");
+      // opts.onData(fnName);
+      // opts.onData(fnArgs);
+      // opts.onData(
+      //   JSON.stringify(
+      //     await mcpClient.callTool({ name: "list_allowed_directories" }),
+      //   ),
+      // );
       const result = await mcpClient.callTool(
-        CallToolRequestSchema,
-        { name: fnName, arguments: fnArgs },
+        { name: fnName, arguments: args },
       );
-      opts.onData(JSON.stringify(result));
 
       // 3) second streaming call with function result
-      const round2 = [
+      const round2: OpenAI.ChatCompletionMessageParam[] = [
         ...messages,
-        { role: "assistant", name: fnName, content: fnArgs },
-        { role: "function", name: fnName, content: JSON.stringify(result) },
+        {
+          role: "assistant",
+          content: firstContent,
+          tool_calls: [{
+            id,
+            function: {
+              arguments: fnArgs,
+              name: fnName,
+            },
+            type: "function",
+          }],
+        },
+        { role: "tool", tool_call_id: id, content: result.content[0].text },
       ];
+      // const round2 = [
+      //   ...messages,
+      //   {
+      //     role: "assistant",
+      //     tool_calls: [{
+      //       id: "1",
+      //       function: fnName,
+      //       type: "function",
+      //     }],
+      //     content: firstContent,
+      //   },
+      //   { role: "tool", name: fnName, content: result.content[0].text },
+      // ];
       const stream2 = await openai.chat.completions.create({
         model,
         messages: round2,
         stream: true,
       });
+      // try {
+      // } catch (err) {
+      //   opts.onData(JSON.stringify(err));
+      // }
       for await (const chunk of stream2) {
+        // opts.onData(JSON.stringify(chunk));
+        // opts.onData("\n");
         const c = chunk.choices[0]?.delta?.content;
         if (c) opts.onData(c);
       }
