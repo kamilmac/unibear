@@ -37,87 +37,34 @@ const MAX_ITERATIONS = 16;
 
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
-  opts: SendChatOpts = { onData: () => {} },
+  opts: SendChatOpts = { onData: () => {}, stream: false },
 ): Promise<string> {
   const model = opts.model || MODEL;
+  // Build the payload
+  const payload: any = { model, messages };
+  if (opts.stream) payload.stream = true;
 
-  let history = messages;
-  let appendedContent: AppendedContent = [];
+  // Create completion (streaming or non-streaming)
+  const completion = await openai.chat.completions.create(payload);
 
-  const withWrite = messages[messages.length - 1].content.startsWith("+");
-
-  for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-    opts.onData("iterating...");
-    let stream = await openai.chat.completions.create({
-      model,
-      messages: appendedContent.length
-        ? [history[history.length - 1], ...appendedContent]
-        : history,
-      stream: true,
-      tools: tools(withWrite),
-    });
-    const state = {
-      id: "",
-      fnName: "",
-      fnArgs: "",
-      content: "",
-      stop: false,
-    };
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0].delta;
-      if (delta?.tool_calls) {
-        state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
-        state.fnName = state.fnName ||
-          (delta?.tool_calls?.[0]?.function?.name || "");
-        state.fnArgs = state.fnArgs +
-          (delta?.tool_calls?.[0]?.function?.arguments || "");
-        // opts.onData(JSON.stringify(state));
-        // opts.onData("\n");
-      }
-      const content = delta?.content;
+  // Handle streaming response
+  if (opts.stream) {
+    let result = "";
+    for await (const chunk of completion) {
+      const content = chunk.choices[0].delta?.content;
       if (content) {
-        state.content += content;
+        result += content;
         opts.onData(content);
       }
-      if (chunk.choices[0].finish_reason === "stop") {
-        state.stop = true;
-      }
     }
-    if (state.stop) {
-      break;
-    }
-    if (state.id) {
-      const args = JSON.parse(state.fnArgs);
-      let result = "";
-      try {
-        result = await toolFuncs[state.fnName](args, opts.onData);
-      } catch (err) {
-        result = err.message;
-      }
-      // opts.onData(JSON.stringify(result));
-      appendedContent = [
-        ...appendedContent,
-        {
-          role: "assistant",
-          content: state.content,
-          tool_calls: [
-            {
-              id: state.id,
-              function: { arguments: state.fnArgs, name: state.fnName },
-              type: "function",
-            },
-          ],
-        },
-        {
-          role: "tool",
-          tool_call_id: state.id,
-          content: result,
-        },
-      ];
-    }
+    return result;
   }
 
-  return "";
+  // Handle non-streaming response
+  const message = (completion as OpenAI.ChatCompletion).choices[0].message;
+  const text = message?.content || "";
+  opts.onData(text);
+  return text;
 }
 
 function buildHistoryMessages(
