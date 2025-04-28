@@ -29,18 +29,24 @@ async function sendChat(
       stream: true,
       tools,
     });
-    const state = {};
+    const state = {
+      id: "",
+      fnName: "",
+      fnArgs: "",
+    };
     for await (const chunk of stream) {
       const delta = chunk.choices[0].delta;
-      state.id = delta.tool_calls[0].id;
+      state.id = state.id || delta.tool_calls[0].id;
       state.fnName = state.fnName || delta.tool_calls[0].function?.name;
-      state.fnArgs = state.fnArgs + delta.tool_calls[0].function?.arguments;
+      state.fnArgs = state.fnArgs +
+        (delta.tool_calls[0].function?.arguments || "");
       opts.onData(JSON.stringify(chunk));
       opts.onData("\n");
       const content = chunk.choices[0]?.delta?.content;
       if (content) opts.onData(content);
     }
-
+    opts.onData(JSON.stringify(state));
+    opts.onData("HERE");
     if (state.id) {
       const args = JSON.parse(state.fnArgs);
       const result = greetUser(args.name);
