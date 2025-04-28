@@ -36,17 +36,18 @@ async function sendChat(
     };
     for await (const chunk of stream) {
       const delta = chunk.choices[0].delta;
-      state.id = state.id || delta.tool_calls[0].id;
-      state.fnName = state.fnName || delta.tool_calls[0].function?.name;
-      state.fnArgs = state.fnArgs +
-        (delta.tool_calls[0].function?.arguments || "");
-      opts.onData(JSON.stringify(chunk));
-      opts.onData("\n");
-      const content = chunk.choices[0]?.delta?.content;
+      if (delta?.tool_calls) {
+        state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
+        state.fnName = state.fnName ||
+          (delta?.tool_calls?.[0]?.function?.name || "");
+        state.fnArgs = state.fnArgs +
+          (delta?.tool_calls?.[0]?.function?.arguments || "");
+        continue;
+      }
+      const content = delta?.content;
       if (content) opts.onData(content);
     }
-    opts.onData(JSON.stringify(state));
-    opts.onData("HERE");
+    // opts.onData(JSON.stringify(state));
     if (state.id) {
       const args = JSON.parse(state.fnArgs);
       const result = greetUser(args.name);
@@ -66,7 +67,7 @@ async function sendChat(
         {
           role: "tool",
           tool_call_id: state.id,
-          content: result.content[0].text,
+          content: result,
         },
       ];
 
@@ -76,6 +77,7 @@ async function sendChat(
         stream: true,
       });
 
+      // opts.onData(JSON.stringify(stream2));
       for await (const chunk of stream2) {
         const c = chunk.choices[0]?.delta?.content;
         if (c) opts.onData(c);
