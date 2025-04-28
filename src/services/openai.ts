@@ -1,6 +1,6 @@
 import { OpenAI } from "npm:openai";
 import { SYSTEM } from "../utils/constants.ts";
-import { processGreeting, tools } from "./tools.ts";
+import { greetUser, processGreeting, tools } from "./tools.ts";
 
 const MODEL = "o4-mini";
 export const openai = new OpenAI({
@@ -34,11 +34,46 @@ async function sendChat(
       const delta = chunk.choices[0].delta;
       state.id = delta.tool_calls[0].id;
       state.fnName = state.fnName || delta.tool_calls[0].function?.name;
-      state.fnArgs = state.fnArgs || delta.tool_calls[0].function?.arguments;
+      state.fnArgs = state.fnArgs + delta.tool_calls[0].function?.arguments;
       opts.onData(JSON.stringify(chunk));
       opts.onData("\n");
       const content = chunk.choices[0]?.delta?.content;
       if (content) opts.onData(content);
+    }
+
+    if (state.id) {
+      const args = JSON.parse(state.fnArgs);
+      const result = greetUser(args.name);
+      const round2: OpenAI.ChatCompletionMessageParam[] = [
+        ...messages,
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: state.id,
+              function: { arguments: state.fnArgs, name: state.fnName },
+              type: "function",
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: state.id,
+          content: result.content[0].text,
+        },
+      ];
+
+      const stream2 = await openai.chat.completions.create({
+        model,
+        messages: round2,
+        stream: true,
+      });
+
+      for await (const chunk of stream2) {
+        const c = chunk.choices[0]?.delta?.content;
+        if (c) opts.onData(c);
+      }
     }
   }
   // }

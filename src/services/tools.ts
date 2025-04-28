@@ -24,7 +24,7 @@ export const tools = [{
   type: "function",
 }];
 
-const greetUser = (name: string) => {
+export const greetUser = (name: string) => {
   return `Hi ${name}. Nice to meet you!`;
 };
 
