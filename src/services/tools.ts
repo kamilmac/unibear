@@ -1,8 +1,9 @@
 import { OpenAI } from "npm:openai";
 import { createTwoFilesPatch } from "npm:diff";
-import fs from "node:fs";
+
 import { z } from "npm:zod";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
+import { commitAllChanges, getGitDiffToLatestCommit } from "../utils/git.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -22,6 +23,11 @@ const GreetArgsSchema = z.object({
 }).strict();
 const WeatherArgsSchema = z.object({
   location: z.string().describe("location to use for weather report"),
+}).strict();
+
+const GitLastCommitDiffArgsSchema = z.object({}).strict();
+const GitCommitArgsSchema = z.object({
+  message: z.string().describe("Message for git commit"),
 }).strict();
 
 export const tools: Array<OpenAI.ChatCompletionTool> = [
@@ -47,12 +53,30 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   {
     function: {
       name: "edit_file",
-      description:
+      description: "Use this tool only if user directly asks for edit" +
         "Make line-based edits to a text file. Each edit replaces exact line sequences " +
-        "with new content. Returns a git-style diff showing the changes made. " +
-        "Only works within allowed directories. Writes to disk when dryRun=false.",
+        "with new content. Returns a git-style diff showing the changes made. ",
       strict: false,
       parameters: zodToJsonSchema(EditFileArgsSchema),
+    },
+    type: "function",
+  },
+  {
+    function: {
+      name: "git_get_diff_to_previous_commit",
+      description:
+        "Gets diff to previous commit for purposes of commit message creation",
+      strict: true,
+      parameters: zodToJsonSchema(GitLastCommitDiffArgsSchema),
+    },
+    type: "function",
+  },
+  {
+    function: {
+      name: "git_commit",
+      description: "Creates git commit based on given message",
+      strict: true,
+      parameters: zodToJsonSchema(GitCommitArgsSchema),
     },
     type: "function",
   },
@@ -73,6 +97,12 @@ export const toolFuncs = {
 
     return await applyFileEdits(args.file_path, args.edits);
   },
+  git_get_diff_to_previous_commit: async (args) => {
+    return await getGitDiffToLatestCommit();
+  },
+  git_commit: async (args) => {
+    return await commitAllChanges(args.message);
+  },
 };
 
 async function applyFileEdits(
@@ -81,7 +111,7 @@ async function applyFileEdits(
   dryRun = false,
 ): Promise<string> {
   // Read file content and normalize line endings
-  // const file = await fs.readFile(filePath, "utf-8");
+
   const file = await Deno.readTextFile(filePath);
   const content = normalizeLineEndings(file);
 
