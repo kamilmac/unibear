@@ -117,17 +117,19 @@ export const toolFuncs = {
 
 async function applyFileEdits(
   filePath: string,
-  edits: Array<{ oldText: string; newText: string }>,
+  edits: Array<{ old_text: string; new_text: string }>,
   dryRun = false,
 ): Promise<string> {
   // Read file content and normalize line endings
-  const content = normalizeLineEndings(await fs.readFile(filePath, "utf-8"));
+  // const file = await fs.readFile(filePath, "utf-8");
+  const file = await Deno.readTextFile(filePath);
+  const content = normalizeLineEndings(file);
 
   // Apply edits sequentially
   let modifiedContent = content;
   for (const edit of edits) {
-    const normalizedOld = normalizeLineEndings(edit.oldText);
-    const normalizedNew = normalizeLineEndings(edit.newText);
+    const normalizedOld = normalizeLineEndings(edit.old_text);
+    const normalizedNew = normalizeLineEndings(edit.new_text);
 
     // If exact match exists, use it
     if (modifiedContent.includes(normalizedOld)) {
@@ -173,7 +175,7 @@ async function applyFileEdits(
     }
 
     if (!matchFound) {
-      throw new Error(`Could not find exact match for edit:\n${edit.oldText}`);
+      throw new Error(`Could not find exact match for edit:\n${edit.old_text}`);
     }
   }
 
@@ -190,7 +192,7 @@ async function applyFileEdits(
   }\n\n`;
 
   if (!dryRun) {
-    await fs.writeFile(filePath, modifiedContent, "utf-8");
+    await Deno.writeTextFile(filePath, modifiedContent);
   }
 
   return formattedDiff;

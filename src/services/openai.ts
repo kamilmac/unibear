@@ -13,7 +13,7 @@ interface SendChatOpts {
   onData: (chunk: string) => void;
 }
 
-const MAX_ITERATIONS = 8;
+const MAX_ITERATIONS = 4;
 
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
