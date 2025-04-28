@@ -113,7 +113,7 @@ export const toolFuncs = {
   },
   commit_all_changes: async (args) => {
     const diff = await getGitDiffToLatestCommit();
-    return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit tool to commit changes with created message.`;
+    return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit tool to commit changes with created message and 3. summarise changes in markdown.`;
   },
   git_review: async (args) => {
     const diff = await getGitDiffToBaseBranch();
