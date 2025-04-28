@@ -36,7 +36,7 @@ async function sendChat(
   const model = opts.model || MODEL;
 
   let history = messages;
-  let appendedContent = [];
+  let appendedContent: AppendedContent = [];
 
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     opts.onData("iterating...");
