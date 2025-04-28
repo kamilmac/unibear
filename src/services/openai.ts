@@ -47,7 +47,6 @@ async function sendChat(
   const withWrite = messages[messages.length - 1].content.startsWith("+");
 
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-    opts.onData("iterating...");
     let stream = await openai.chat.completions.create({
       model,
       messages: appendedContent.length
