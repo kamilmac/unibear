@@ -50,7 +50,7 @@ async function sendChat(
     let stream = await openai.chat.completions.create({
       model,
       messages: appendedContent.length
-        ? [history[history.length - 1], ...appendedContent]
+        ? [...history, ...appendedContent]
         : history,
       stream: true,
       tools: tools(withWrite),
