@@ -8,6 +8,7 @@ import {
   getGitDiffToBaseBranch,
   getGitDiffToLatestCommit,
 } from "../utils/git.ts";
+import { useStore } from "../store/index.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -19,12 +20,6 @@ const EditFileArgsSchema = z.object({
   dryRun: z.boolean().default(false).describe(
     "Preview changes using git-style diff format",
   ),
-}).strict();
-const GreetArgsSchema = z.object({
-  name: z.string().describe("Name of the user e.g. John"),
-}).strict();
-const WeatherArgsSchema = z.object({
-  location: z.string().describe("location to use for weather report"),
 }).strict();
 const GitCommitArgsSchema = z.object({
   message: z.string().describe("Message for git commit"),
@@ -74,6 +69,15 @@ export const tools = (
       },
       type: "function",
     },
+    {
+      function: {
+        name: "reset_chat",
+        description: "Resets chat including history and all file contexts",
+        strict: false,
+        parameters: {},
+      },
+      type: "function",
+    },
   ];
   if (withWriteAccess) {
     tls.push({
@@ -92,7 +96,10 @@ export const tools = (
   return tls;
 };
 
-export const toolFuncs = {
+export const toolFuncs: Record<
+  string,
+  (args: any, log: (str: string) => void) => Promise<string>
+> = {
   edit_file: async (args, log) => {
     const parsed = EditFileArgsSchema.safeParse(args);
     if (!parsed.success) {
@@ -110,6 +117,10 @@ export const toolFuncs = {
   git_create_msg_and_commit_all_changes: async (args) => {
     const diff = await getGitDiffToLatestCommit();
     return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit_with_message tool to commit changes with created message.`;
+  },
+  reset_chat: async (args) => {
+    useStore.getState().markChatForReset();
+    return `Inform user that chat has been reseted`;
   },
   read_multiple_files: async (
     { file_paths }: { file_paths: string[] },
@@ -134,7 +145,6 @@ export const toolFuncs = {
 async function applyFileEdits(
   filePath: string,
   edits: Array<{ old_text: string; new_text: string }>,
-  dryRun = false,
 ): Promise<string> {
   // Read file content and normalize line endings
 
@@ -207,9 +217,7 @@ async function applyFileEdits(
     "`".repeat(numBackticks)
   }\n\n`;
 
-  if (!dryRun) {
-    await Deno.writeTextFile(filePath, modifiedContent);
-  }
+  await Deno.writeTextFile(filePath, modifiedContent);
 
   return formattedDiff;
 }

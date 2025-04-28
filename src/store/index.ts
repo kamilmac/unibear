@@ -25,6 +25,7 @@ export const useStore = create<Store>((set, get) => ({
     setDimensions();
   },
   isGitBaseDiffInjectionEnabled: false,
+  chatMarkedToReset: false,
   injectClipboard: async () => {
     const clipboardContent = await clippy.readText();
     get().appendChatItem(
@@ -34,6 +35,9 @@ export const useStore = create<Store>((set, get) => ({
       }\n...`,
       "ai",
     );
+  },
+  markChatForReset: () => {
+    set({ chatMarkedToReset: true });
   },
   clearChatHistory: () => {
     set({
@@ -157,8 +161,12 @@ export const useStore = create<Store>((set, get) => ({
         });
       },
     );
+    if (get().chatMarkedToReset) {
+      get().clearChatHistory();
+    }
     set({
       isStreamingResponse: false,
+      chatMarkedToReset: false,
       tokensOutput: countTokens(aiChatitem.content),
     });
   },

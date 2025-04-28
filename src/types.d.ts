@@ -15,6 +15,8 @@ type Store = {
     cols: number;
     rows: number;
   };
+  markChatForReset: () => void;
+  chatMarkedToReset: boolean;
   clearChatHistory: () => void;
   filesInContext: string[];
   addFileToContext: (filePath: string) => void;
