@@ -49,9 +49,7 @@ async function sendChat(
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     let stream = await openai.chat.completions.create({
       model,
-      messages: appendedContent.length
-        ? [...history, ...appendedContent]
-        : history,
+      messages: history,
       stream: true,
       tools: tools(withWrite),
     });
@@ -70,8 +68,6 @@ async function sendChat(
           (delta?.tool_calls?.[0]?.function?.name || "");
         state.fnArgs = state.fnArgs +
           (delta?.tool_calls?.[0]?.function?.arguments || "");
-        // opts.onData(JSON.stringify(state));
-        // opts.onData("\n");
       }
       const content = delta?.content;
       if (content) {
@@ -93,9 +89,7 @@ async function sendChat(
       } catch (err) {
         result = err.message;
       }
-      // opts.onData(JSON.stringify(result));
-      appendedContent = [
-        ...appendedContent,
+      history.push(
         {
           role: "assistant",
           content: state.content,
@@ -107,12 +101,14 @@ async function sendChat(
             },
           ],
         },
+      );
+      history.push(
         {
           role: "tool",
           tool_call_id: state.id,
           content: result,
         },
-      ];
+      );
     }
   }
 

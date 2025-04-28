@@ -13,7 +13,6 @@ const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
   new_text: z.string().describe("Text to replace with"),
 }).strict();
-
 const EditFileArgsSchema = z.object({
   file_path: z.string().describe("Absolute path pointing to file to edit"),
   edits: z.array(EditOperation),
@@ -21,20 +20,14 @@ const EditFileArgsSchema = z.object({
     "Preview changes using git-style diff format",
   ),
 }).strict();
-
 const GreetArgsSchema = z.object({
   name: z.string().describe("Name of the user e.g. John"),
 }).strict();
 const WeatherArgsSchema = z.object({
   location: z.string().describe("location to use for weather report"),
 }).strict();
-
 const GitCommitArgsSchema = z.object({
   message: z.string().describe("Message for git commit"),
-}).strict();
-
-const ReadFileArgsSchema = z.object({
-  file_path: z.string().describe("Absolute path of the file"),
 }).strict();
 
 const ReadMultipleFilesArgsSchema = z.object({
@@ -45,25 +38,6 @@ export const tools = (
   withWriteAccess: false,
 ): Array<OpenAI.ChatCompletionTool> => {
   const tls: Array<OpenAI.ChatCompletionTool> = [
-    {
-      function: {
-        name: "say_hello",
-        description:
-          "Repeat greeting 8 times and share rhymes with the user's name",
-        strict: true,
-        parameters: zodToJsonSchema(GreetArgsSchema),
-      },
-      type: "function",
-    },
-    {
-      function: {
-        name: "weather",
-        description: "Give weather report for given location",
-        strict: true,
-        parameters: zodToJsonSchema(WeatherArgsSchema),
-      },
-      type: "function",
-    },
     {
       function: {
         name: "git_commit_with_message",
@@ -82,31 +56,12 @@ export const tools = (
       },
       type: "function",
     },
-    // {
-    //   function: {
-    //     name: "read_file",
-    //     description: "Return the full contents of a text file",
-    //     strict: true,
-    //     parameters: zodToJsonSchema(ReadFileArgsSchema),
-    //   },
-    //   type: "function",
-    // },
     {
       function: {
         name: "read_multiple_files",
         description: "Return the full contents of multiple text files",
         strict: true,
         parameters: zodToJsonSchema(ReadMultipleFilesArgsSchema),
-      },
-      type: "function",
-    },
-    {
-      function: {
-        name: "list_directory",
-        description:
-          "List contents of current workspace directory as an extended tree view",
-        strict: false,
-        parameters: {},
       },
       type: "function",
     },
@@ -138,12 +93,6 @@ export const tools = (
 };
 
 export const toolFuncs = {
-  say_hello: ({ name }: { name: string }) => {
-    return `Hi ${name}. Nice to meet you!. Say it 8 times! Share what rhymes with my name as well.`;
-  },
-  weather: ({ location }: { location: string }) => {
-    return `${location} is frozen now and the temperature is like -1000c. `;
-  },
   edit_file: async (args, log) => {
     const parsed = EditFileArgsSchema.safeParse(args);
     if (!parsed.success) {
@@ -162,10 +111,6 @@ export const toolFuncs = {
     const diff = await getGitDiffToLatestCommit();
     return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit_with_message tool to commit changes with created message.`;
   },
-  // read_file: async ({ file_path, log }: { file_path: string }) => {
-  //   log(`reading ${file_path}`);
-  //   return await Deno.readTextFile(file_path);
-  // },
   read_multiple_files: async (
     { file_paths }: { file_paths: string[] },
     log,
@@ -176,40 +121,6 @@ export const toolFuncs = {
       results[file_path] = await Deno.readTextFile(file_path);
     }
     return JSON.stringify(results);
-  },
-  list_directory: async (args: { path?: string }) => {
-    const dirPath = args.path ?? ".";
-    // Generate extended tree view
-    async function walk(path: string, prefix: string = ""): Promise<string> {
-      let tree = "";
-      const entries: Deno.DirEntry[] = [];
-      for await (const dirEntry of Deno.readDir(path)) {
-        entries.push(dirEntry);
-      }
-      // Exclude hidden files and folders (those starting with '.')
-      const visibleEntries = entries.filter((entry) =>
-        !entry.name.startsWith(".")
-      );
-      visibleEntries.sort((a, b) => {
-        if (a.isDirectory === b.isDirectory) {
-          return a.name.localeCompare(b.name);
-        }
-        return a.isDirectory ? -1 : 1;
-      });
-      for (let i = 0; i < visibleEntries.length; i++) {
-        const entry = visibleEntries[i];
-        const isLast = i === visibleEntries.length - 1;
-        const connector = isLast ? "└── " : "├── ";
-        tree += `${prefix}${connector}${entry.name}\n`;
-        if (entry.isDirectory) {
-          const newPrefix = prefix + (isLast ? "    " : "│   ");
-          tree += await walk(`${path}/${entry.name}`, newPrefix);
-        }
-      }
-      return tree;
-    }
-    const tree = await walk(dirPath);
-    return `Tree of ${dirPath}:\n${tree}`;
   },
   git_review: async (args) => {
     const diff = await getGitDiffToBaseBranch();
