@@ -83,9 +83,7 @@ export const useStore = create<Store>((set, get) => ({
   dimensions: { cols: 0, rows: 0 },
   systemMessage: "",
   textArea: "",
-  setTextArea: (text) => {
-    set({ textArea: text });
-  },
+
   chat: [
     {
       id: getNewChatItemId(),
@@ -120,7 +118,7 @@ export const useStore = create<Store>((set, get) => ({
     return get().chat;
   },
   onSubmitUserPrompt: async (prompt) => {
-    let filesContext = "";
+    let filesContext = "Available files (absolute file paths): ";
     get().appendChatItem(prompt, prompt, "user");
     for await (const file of get().filesInContext) {
       const content = await getContentFromFile(file);
@@ -133,8 +131,7 @@ export const useStore = create<Store>((set, get) => ({
         );
       } else {
         filesContext += `
-          File:${file}
-          ${content}
+          ${file}, 
         `;
       }
     }
