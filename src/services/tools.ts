@@ -144,14 +144,14 @@ export const toolFuncs = {
   weather: ({ location }: { location: string }) => {
     return `${location} is frozen now and the temperature is like -1000c. `;
   },
-  // edit_file: async (args) => {
-  //   const parsed = EditFileArgsSchema.safeParse(args);
-  //   if (!parsed.success) {
-  //     throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
-  //   }
+  edit_file: async (args) => {
+    const parsed = EditFileArgsSchema.safeParse(args);
+    if (!parsed.success) {
+      throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
+    }
 
-  //   return await applyFileEdits(args.file_path, args.edits);
-  // },
+    return await applyFileEdits(args.file_path, args.edits);
+  },
   git_commit_with_message: async (args) => {
     await commitAllChanges(args.message);
     return "Prompt user about succesfull commit with following message: " +
