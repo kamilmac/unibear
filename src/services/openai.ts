@@ -37,7 +37,7 @@ async function sendChat(
 
   let history = messages;
   let appendedContent = [];
-  // for (let i = 0; i < MAX_ITERATIONS; i += 1) {
+
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     opts.onData("iterating...");
     let stream = await openai.chat.completions.create({
@@ -104,7 +104,7 @@ async function sendChat(
       ];
     }
   }
-  // }
+
   return "";
 }
 
