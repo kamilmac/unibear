@@ -28,7 +28,9 @@ async function sendChat(
     opts.onData("iterating...");
     let stream = await openai.chat.completions.create({
       model,
-      messages: appendedContent.length ? appendedContent : history,
+      messages: appendedContent.length
+        ? [history[history.length - 1], ...appendedContent]
+        : history,
       stream: true,
       tools: tools,
     });
@@ -68,7 +70,6 @@ async function sendChat(
       const result = await toolFuncs[state.fnName](args);
       // opts.onData(JSON.stringify(result));
       appendedContent = [
-        history[history.length - 1],
         ...appendedContent,
         {
           role: "assistant",
