@@ -33,6 +33,10 @@ const GitCommitArgsSchema = z.object({
   message: z.string().describe("Message for git commit"),
 }).strict();
 
+const ReadFileArgsSchema = z.object({
+  file_path: z.string().describe("Absolute path of the file"),
+}).strict();
+
 export const tools: Array<OpenAI.ChatCompletionTool> = [
   {
     function: {
@@ -56,7 +60,7 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   {
     function: {
       name: "edit_file",
-      description: "Use this tool only if user directly asks for edit" +
+      description:
         "Make line-based edits to a text file. Each edit replaces exact line sequences " +
         "with new content. Returns a git-style diff showing the changes made. ",
       strict: false,
@@ -79,6 +83,15 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
       description: "Commit all changes to git repository",
       strict: false,
       parameters: {},
+    },
+    type: "function",
+  },
+  {
+    function: {
+      name: "read_file",
+      description: "Return the full contents of a text file",
+      strict: true,
+      parameters: zodToJsonSchema(ReadFileArgsSchema),
     },
     type: "function",
   },
@@ -116,6 +129,9 @@ export const toolFuncs = {
   git_create_msg_and_commit_all_changes: async (args) => {
     const diff = await getGitDiffToLatestCommit();
     return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit_with_message tool to commit changes with created message.`;
+  },
+  read_file: async ({ file_path }: { file_path: string }) => {
+    return await Deno.readTextFile(file_path);
   },
   git_review: async (args) => {
     const diff = await getGitDiffToBaseBranch();
