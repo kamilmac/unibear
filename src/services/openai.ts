@@ -3,6 +3,7 @@ import { SYSTEM } from "../utils/constants.ts";
 import { greetUser, processGreeting, toolFuncs, tools } from "./tools.ts";
 
 const MODEL = "o4-mini";
+const MAX_HISTORY = 20; // trim history to last N messages
 export const openai = new OpenAI({
   apiKey: Deno.env.get("OPENAI_API_KEY"),
 });
@@ -35,6 +36,17 @@ type AppendedContent = Array<AssistantContent | ToolContent>;
 
 const MAX_ITERATIONS = 16;
 
+// trim helper preserves system and first user messages
+type Msg = OpenAI.ChatCompletionMessageParam;
+function trimHistory(history: Msg[]): Msg[] {
+  const prefixCount =
+    history[0]?.role === "system" && history[1]?.role === "user" ? 2 : 0;
+  const prefix = history.slice(0, prefixCount);
+  const rest = history.slice(prefixCount);
+  if (rest.length <= MAX_HISTORY) return history;
+  return [...prefix, ...rest.slice(rest.length - MAX_HISTORY)];
+}
+
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
   opts: SendChatOpts = { onData: () => {} },
@@ -42,7 +54,6 @@ async function sendChat(
   const model = opts.model || MODEL;
 
   let history = messages;
-  let appendedContent: AppendedContent = [];
 
   const withWrite = messages[messages.length - 1].content.startsWith("+");
 
@@ -109,6 +120,8 @@ async function sendChat(
           content: result,
         },
       );
+      // prune history to avoid unbounded growth
+      history = trimHistory(history);
     }
   }
 
@@ -135,15 +148,9 @@ export const streamOpenAIResponse = async (
   context: string,
   chat: ChatItem[],
   cb: (chunk: string) => void,
-  // tool?: string,
 ) => {
   const messages = buildHistoryMessages(context, chat);
   try {
-    // if (!tool) {
-    //   const resp = await processGreeting(messages);
-    //   cb(JSON.stringify(resp));
-    //   return;
-    // }
     await sendChat(messages, { stream: true, onData: cb });
   } catch (err) {
     console.error("streamOpenAIResponse error:", err);
