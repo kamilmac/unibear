@@ -13,7 +13,7 @@ interface SendChatOpts {
   onData: (chunk: string) => void;
 }
 
-const MAX_ITERATIONS = 4;
+const MAX_ITERATIONS = 16;
 
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
@@ -24,6 +24,7 @@ async function sendChat(
   let msg = messages;
   // for (let i = 0; i < MAX_ITERATIONS; i += 1) {
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
+    opts.onData("iterating...");
     let stream = await openai.chat.completions.create({
       model,
       messages: msg,
@@ -45,8 +46,8 @@ async function sendChat(
           (delta?.tool_calls?.[0]?.function?.name || "");
         state.fnArgs = state.fnArgs +
           (delta?.tool_calls?.[0]?.function?.arguments || "");
-        opts.onData(JSON.stringify(state));
-        opts.onData("\n");
+        // opts.onData(JSON.stringify(state));
+        // opts.onData("\n");
       }
       const content = delta?.content;
       if (content) {
@@ -62,7 +63,9 @@ async function sendChat(
     }
     if (state.id) {
       const args = JSON.parse(state.fnArgs);
-      const result = toolFuncs[state.fnName](args);
+      opts.onData(`calling ${state.fnName} ${state.fnArgs}`);
+      const result = await toolFuncs[state.fnName](args);
+      opts.onData(JSON.stringify(result));
       msg = [
         ...msg,
         {

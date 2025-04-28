@@ -2,39 +2,36 @@ import { OpenAI } from "npm:openai";
 import { createTwoFilesPatch } from "npm:diff";
 import fs from "node:fs";
 import { z } from "npm:zod";
+import { zodToJsonSchema } from "npm:zod-to-json-schema";
 
 const EditOperation = z.object({
-  oldText: z.string().describe("Text to search for - must match exactly"),
-  newText: z.string().describe("Text to replace with"),
-});
+  old_text: z.string().describe("Text to search for - must match exactly"),
+  new_text: z.string().describe("Text to replace with"),
+}).strict();
 
 const EditFileArgsSchema = z.object({
-  path: z.string(),
+  file_path: z.string().describe("Absolute path pointing to file to edit"),
   edits: z.array(EditOperation),
   dryRun: z.boolean().default(false).describe(
     "Preview changes using git-style diff format",
   ),
-});
+}).strict();
+
+const GreetArgsSchema = z.object({
+  name: z.string().describe("Name of the user e.g. John"),
+}).strict();
+const WeatherArgsSchema = z.object({
+  location: z.string().describe("location to use for weather report"),
+}).strict();
 
 export const tools: Array<OpenAI.ChatCompletionTool> = [
   {
     function: {
-      name: "greet",
-      description: "Greet user given the user name",
+      name: "say_hello",
+      description:
+        "Repeat greeting 8 times and share rhymes with the user's name",
       strict: true,
-      parameters: {
-        type: "object",
-        properties: {
-          name: {
-            type: "string",
-            description: "Name of the user e.g. John",
-          },
-        },
-        required: [
-          "name",
-        ],
-        additionalProperties: false,
-      },
+      parameters: zodToJsonSchema(GreetArgsSchema),
     },
     type: "function",
   },
@@ -43,19 +40,7 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
       name: "weather",
       description: "Give weather report for given location",
       strict: true,
-      parameters: {
-        type: "object",
-        properties: {
-          location: {
-            type: "string",
-            description: "location to use for weather report",
-          },
-        },
-        required: [
-          "location",
-        ],
-        additionalProperties: false,
-      },
+      parameters: zodToJsonSchema(WeatherArgsSchema),
     },
     type: "function",
   },
@@ -65,53 +50,28 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
       description:
         "Make line-based edits to a text file. Each edit replaces exact line sequences " +
         "with new content. Returns a git-style diff showing the changes made. " +
-        "Only works within allowed directories.",
+        "Only works within allowed directories. Writes to disk when dryRun=false.",
       strict: false,
-      parameters: {
-        type: "object",
-        properties: {
-          file_path: {
-            type: "string",
-            description: "absolute path pointing to file to be edit",
-          },
-          edits: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                old_text: {
-                  type: "string",
-                  description: "Text to search for - must match exactly",
-                },
-                new_text: {
-                  type: "string",
-                  description: "Text to replace with",
-                },
-              },
-              required: ["old_text", "new_text"],
-            },
-          },
-        },
-        required: [
-          "file_path",
-          "edits",
-        ],
-        additionalProperties: false,
-      },
+      parameters: zodToJsonSchema(EditFileArgsSchema),
     },
     type: "function",
   },
 ];
 
 export const toolFuncs = {
-  greet: ({ name }: { name: string }) => {
+  say_hello: ({ name }: { name: string }) => {
     return `Hi ${name}. Nice to meet you!. Say it 8 times! Share what rhymes with my name as well.`;
   },
   weather: ({ location }: { location: string }) => {
     return `${location} is frozen now and the temperature is like -1000c. `;
   },
-  edit_file: async ({ file_path, edits }) => {
-    return await applyFileEdits(file_path, edits);
+  edit_file: async (args) => {
+    const parsed = EditFileArgsSchema.safeParse(args);
+    if (!parsed.success) {
+      throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
+    }
+
+    return await applyFileEdits(args.file_path, args.edits);
   },
 };
 
