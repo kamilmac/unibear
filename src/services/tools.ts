@@ -24,10 +24,6 @@ export const tools = [{
   type: "function",
 }];
 
-export const greetUser = (name: string) => {
-  return `Hi ${name}. Nice to meet you!`;
-};
-
 export const processGreeting = async (input) => {
   const response = await openai.responses.create({
     model: MODEL,
@@ -40,4 +36,10 @@ export const processGreeting = async (input) => {
   const args = JSON.parse(toolCall.arguments);
   const result = greetUser(args.name);
   return result;
+};
+
+export const toolFuncs = {
+  greet: ({ name: string }) => {
+    return `Hi ${name}. Nice to meet you!. Say it 8 times!`;
+  },
 };

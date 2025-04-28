@@ -1,6 +1,6 @@
 import { OpenAI } from "npm:openai";
 import { SYSTEM } from "../utils/constants.ts";
-import { greetUser, processGreeting, tools } from "./tools.ts";
+import { greetUser, processGreeting, toolFuncs, tools } from "./tools.ts";
 
 const MODEL = "o4-mini";
 export const openai = new OpenAI({
@@ -33,6 +33,7 @@ async function sendChat(
       id: "",
       fnName: "",
       fnArgs: "",
+      content: "",
     };
     for await (const chunk of stream) {
       const delta = chunk.choices[0].delta;
@@ -42,20 +43,23 @@ async function sendChat(
           (delta?.tool_calls?.[0]?.function?.name || "");
         state.fnArgs = state.fnArgs +
           (delta?.tool_calls?.[0]?.function?.arguments || "");
-        continue;
       }
       const content = delta?.content;
-      if (content) opts.onData(content);
+      if (content) {
+        state.content += content;
+        opts.onData(content);
+      }
+      opts.onData(JSON.stringify(chunk));
+      opts.onData("\n");
     }
-    // opts.onData(JSON.stringify(state));
     if (state.id) {
       const args = JSON.parse(state.fnArgs);
-      const result = greetUser(args.name);
+      const result = toolFuncs[state.fnName](args);
       const round2: OpenAI.ChatCompletionMessageParam[] = [
         ...messages,
         {
           role: "assistant",
-          content: "",
+          content: state.content,
           tool_calls: [
             {
               id: state.id,
