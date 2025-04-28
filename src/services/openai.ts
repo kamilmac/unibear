@@ -67,7 +67,7 @@ async function sendChat(
       const result = await toolFuncs[state.fnName](args);
       // opts.onData(JSON.stringify(result));
       msg = [
-        ...msg,
+        msg[msg.length - 1],
         {
           role: "assistant",
           content: state.content,
