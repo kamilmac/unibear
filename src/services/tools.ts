@@ -98,7 +98,7 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   {
     function: {
       name: "list_directory",
-      description: "List contents of current workspace directory in a nice format",
+      description: "List contents of current workspace directory as an extended tree view",
       strict: false,
       parameters: {},
     },
@@ -144,19 +144,31 @@ export const toolFuncs = {
   },
   list_directory: async (args: { path?: string }) => {
     const dirPath = args.path ?? ".";
-    const entries: Deno.DirEntry[] = [];
-    for await (const dirEntry of Deno.readDir(dirPath)) {
-      entries.push(dirEntry);
+    // Generate extended tree view
+    async function walk(path: string, prefix: string = ""): Promise<string> {
+      let tree = "";
+      const entries: Deno.DirEntry[] = [];
+      for await (const dirEntry of Deno.readDir(path)) {
+        entries.push(dirEntry);
+      }
+      entries.sort((a, b) => {
+        if (a.isDirectory === b.isDirectory) return a.name.localeCompare(b.name);
+        return a.isDirectory ? -1 : 1;
+      });
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        const isLast = i === entries.length - 1;
+        const connector = isLast ? "└── " : "├── ";
+        tree += `${prefix}${connector}${entry.name}\n`;
+        if (entry.isDirectory) {
+          const newPrefix = prefix + (isLast ? "    " : "│   ");
+          tree += await walk(`${path}/${entry.name}`, newPrefix);
+        }
+      }
+      return tree;
     }
-    entries.sort((a, b) => {
-      if (a.isDirectory === b.isDirectory) return a.name.localeCompare(b.name);
-      return a.isDirectory ? -1 : 1;
-    });
-    let output = `Contents of ${dirPath}:\n`;
-    for (const entry of entries) {
-      output += `${entry.isDirectory ? "📁" : "📄"} ${entry.name}\n`;
-    }
-    return output;
+    const tree = await walk(dirPath);
+    return `Tree of ${dirPath}:\n${tree}`;
   },
   git_review: async (args) => {
     const diff = await getGitDiffToBaseBranch();
