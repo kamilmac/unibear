@@ -18,7 +18,7 @@ if (await handleCliArgs()) {
 
 startServer();
 
-const { unmount } = render(<App />);
+const { unmount } = render(React.createElement(App));
 
 Deno.addSignalListener("SIGINT", () => {
   unmount();
