@@ -41,93 +41,101 @@ const ReadMultipleFilesArgsSchema = z.object({
   file_paths: z.array(z.string()).describe("Absolute paths pointing to files"),
 }).strict();
 
-export const tools: Array<OpenAI.ChatCompletionTool> = [
-  {
-    function: {
-      name: "say_hello",
-      description:
-        "Repeat greeting 8 times and share rhymes with the user's name",
-      strict: true,
-      parameters: zodToJsonSchema(GreetArgsSchema),
+export const tools = (
+  withWriteAccess: false,
+): Array<OpenAI.ChatCompletionTool> => {
+  const tls: Array<OpenAI.ChatCompletionTool> = [
+    {
+      function: {
+        name: "say_hello",
+        description:
+          "Repeat greeting 8 times and share rhymes with the user's name",
+        strict: true,
+        parameters: zodToJsonSchema(GreetArgsSchema),
+      },
+      type: "function",
     },
-    type: "function",
-  },
-  {
-    function: {
-      name: "weather",
-      description: "Give weather report for given location",
-      strict: true,
-      parameters: zodToJsonSchema(WeatherArgsSchema),
+    {
+      function: {
+        name: "weather",
+        description: "Give weather report for given location",
+        strict: true,
+        parameters: zodToJsonSchema(WeatherArgsSchema),
+      },
+      type: "function",
     },
-    type: "function",
-  },
-  // {
-  //   function: {
-  //     name: "edit_file",
-  //     description:
-  //       "Make line-based edits to a text file. Each edit replaces exact line sequences " +
-  //       "with new content. Returns a git-style diff showing the changes made. Does not attempt to commit any changes to git.",
-  //     strict: false,
-  //     parameters: zodToJsonSchema(EditFileArgsSchema),
-  //   },
-  //   type: "function",
-  // },
-  {
-    function: {
-      name: "git_commit_with_message",
-      description: "Creates git commit based on given message",
-      strict: true,
-      parameters: zodToJsonSchema(GitCommitArgsSchema),
+    {
+      function: {
+        name: "git_commit_with_message",
+        description: "Creates git commit based on given message",
+        strict: true,
+        parameters: zodToJsonSchema(GitCommitArgsSchema),
+      },
+      type: "function",
     },
-    type: "function",
-  },
-  {
-    function: {
-      name: "git_create_msg_and_commit_all_changes",
-      description: "Commit all changes to git repository",
-      strict: false,
-      parameters: {},
+    {
+      function: {
+        name: "git_create_msg_and_commit_all_changes",
+        description: "Commit all changes to git repository",
+        strict: false,
+        parameters: {},
+      },
+      type: "function",
     },
-    type: "function",
-  },
-  {
-    function: {
-      name: "read_file",
-      description: "Return the full contents of a text file",
-      strict: true,
-      parameters: zodToJsonSchema(ReadFileArgsSchema),
+    // {
+    //   function: {
+    //     name: "read_file",
+    //     description: "Return the full contents of a text file",
+    //     strict: true,
+    //     parameters: zodToJsonSchema(ReadFileArgsSchema),
+    //   },
+    //   type: "function",
+    // },
+    {
+      function: {
+        name: "read_multiple_files",
+        description: "Return the full contents of multiple text files",
+        strict: true,
+        parameters: zodToJsonSchema(ReadMultipleFilesArgsSchema),
+      },
+      type: "function",
     },
-    type: "function",
-  },
-  {
-    function: {
-      name: "read_multiple_files",
-      description: "Return the full contents of multiple text files",
-      strict: true,
-      parameters: zodToJsonSchema(ReadMultipleFilesArgsSchema),
+    {
+      function: {
+        name: "list_directory",
+        description:
+          "List contents of current workspace directory as an extended tree view",
+        strict: false,
+        parameters: {},
+      },
+      type: "function",
     },
-    type: "function",
-  },
-  {
-    function: {
-      name: "list_directory",
-      description:
-        "List contents of current workspace directory as an extended tree view",
-      strict: false,
-      parameters: {},
+    {
+      function: {
+        name: "git_review",
+        description: "Creates a review of all changes to base git branch",
+        strict: false,
+        parameters: {},
+      },
+      type: "function",
     },
-    type: "function",
-  },
-  {
-    function: {
-      name: "git_review",
-      description: "Creates a review of all changes to base git branch",
-      strict: false,
-      parameters: {},
-    },
-    type: "function",
-  },
-];
+  ];
+  if (withWriteAccess) {
+    tls.push({
+      function: {
+        name: "edit_file",
+        description:
+          "Make line-based edits to a text file. Each edit replaces exact line sequences " +
+          "with new content. Returns a git-style diff showing the changes made. Does not attempt to commit any changes to git.",
+        strict: false,
+        parameters: zodToJsonSchema(EditFileArgsSchema),
+      },
+      type: "function",
+    });
+  }
+
+  return tls;
+};
 
 export const toolFuncs = {
   say_hello: ({ name }: { name: string }) => {
@@ -136,14 +144,14 @@ export const toolFuncs = {
   weather: ({ location }: { location: string }) => {
     return `${location} is frozen now and the temperature is like -1000c. `;
   },
-  edit_file: async (args) => {
-    const parsed = EditFileArgsSchema.safeParse(args);
-    if (!parsed.success) {
-      throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
-    }
+  // edit_file: async (args) => {
+  //   const parsed = EditFileArgsSchema.safeParse(args);
+  //   if (!parsed.success) {
+  //     throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
+  //   }
 
-    return await applyFileEdits(args.file_path, args.edits);
-  },
+  //   return await applyFileEdits(args.file_path, args.edits);
+  // },
   git_commit_with_message: async (args) => {
     await commitAllChanges(args.message);
     return "Prompt user about succesfull commit with following message: " +
@@ -153,12 +161,17 @@ export const toolFuncs = {
     const diff = await getGitDiffToLatestCommit();
     return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit_with_message tool to commit changes with created message.`;
   },
-  read_file: async ({ file_path }: { file_path: string }) => {
-    return await Deno.readTextFile(file_path);
-  },
-  read_multiple_files: async ({ file_paths }: { file_paths: string[] }) => {
+  // read_file: async ({ file_path, log }: { file_path: string }) => {
+  //   log(`reading ${file_path}`);
+  //   return await Deno.readTextFile(file_path);
+  // },
+  read_multiple_files: async (
+    { file_paths }: { file_paths: string[] },
+    log,
+  ) => {
     const results: Record<string, string> = {};
     for (const file_path of file_paths) {
+      log(`reading ${file_path}\n`);
       results[file_path] = await Deno.readTextFile(file_path);
     }
     return JSON.stringify(results);

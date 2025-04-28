@@ -44,6 +44,8 @@ async function sendChat(
   let history = messages;
   let appendedContent: AppendedContent = [];
 
+  const withWrite = messages[messages.length - 1].content.startsWith("+");
+
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     opts.onData("iterating...");
     let stream = await openai.chat.completions.create({
@@ -52,7 +54,7 @@ async function sendChat(
         ? [history[history.length - 1], ...appendedContent]
         : history,
       stream: true,
-      tools: tools,
+      tools: tools(withWrite),
     });
     const state = {
       id: "",
@@ -86,10 +88,9 @@ async function sendChat(
     }
     if (state.id) {
       const args = JSON.parse(state.fnArgs);
-      opts.onData(`calling ${state.fnName}`);
       let result = "";
       try {
-        result = await toolFuncs[state.fnName](args);
+        result = await toolFuncs[state.fnName](args, opts.onData);
       } catch (err) {
         result = err.message;
       }
