@@ -37,6 +37,10 @@ const ReadFileArgsSchema = z.object({
   file_path: z.string().describe("Absolute path of the file"),
 }).strict();
 
+const ReadMultipleFilesArgsSchema = z.object({
+  file_paths: z.array(z.string()).describe("Absolute paths pointing to files"),
+}).strict();
+
 export const tools: Array<OpenAI.ChatCompletionTool> = [
   {
     function: {
@@ -97,6 +101,15 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   },
   {
     function: {
+      name: "read_multiple_files",
+      description: "Return the full contents of multiple text files",
+      strict: true,
+      parameters: zodToJsonSchema(ReadMultipleFilesArgsSchema),
+    },
+    type: "function",
+  },
+  {
+    function: {
       name: "list_directory",
       description:
         "List contents of current workspace directory as an extended tree view",
@@ -142,6 +155,13 @@ export const toolFuncs = {
   },
   read_file: async ({ file_path }: { file_path: string }) => {
     return await Deno.readTextFile(file_path);
+  },
+  read_multiple_files: async ({ file_paths }: { file_paths: string[] }) => {
+    const results: Record<string, string> = {};
+    for (const file_path of file_paths) {
+      results[file_path] = await Deno.readTextFile(file_path);
+    }
+    return JSON.stringify(results);
   },
   list_directory: async (args: { path?: string }) => {
     const dirPath = args.path ?? ".";
