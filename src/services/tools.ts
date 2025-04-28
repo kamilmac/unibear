@@ -98,7 +98,8 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   {
     function: {
       name: "list_directory",
-      description: "List contents of current workspace directory as an extended tree view",
+      description:
+        "List contents of current workspace directory as an extended tree view",
       strict: false,
       parameters: {},
     },
@@ -151,13 +152,17 @@ export const toolFuncs = {
       for await (const dirEntry of Deno.readDir(path)) {
         entries.push(dirEntry);
       }
-      entries.sort((a, b) => {
-        if (a.isDirectory === b.isDirectory) return a.name.localeCompare(b.name);
+      // Exclude hidden files and folders (those starting with '.')
+      const visibleEntries = entries.filter((entry) => !entry.name.startsWith("."));
+      visibleEntries.sort((a, b) => {
+        if (a.isDirectory === b.isDirectory) {
+          return a.name.localeCompare(b.name);
+        }
         return a.isDirectory ? -1 : 1;
       });
-      for (let i = 0; i < entries.length; i++) {
-        const entry = entries[i];
-        const isLast = i === entries.length - 1;
+      for (let i = 0; i < visibleEntries.length; i++) {
+        const entry = visibleEntries[i];
+        const isLast = i === visibleEntries.length - 1;
         const connector = isLast ? "└── " : "├── ";
         tree += `${prefix}${connector}${entry.name}\n`;
         if (entry.isDirectory) {
