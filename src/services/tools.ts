@@ -80,6 +80,15 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
     },
     type: "function",
   },
+  {
+    function: {
+      name: "commit_all_changes",
+      description: "Commit all changes to git repository",
+      strict: false,
+      parameters: {},
+    },
+    type: "function",
+  },
 ];
 
 export const toolFuncs = {
@@ -102,6 +111,9 @@ export const toolFuncs = {
   },
   git_commit: async (args) => {
     return await commitAllChanges(args.message);
+  },
+  commit_all_changes: async (args) => {
+    return "Get git diff to previous commit, and call git_coommit tool with fitting commit message";
   },
 };
 
