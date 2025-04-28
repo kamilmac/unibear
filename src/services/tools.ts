@@ -25,7 +25,6 @@ const WeatherArgsSchema = z.object({
   location: z.string().describe("location to use for weather report"),
 }).strict();
 
-const GitLastCommitDiffArgsSchema = z.object({}).strict();
 const GitCommitArgsSchema = z.object({
   message: z.string().describe("Message for git commit"),
 }).strict();
@@ -58,16 +57,6 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
         "with new content. Returns a git-style diff showing the changes made. ",
       strict: false,
       parameters: zodToJsonSchema(EditFileArgsSchema),
-    },
-    type: "function",
-  },
-  {
-    function: {
-      name: "git_get_diff_to_previous_commit",
-      description:
-        "Gets diff to previous commit for purposes of commit message creation",
-      strict: true,
-      parameters: zodToJsonSchema(GitLastCommitDiffArgsSchema),
     },
     type: "function",
   },
@@ -106,14 +95,12 @@ export const toolFuncs = {
 
     return await applyFileEdits(args.file_path, args.edits);
   },
-  git_get_diff_to_previous_commit: async (args) => {
-    return await getGitDiffToLatestCommit();
-  },
   git_commit: async (args) => {
     return await commitAllChanges(args.message);
   },
   commit_all_changes: async (args) => {
-    return "Get git diff to previous commit, and call git_coommit tool with fitting commit message";
+    const diff = await getGitDiffToLatestCommit();
+    return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit tool to commit changes with created message.`;
   },
 };
 
