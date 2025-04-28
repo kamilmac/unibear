@@ -3,7 +3,11 @@ import { createTwoFilesPatch } from "npm:diff";
 
 import { z } from "npm:zod";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
-import { commitAllChanges, getGitDiffToLatestCommit } from "../utils/git.ts";
+import {
+  commitAllChanges,
+  getGitDiffToBaseBranch,
+  getGitDiffToLatestCommit,
+} from "../utils/git.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -78,6 +82,15 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
     },
     type: "function",
   },
+  {
+    function: {
+      name: "git_review",
+      description: "Creates a review of all changes to base git branch",
+      strict: false,
+      parameters: {},
+    },
+    type: "function",
+  },
 ];
 
 export const toolFuncs = {
@@ -101,6 +114,13 @@ export const toolFuncs = {
   commit_all_changes: async (args) => {
     const diff = await getGitDiffToLatestCommit();
     return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit tool to commit changes with created message.`;
+  },
+  git_review: async (args) => {
+    const diff = await getGitDiffToBaseBranch();
+    const system =
+      "You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format";
+
+    return `${system}. The diff: ${diff}`;
   },
 };
 
