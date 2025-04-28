@@ -66,7 +66,7 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   },
   {
     function: {
-      name: "git_commit",
+      name: "git_commit_with_message",
       description: "Creates git commit based on given message",
       strict: true,
       parameters: zodToJsonSchema(GitCommitArgsSchema),
@@ -75,7 +75,7 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   },
   {
     function: {
-      name: "commit_all_changes",
+      name: "git_create_msg_and_commit_all_changes",
       description: "Commit all changes to git repository",
       strict: false,
       parameters: {},
@@ -108,12 +108,13 @@ export const toolFuncs = {
 
     return await applyFileEdits(args.file_path, args.edits);
   },
-  git_commit: async (args) => {
-    return await commitAllChanges(args.message);
+  git_commit_with_message: async (args) => {
+    await commitAllChanges(args.message);
+    return "Committed changes with following message: " + args.message;
   },
-  commit_all_changes: async (args) => {
+  git_create_msg_and_commit_all_changes: async (args) => {
     const diff = await getGitDiffToLatestCommit();
-    return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit tool to commit changes with created message and 3. summarise changes in markdown.`;
+    return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit tool to commit changes with created message.`;
   },
   git_review: async (args) => {
     const diff = await getGitDiffToBaseBranch();
