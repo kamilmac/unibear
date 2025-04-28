@@ -63,7 +63,7 @@ async function sendChat(
     }
     if (state.id) {
       const args = JSON.parse(state.fnArgs);
-      opts.onData(`calling ${state.fnName} ${state.fnArgs}`);
+      // opts.onData(`calling ${state.fnName} ${state.fnArgs}`);
       const result = await toolFuncs[state.fnName](args);
       // opts.onData(JSON.stringify(result));
       msg = [

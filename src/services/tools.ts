@@ -110,7 +110,8 @@ export const toolFuncs = {
   },
   git_commit_with_message: async (args) => {
     await commitAllChanges(args.message);
-    return "Give summary about succesfull commit:" + args.message;
+    return "Prompt user about succesfull commit with following message: " +
+      args.message;
   },
   git_create_msg_and_commit_all_changes: async (args) => {
     const diff = await getGitDiffToLatestCommit();
