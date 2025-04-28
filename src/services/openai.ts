@@ -1,6 +1,6 @@
 import { OpenAI } from "npm:openai";
 import { SYSTEM } from "../utils/constants.ts";
-import { toolFuncs, tools } from "./tools.ts";
+import { getTools, toolFuncs } from "./tools.ts";
 
 const MODEL = "o4-mini";
 const MAX_HISTORY = 20; // trim history to last N messages
@@ -62,7 +62,7 @@ async function sendChat(
       model,
       messages: history,
       stream: true,
-      tools: tools(withWrite),
+      tools: getTools(withWrite),
     });
     const state = {
       id: "",

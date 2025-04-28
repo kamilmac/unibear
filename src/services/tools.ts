@@ -29,7 +29,31 @@ const ReadMultipleFilesArgsSchema = z.object({
   file_paths: z.array(z.string()).describe("Absolute paths pointing to files"),
 }).strict();
 
-export const tools = (
+const tools = [
+  {
+    definition: {
+      function: {
+        name: "git_commit_with_message",
+        description: "Creates git commit based on given message",
+        strict: true,
+        parameters: zodToJsonSchema(
+          z.object({
+            message: z.string().describe("Message for git commit"),
+          }).strict(),
+        ),
+      },
+      type: "function",
+    },
+    process: async (args: any) => {
+      await commitAllChanges(args.message);
+      return "Prompt user about succesfull commit with following message: " +
+        args.message;
+    },
+    mode: "git",
+  },
+];
+
+export const getTools = (
   withWriteAccess: false,
 ): Array<OpenAI.ChatCompletionTool> => {
   const tls: Array<OpenAI.ChatCompletionTool> = [
