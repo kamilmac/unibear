@@ -1,8 +1,9 @@
 import { OpenAI } from "npm:openai";
 import { SYSTEM } from "../utils/constants.ts";
+import { processGreeting } from "./tools.ts";
 
 const MODEL = "o4-mini";
-const openai = new OpenAI({
+export const openai = new OpenAI({
   apiKey: Deno.env.get("OPENAI_API_KEY"),
 });
 
@@ -12,29 +13,28 @@ interface SendChatOpts {
   onData?: (chunk: string) => void;
 }
 
+const MAX_ITERATIONS = 8;
+
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
   opts: SendChatOpts = {},
 ): Promise<string> {
   const model = opts.model || MODEL;
 
-  if (opts.stream && opts.onData) {
-    const stream = await openai.chat.completions.create({
-      model,
-      messages,
-      stream: true,
-    });
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) opts.onData(content);
+  for (let i = 0; i < MAX_ITERATIONS; i += 1) {
+    if (opts.stream && opts.onData) {
+      const stream = await openai.chat.completions.create({
+        model,
+        messages,
+        stream: true,
+      });
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) opts.onData(content);
+      }
     }
-    return "";
   }
-
-  const res = await openai.chat.completions.create({ model, messages });
-  const content = res.choices[0]?.message?.content;
-  if (!content) throw new Error("No content returned from OpenAI");
-  return content.trim();
+  return "";
 }
 
 function buildHistoryMessages(
@@ -57,9 +57,15 @@ export const streamOpenAIResponse = async (
   context: string,
   chat: ChatItem[],
   cb: (chunk: string) => void,
+  tool?: string,
 ) => {
   const messages = buildHistoryMessages(context, chat);
   try {
+    if (!tool) {
+      const resp = await processGreeting(messages);
+      cb(JSON.stringify(resp));
+      return;
+    }
     await sendChat(messages, { stream: true, onData: cb });
   } catch (err) {
     console.error("streamOpenAIResponse error:", err);
