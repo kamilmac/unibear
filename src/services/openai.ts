@@ -16,7 +16,13 @@ interface SendChatOpts {
 type AssistantContent = {
   role: "assistant";
   content: string;
-  tool_calls: Array<{ id: string; function: { arguments: string; name: string }; type: "function" }>;
+  tool_calls: Array<
+    {
+      id: string;
+      function: { arguments: string; name: string };
+      type: "function";
+    }
+  >;
 };
 
 type ToolContent = {
@@ -81,7 +87,12 @@ async function sendChat(
     if (state.id) {
       const args = JSON.parse(state.fnArgs);
       opts.onData(`calling ${state.fnName}`);
-      const result = await toolFuncs[state.fnName](args);
+      let result = "";
+      try {
+        result = await toolFuncs[state.fnName](args);
+      } catch (err) {
+        result = JSON.stringify(err);
+      }
       opts.onData(JSON.stringify(result));
       appendedContent = [
         ...appendedContent,

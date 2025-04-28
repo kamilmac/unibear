@@ -97,6 +97,15 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
   },
   {
     function: {
+      name: "list_directory",
+      description: "List contents of current workspace directory in a nice format",
+      strict: false,
+      parameters: {},
+    },
+    type: "function",
+  },
+  {
+    function: {
       name: "git_review",
       description: "Creates a review of all changes to base git branch",
       strict: false,
@@ -132,6 +141,22 @@ export const toolFuncs = {
   },
   read_file: async ({ file_path }: { file_path: string }) => {
     return await Deno.readTextFile(file_path);
+  },
+  list_directory: async (args: { path?: string }) => {
+    const dirPath = args.path ?? ".";
+    const entries: Deno.DirEntry[] = [];
+    for await (const dirEntry of Deno.readDir(dirPath)) {
+      entries.push(dirEntry);
+    }
+    entries.sort((a, b) => {
+      if (a.isDirectory === b.isDirectory) return a.name.localeCompare(b.name);
+      return a.isDirectory ? -1 : 1;
+    });
+    let output = `Contents of ${dirPath}:\n`;
+    for (const entry of entries) {
+      output += `${entry.isDirectory ? "📁" : "📄"} ${entry.name}\n`;
+    }
+    return output;
   },
   git_review: async (args) => {
     const diff = await getGitDiffToBaseBranch();
