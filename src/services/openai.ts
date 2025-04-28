@@ -21,11 +21,12 @@ async function sendChat(
 ): Promise<string> {
   const model = opts.model || MODEL;
 
+  let msg = messages;
   // for (let i = 0; i < MAX_ITERATIONS; i += 1) {
   if (opts.stream && opts.onData) {
     let stream = await openai.chat.completions.create({
       model,
-      messages,
+      messages: msg,
       stream: true,
       tools: tools.slice(0, 2),
     });
@@ -63,8 +64,8 @@ async function sendChat(
       if (state.id) {
         const args = JSON.parse(state.fnArgs);
         const result = toolFuncs[state.fnName](args);
-        const round2: OpenAI.ChatCompletionMessageParam[] = [
-          ...messages,
+        msg = [
+          ...msg,
           {
             role: "assistant",
             content: state.content,
@@ -85,7 +86,7 @@ async function sendChat(
 
         stream = await openai.chat.completions.create({
           model,
-          messages: round2,
+          messages: msg,
           stream: true,
           tools,
         });
