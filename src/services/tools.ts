@@ -110,11 +110,11 @@ export const toolFuncs = {
   },
   git_commit_with_message: async (args) => {
     await commitAllChanges(args.message);
-    return "Committed changes with following message: " + args.message;
+    return "Give summary about succesfull commit:" + args.message;
   },
   git_create_msg_and_commit_all_changes: async (args) => {
     const diff = await getGitDiffToLatestCommit();
-    return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit tool to commit changes with created message.`;
+    return `1. Create commit message based on following diff: ${diff}. 2. Use git_commit_with_message tool to commit changes with created message.`;
   },
   git_review: async (args) => {
     const diff = await getGitDiffToBaseBranch();
