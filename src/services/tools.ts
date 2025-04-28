@@ -1,45 +1,55 @@
-import { openai } from "./openai.ts";
+import { OpenAI } from "npm:openai";
 
-const MODEL = "o4-mini";
-
-export const tools = [{
-  function: {
-    name: "greet",
-    description: "Greet user given the user name",
-    strict: false,
-    parameters: {
-      type: "object",
-      properties: {
-        name: {
-          type: "string",
-          description: "Name of the user e.g. John",
+export const tools: Array<OpenAI.ChatCompletionTool> = [
+  {
+    function: {
+      name: "greet",
+      description: "Greet user given the user name",
+      strict: true,
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Name of the user e.g. John",
+          },
         },
+        required: [
+          "name",
+        ],
+        additionalProperties: false,
       },
-      required: [
-        name,
-      ],
-      additionalProperties: false,
     },
+    type: "function",
   },
-  type: "function",
-}];
-
-export const processGreeting = async (input) => {
-  const response = await openai.responses.create({
-    model: MODEL,
-    input,
-    tools: [GreetingTool],
-  });
-
-  const toolCall = response.output[1];
-  // return response.output;
-  const args = JSON.parse(toolCall.arguments);
-  const result = greetUser(args.name);
-  return result;
-};
+  {
+    function: {
+      name: "weather",
+      description: "Give weather report for given location",
+      strict: true,
+      parameters: {
+        type: "object",
+        properties: {
+          location: {
+            type: "string",
+            description: "location to use for weather report",
+          },
+        },
+        required: [
+          "location",
+        ],
+        additionalProperties: false,
+      },
+    },
+    type: "function",
+  },
+];
 
 export const toolFuncs = {
-  greet: ({ name: string }) => {
-    return `Hi ${name}. Nice to meet you!. Say it 8 times!`;
+  greet: ({ name }: { name: string }) => {
+    return `Hi ${name}. Nice to meet you!. Say it 8 times! Share what rhymes with my name as well.`;
+  },
+  weather: ({ location }: { location: string }) => {
+    return `${location} is frozen now and the temperature is like -1000c. `;
   },
 };

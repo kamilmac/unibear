@@ -23,68 +23,72 @@ async function sendChat(
 
   // for (let i = 0; i < MAX_ITERATIONS; i += 1) {
   if (opts.stream && opts.onData) {
-    const stream = await openai.chat.completions.create({
+    let stream = await openai.chat.completions.create({
       model,
       messages,
       stream: true,
-      tools,
+      tools: tools.slice(0, 2),
     });
-    const state = {
-      id: "",
-      fnName: "",
-      fnArgs: "",
-      content: "",
-    };
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0].delta;
-      if (delta?.tool_calls) {
-        state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
-        state.fnName = state.fnName ||
-          (delta?.tool_calls?.[0]?.function?.name || "");
-        state.fnArgs = state.fnArgs +
-          (delta?.tool_calls?.[0]?.function?.arguments || "");
+    for (let i = 0; i < MAX_ITERATIONS; i += 1) {
+      const state = {
+        id: "",
+        fnName: "",
+        fnArgs: "",
+        content: "",
+        stop: false,
+      };
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0].delta;
+        if (delta?.tool_calls) {
+          state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
+          state.fnName = state.fnName ||
+            (delta?.tool_calls?.[0]?.function?.name || "");
+          state.fnArgs = state.fnArgs +
+            (delta?.tool_calls?.[0]?.function?.arguments || "");
+          opts.onData(JSON.stringify(state));
+          opts.onData("\n");
+        }
+        const content = delta?.content;
+        if (content) {
+          state.content += content;
+          opts.onData(content);
+        }
+        if (chunk.choices[0].finish_reason === "stop") {
+          state.stop = true;
+        }
       }
-      const content = delta?.content;
-      if (content) {
-        state.content += content;
-        opts.onData(content);
+      if (state.stop) {
+        break;
       }
-      opts.onData(JSON.stringify(chunk));
-      opts.onData("\n");
-    }
-    if (state.id) {
-      const args = JSON.parse(state.fnArgs);
-      const result = toolFuncs[state.fnName](args);
-      const round2: OpenAI.ChatCompletionMessageParam[] = [
-        ...messages,
-        {
-          role: "assistant",
-          content: state.content,
-          tool_calls: [
-            {
-              id: state.id,
-              function: { arguments: state.fnArgs, name: state.fnName },
-              type: "function",
-            },
-          ],
-        },
-        {
-          role: "tool",
-          tool_call_id: state.id,
-          content: result,
-        },
-      ];
+      if (state.id) {
+        const args = JSON.parse(state.fnArgs);
+        const result = toolFuncs[state.fnName](args);
+        const round2: OpenAI.ChatCompletionMessageParam[] = [
+          ...messages,
+          {
+            role: "assistant",
+            content: state.content,
+            tool_calls: [
+              {
+                id: state.id,
+                function: { arguments: state.fnArgs, name: state.fnName },
+                type: "function",
+              },
+            ],
+          },
+          {
+            role: "tool",
+            tool_call_id: state.id,
+            content: result,
+          },
+        ];
 
-      const stream2 = await openai.chat.completions.create({
-        model,
-        messages: round2,
-        stream: true,
-      });
-
-      // opts.onData(JSON.stringify(stream2));
-      for await (const chunk of stream2) {
-        const c = chunk.choices[0]?.delta?.content;
-        if (c) opts.onData(c);
+        stream = await openai.chat.completions.create({
+          model,
+          messages: round2,
+          stream: true,
+          tools,
+        });
       }
     }
   }
