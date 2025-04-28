@@ -91,9 +91,9 @@ async function sendChat(
       try {
         result = await toolFuncs[state.fnName](args);
       } catch (err) {
-        result = JSON.stringify(err);
+        result = err.message;
       }
-      opts.onData(JSON.stringify(result));
+      // opts.onData(JSON.stringify(result));
       appendedContent = [
         ...appendedContent,
         {

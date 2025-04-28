@@ -61,17 +61,17 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
     },
     type: "function",
   },
-  {
-    function: {
-      name: "edit_file",
-      description:
-        "Make line-based edits to a text file. Each edit replaces exact line sequences " +
-        "with new content. Returns a git-style diff showing the changes made. Does not attempt to commit any changes to git.",
-      strict: false,
-      parameters: zodToJsonSchema(EditFileArgsSchema),
-    },
-    type: "function",
-  },
+  // {
+  //   function: {
+  //     name: "edit_file",
+  //     description:
+  //       "Make line-based edits to a text file. Each edit replaces exact line sequences " +
+  //       "with new content. Returns a git-style diff showing the changes made. Does not attempt to commit any changes to git.",
+  //     strict: false,
+  //     parameters: zodToJsonSchema(EditFileArgsSchema),
+  //   },
+  //   type: "function",
+  // },
   {
     function: {
       name: "git_commit_with_message",
@@ -173,7 +173,9 @@ export const toolFuncs = {
         entries.push(dirEntry);
       }
       // Exclude hidden files and folders (those starting with '.')
-      const visibleEntries = entries.filter((entry) => !entry.name.startsWith("."));
+      const visibleEntries = entries.filter((entry) =>
+        !entry.name.startsWith(".")
+      );
       visibleEntries.sort((a, b) => {
         if (a.isDirectory === b.isDirectory) {
           return a.name.localeCompare(b.name);
