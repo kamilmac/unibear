@@ -62,7 +62,7 @@ export const tools: Array<OpenAI.ChatCompletionTool> = [
       name: "edit_file",
       description:
         "Make line-based edits to a text file. Each edit replaces exact line sequences " +
-        "with new content. Returns a git-style diff showing the changes made. ",
+        "with new content. Returns a git-style diff showing the changes made. Does not attempt to commit any changes to git.",
       strict: false,
       parameters: zodToJsonSchema(EditFileArgsSchema),
     },

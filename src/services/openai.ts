@@ -13,6 +13,20 @@ interface SendChatOpts {
   onData: (chunk: string) => void;
 }
 
+type AssistantContent = {
+  role: "assistant";
+  content: string;
+  tool_calls: Array<{ id: string; function: { arguments: string; name: string }; type: "function" }>;
+};
+
+type ToolContent = {
+  role: "tool";
+  tool_call_id: string;
+  content: any;
+};
+
+type AppendedContent = Array<AssistantContent | ToolContent>;
+
 const MAX_ITERATIONS = 16;
 
 async function sendChat(
@@ -68,7 +82,7 @@ async function sendChat(
       const args = JSON.parse(state.fnArgs);
       opts.onData(`calling ${state.fnName}`);
       const result = await toolFuncs[state.fnName](args);
-      // opts.onData(JSON.stringify(result));
+      opts.onData(JSON.stringify(result));
       appendedContent = [
         ...appendedContent,
         {

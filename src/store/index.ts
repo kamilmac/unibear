@@ -83,7 +83,9 @@ export const useStore = create<Store>((set, get) => ({
   dimensions: { cols: 0, rows: 0 },
   systemMessage: "",
   textArea: "",
-
+  setTextArea: (text) => {
+    set({ textArea: text });
+  },
   chat: [
     {
       id: getNewChatItemId(),
