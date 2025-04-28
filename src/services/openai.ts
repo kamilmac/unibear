@@ -1,6 +1,6 @@
 import { OpenAI } from "npm:openai";
 import { SYSTEM } from "../utils/constants.ts";
-import { processGreeting } from "./tools.ts";
+import { processGreeting, tools } from "./tools.ts";
 
 const MODEL = "o4-mini";
 export const openai = new OpenAI({
@@ -21,19 +21,27 @@ async function sendChat(
 ): Promise<string> {
   const model = opts.model || MODEL;
 
-  for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-    if (opts.stream && opts.onData) {
-      const stream = await openai.chat.completions.create({
-        model,
-        messages,
-        stream: true,
-      });
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) opts.onData(content);
-      }
+  // for (let i = 0; i < MAX_ITERATIONS; i += 1) {
+  if (opts.stream && opts.onData) {
+    const stream = await openai.chat.completions.create({
+      model,
+      messages,
+      stream: true,
+      tools,
+    });
+    const state = {};
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0].delta;
+      state.id = delta.tool_calls[0].id;
+      state.fnName = state.fnName || delta.tool_calls[0].function?.name;
+      state.fnArgs = state.fnArgs || delta.tool_calls[0].function?.arguments;
+      opts.onData(JSON.stringify(chunk));
+      opts.onData("\n");
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) opts.onData(content);
     }
   }
+  // }
   return "";
 }
 
@@ -57,15 +65,15 @@ export const streamOpenAIResponse = async (
   context: string,
   chat: ChatItem[],
   cb: (chunk: string) => void,
-  tool?: string,
+  // tool?: string,
 ) => {
   const messages = buildHistoryMessages(context, chat);
   try {
-    if (!tool) {
-      const resp = await processGreeting(messages);
-      cb(JSON.stringify(resp));
-      return;
-    }
+    // if (!tool) {
+    //   const resp = await processGreeting(messages);
+    //   cb(JSON.stringify(resp));
+    //   return;
+    // }
     await sendChat(messages, { stream: true, onData: cb });
   } catch (err) {
     console.error("streamOpenAIResponse error:", err);

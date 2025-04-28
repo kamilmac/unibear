@@ -2,24 +2,27 @@ import { openai } from "./openai.ts";
 
 const MODEL = "o4-mini";
 
-export const GreetingTool = {
-  "type": "function",
-  "name": "greet",
-  "description": "Greet user given the user name",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string",
-        "description": "Name of the user e.g. John",
+export const tools = [{
+  function: {
+    name: "greet",
+    description: "Greet user given the user name",
+    strict: false,
+    parameters: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description: "Name of the user e.g. John",
+        },
       },
+      required: [
+        name,
+      ],
+      additionalProperties: false,
     },
-    "required": [
-      "name",
-    ],
-    "additionalProperties": false,
   },
-};
+  type: "function",
+}];
 
 const greetUser = (name: string) => {
   return `Hi ${name}. Nice to meet you!`;
