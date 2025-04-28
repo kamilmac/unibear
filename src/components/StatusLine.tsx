@@ -13,7 +13,6 @@ export const StatusLine = () => {
   const modes = {
     insert: COLORS.prompt(" PROMPT "),
     normal: COLORS.visual(" VISUAL "),
-    command: COLORS.command(" COMMAND "),
   };
 
   return (

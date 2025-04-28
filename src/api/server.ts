@@ -8,7 +8,7 @@ export const initServer = async () => {
   const app = new Application();
   const router = new Router();
 
-  router.post("/command/:command", async (ctx) => {
+  router.post("/command/add_file", async (ctx) => {
     try {
       // const workspaceName = basename(Deno.cwd());
       const headers = ctx.request.headers;
@@ -16,11 +16,11 @@ export const initServer = async () => {
       const workspaceName = basename(Deno.cwd());
       const arg = await ctx.request.body.text();
       if (callersWorkspace === workspaceName) {
-        useStore.getState().commands[ctx.params.command].process(arg || "");
+        useStore.getState().addFileToContext(arg || "");
         ctx.response.status = 200;
         ctx.response.body = {
           success: true,
-          message: "Succesfully parsed external command",
+          message: "Succesfully added file",
           arg,
         };
       } else {
@@ -31,7 +31,7 @@ export const initServer = async () => {
     } catch (error) {
       ctx.response.status = 500;
       ctx.response.body = {
-        error: "Failed to parse external command: " + error,
+        error: "Failed to add file: " + error,
       };
     }
   });

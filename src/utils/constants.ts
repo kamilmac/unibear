@@ -2,7 +2,6 @@ import chalk from "npm:chalk";
 
 export const THE_AI_NAME = "UNIBEAR";
 export const PORT = 12492;
-export const COMMAND_PREFIX = ":";
 export const IS_DEV = Deno.env.get("DEV") === "true";
 export const TEXT_AREA_HEIGHT = 6;
 export const CURSOR_SCROLL_PADDING = 5;
@@ -38,7 +37,6 @@ const HEX_COLORS = {
 
 const DARK_THEME = {
   prompt: chalk.bold.hex(HEX_COLORS.teal),
-  command: chalk.hex(HEX_COLORS.red),
   ai: chalk.hex(HEX_COLORS.purple),
   visual: chalk.hex(HEX_COLORS.white),
   statusLineInactive: chalk.hex(HEX_COLORS.grey),

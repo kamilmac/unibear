@@ -1,4 +1,4 @@
-type ChatItemType = "user" | "ai" | "injector" | "command";
+type ChatItemType = "user" | "ai";
 
 type ChatItem = {
   id: number;
@@ -7,22 +7,7 @@ type ChatItem = {
   type: ChatItemType;
 };
 
-type OperationMode = "insert" | "normal" | "command";
-
-type CommandKey =
-  | "q"
-  | "reset"
-  | "help"
-  | "git-commit"
-  | "git-pr"
-  | "git-review"
-  | "inject-file"
-  | "list-files";
-
-type Command = {
-  desc: string;
-  process: (arg?: string) => void;
-};
+type OperationMode = "insert" | "normal";
 
 type Store = {
   init: () => void;
@@ -52,5 +37,4 @@ type Store = {
   tokensInput: number;
   tokensOutput: number;
   injectContext: (content: string, visibleContent: string) => void;
-  commands: Record<string, Command>;
 };

@@ -3,14 +3,7 @@ import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import {
-  BANNER,
-  COLORS,
-  IS_DEV,
-  SYSTEM,
-  THE_AI_NAME,
-} from "../utils/constants.ts";
-import { buildCommands } from "./commands.ts";
+import { BANNER, COLORS, SYSTEM, THE_AI_NAME } from "../utils/constants.ts";
 import { countTokens, getContentFromFile } from "../utils/helpers.ts";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 
@@ -30,9 +23,6 @@ export const useStore = create<Store>((set, get) => ({
     };
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
-    if (IS_DEV) {
-      get().commands.help.process();
-    }
   },
   isGitBaseDiffInjectionEnabled: false,
   injectClipboard: async () => {
@@ -59,11 +49,15 @@ export const useStore = create<Store>((set, get) => ({
   tokensInput: 0,
   tokensOutput: 0,
   addFileToContext: (filePath) => {
-    if (get().filesInContext.includes(filePath)) return;
+    const absolute = filePath.startsWith("/")
+      ? filePath
+      : `${Deno.cwd()}/${filePath}`;
+    get().appendChatItem("", `Added ${absolute} to context.`, "ai");
+    if (get().filesInContext.includes(absolute)) return;
     set({
       filesInContext: [
         ...get().filesInContext,
-        filePath,
+        absolute,
       ],
     });
   },
@@ -74,7 +68,6 @@ export const useStore = create<Store>((set, get) => ({
         .filter((f) => f !== filePath),
     });
   },
-  isCommandInFlight: false,
   isStreamingResponse: false,
   operationMode: "insert",
   setOperationMode: (mode) => {
@@ -91,7 +84,7 @@ export const useStore = create<Store>((set, get) => ({
       id: getNewChatItemId(),
       content: "",
       visibleContent: COLORS.banner(BANNER).split("\n"),
-      type: "command",
+      type: "ai",
     },
   ],
   appendChatItem: (content, visibleContent, type) => {
@@ -101,11 +94,7 @@ export const useStore = create<Store>((set, get) => ({
       visibleContent: [],
       type,
     };
-    if (type === "command") {
-      newChatItem.visibleContent = marked.parse(
-        COLORS.command("COMMAND: ") + visibleContent,
-      ).split("\n");
-    } else if (type === "user") {
+    if (type === "user") {
       newChatItem.visibleContent = [
         COLORS.prompt("USER: ") + visibleContent + "\n",
       ];
@@ -176,5 +165,4 @@ export const useStore = create<Store>((set, get) => ({
   injectContext: (content, visibleContent) => {
     get().appendChatItem(content, visibleContent, "injector");
   },
-  commands: buildCommands(set, get),
 }));

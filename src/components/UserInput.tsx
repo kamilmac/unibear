@@ -1,17 +1,12 @@
 import React from "npm:react";
 import { Box, Text, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/index.ts";
-import {
-  COLORS,
-  COMMAND_PREFIX,
-  TEXT_AREA_HEIGHT,
-} from "../utils/constants.ts";
+import { COLORS, TEXT_AREA_HEIGHT } from "../utils/constants.ts";
 
 export const UserInput = () => {
   const [input, setInput] = React.useState("");
   const submit = useStore((store) => store.onSubmitUserPrompt);
   const dims = useStore((store) => store.dimensions);
-  const commands = useStore((store) => store.commands);
   const { enableFocus } = useFocusManager();
   const isStreaming = useStore((store) => store.isStreamingResponse);
   const opMode = useStore((store) => store.operationMode);
@@ -30,19 +25,9 @@ export const UserInput = () => {
       setInput(input.slice(0, -1));
       return;
     }
-    if (input === "" && _input === COMMAND_PREFIX) {
-      setOpMode("command");
-      return;
-    }
     if (key.return) {
       if (isStreaming) return;
-      if (opMode === "command" && input.length > 0) {
-        const command = input.trim();
-        setOpMode("normal");
-        commands[command]?.process?.();
-      } else {
-        submit(input);
-      }
+      submit(input);
       setInput("");
       return;
     }
@@ -63,8 +48,6 @@ export const UserInput = () => {
       >
         {opMode === "insert" &&
           <Text>{COLORS.prompt(" > ")}</Text>}
-        {opMode === "command" &&
-          <Text>{COLORS.command(` ${COMMAND_PREFIX} `)}</Text>}
       </Box>
       <Box
         width={dims.cols - 6}
