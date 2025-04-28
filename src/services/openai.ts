@@ -10,87 +10,78 @@ export const openai = new OpenAI({
 interface SendChatOpts {
   model?: string;
   stream?: boolean;
-  onData?: (chunk: string) => void;
+  onData: (chunk: string) => void;
 }
 
 const MAX_ITERATIONS = 8;
 
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
-  opts: SendChatOpts = {},
+  opts: SendChatOpts = { onData: () => {} },
 ): Promise<string> {
   const model = opts.model || MODEL;
 
   let msg = messages;
   // for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-  if (opts.stream && opts.onData) {
+  for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     let stream = await openai.chat.completions.create({
       model,
       messages: msg,
       stream: true,
-      tools: tools.slice(0, 2),
+      tools: tools,
     });
-    for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-      const state = {
-        id: "",
-        fnName: "",
-        fnArgs: "",
-        content: "",
-        stop: false,
-      };
-      for await (const chunk of stream) {
-        const delta = chunk.choices[0].delta;
-        if (delta?.tool_calls) {
-          state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
-          state.fnName = state.fnName ||
-            (delta?.tool_calls?.[0]?.function?.name || "");
-          state.fnArgs = state.fnArgs +
-            (delta?.tool_calls?.[0]?.function?.arguments || "");
-          opts.onData(JSON.stringify(state));
-          opts.onData("\n");
-        }
-        const content = delta?.content;
-        if (content) {
-          state.content += content;
-          opts.onData(content);
-        }
-        if (chunk.choices[0].finish_reason === "stop") {
-          state.stop = true;
-        }
+    const state = {
+      id: "",
+      fnName: "",
+      fnArgs: "",
+      content: "",
+      stop: false,
+    };
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0].delta;
+      if (delta?.tool_calls) {
+        state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
+        state.fnName = state.fnName ||
+          (delta?.tool_calls?.[0]?.function?.name || "");
+        state.fnArgs = state.fnArgs +
+          (delta?.tool_calls?.[0]?.function?.arguments || "");
+        opts.onData(JSON.stringify(state));
+        opts.onData("\n");
       }
-      if (state.stop) {
-        break;
+      const content = delta?.content;
+      if (content) {
+        state.content += content;
+        opts.onData(content);
       }
-      if (state.id) {
-        const args = JSON.parse(state.fnArgs);
-        const result = toolFuncs[state.fnName](args);
-        msg = [
-          ...msg,
-          {
-            role: "assistant",
-            content: state.content,
-            tool_calls: [
-              {
-                id: state.id,
-                function: { arguments: state.fnArgs, name: state.fnName },
-                type: "function",
-              },
-            ],
-          },
-          {
-            role: "tool",
-            tool_call_id: state.id,
-            content: result,
-          },
-        ];
-
-        stream = await openai.chat.completions.create({
-          model,
-          messages: msg,
-          stream: true,
-          tools,
-        });
+      if (chunk.choices[0].finish_reason === "stop") {
+        state.stop = true;
       }
+    }
+    if (state.stop) {
+      break;
+    }
+    if (state.id) {
+      const args = JSON.parse(state.fnArgs);
+      const result = toolFuncs[state.fnName](args);
+      msg = [
+        ...msg,
+        {
+          role: "assistant",
+          content: state.content,
+          tool_calls: [
+            {
+              id: state.id,
+              function: { arguments: state.fnArgs, name: state.fnName },
+              type: "function",
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: state.id,
+          content: result,
+        },
+      ];
     }
   }
   // }
