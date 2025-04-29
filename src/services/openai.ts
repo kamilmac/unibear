@@ -55,14 +55,17 @@ async function sendChat(
 
   let history = messages;
 
-  const withWrite = messages?.[messages.length - 1]?.content?.startsWith("+");
+  const modeChar = messages?.[messages.length - 1]?.content[0];
+  const mode = modeChar === "+" ? "edit" : modeChar === ":" ? "git" : "normal";
 
+  const tools = getTools(mode);
+  // opts.onData(JSON.stringify(tools));
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     const stream = await openai.chat.completions.create({
       model,
       messages: history,
       stream: true,
-      tools: getTools(withWrite),
+      tools: tools.definitions,
     });
     const state = {
       id: "",
@@ -96,7 +99,7 @@ async function sendChat(
       const args = JSON.parse(state.fnArgs);
       let result = "";
       try {
-        result = await toolFuncs[state.fnName](args, opts.onData);
+        result = await tools.processes[state.fnName](args, opts.onData);
       } catch (err) {
         result = err.message;
       }
