@@ -11,7 +11,7 @@ export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
   default: "normal",
 };
 export const USER_LABEL = config.user_name ?? "USER";
-export const THE_AI_NAME = "UNIBEAR";
+export const AI_LABEL = "Bear";
 export const PORT = config.port ?? 12496;
 export const IS_DEV = Deno.env.get("DEV") === "true";
 export const TEXT_AREA_HEIGHT = 6;

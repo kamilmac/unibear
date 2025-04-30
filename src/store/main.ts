@@ -3,14 +3,8 @@ import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import {
-  BANNER,
-  COLORS,
-  SYSTEM,
-  THE_AI_NAME,
-  USER_LABEL,
-} from "../utils/constants.ts";
-import { countTokens, fileExists } from "../utils/helpers.ts";
+import { AI_LABEL, BANNER, COLORS, USER_LABEL } from "../utils/constants.ts";
+import { fileExists } from "../utils/helpers.ts";
 
 marked.use(markedTerminal());
 
@@ -94,7 +88,7 @@ export const useStore = create<Store>((set, get) => ({
       ];
     } else if (type === "ai") {
       newChatItem.visibleContent = marked.parse(
-        COLORS.ai(`${THE_AI_NAME}:\n`) + visibleContent,
+        COLORS.ai(`${AI_LABEL}:\n`) + visibleContent,
       ).split("\n");
     }
     set((state) => ({
@@ -146,7 +140,7 @@ export const useStore = create<Store>((set, get) => ({
       (chunk) => {
         aiChatitem.content += chunk;
         aiChatitem.visibleContent = marked.parse(
-          COLORS.ai(`${THE_AI_NAME}:\n`) + aiChatitem.content,
+          COLORS.ai(`${AI_LABEL}:\n`) + aiChatitem.content,
         ).split(
           "\n",
         );

@@ -1,6 +1,6 @@
 import { Application, Router } from "jsr:@oak/oak";
 import { useStore } from "../store/main.ts";
-import { PORT, THE_AI_NAME, WORKSPACE_NAME } from "../utils/constants.ts";
+import { AI_LABEL, PORT, WORKSPACE_NAME } from "../utils/constants.ts";
 
 // Initialize the server
 export const initServer = async () => {
@@ -23,7 +23,7 @@ export const initServer = async () => {
         };
       } else {
         throw new Error(
-          `${THE_AI_NAME} server is running in ${WORKSPACE_NAME} workspace.`,
+          `${AI_LABEL} server is running in ${WORKSPACE_NAME} workspace.`,
         );
       }
     } catch (error) {

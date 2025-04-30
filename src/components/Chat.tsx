@@ -227,6 +227,12 @@ export const Chat = (
       >
         <Text>{formattedContent}</Text>
         {isStreaming && <Thinking />}
+        {!isStreaming && opMode === "normal" &&
+          (
+            <Text dimColor>
+              (Press 'i' to prompt)
+            </Text>
+          )}
       </Box>
     </Box>
   );
