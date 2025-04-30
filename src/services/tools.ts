@@ -9,9 +9,9 @@ export const getTools = (
   mode: ToolMode = "normal",
 ): Array<OpenAI.ChatCompletionTool> => {
   const allTools = [
+    ...commonTools,
     ...gitTools,
     ...fsTools,
-    ...commonTools,
   ];
   const filtered = allTools
     .filter((t) => t.mode.includes(mode));

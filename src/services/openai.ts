@@ -59,7 +59,7 @@ async function sendChat(
   const mode = modeChar === "+" ? "edit" : modeChar === ":" ? "git" : "normal";
 
   const tools = getTools(mode);
-  // opts.onData(JSON.stringify(tools));
+
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     const stream = await openai.chat.completions.create({
       model,
