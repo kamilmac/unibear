@@ -55,7 +55,7 @@ async function sendChat(
 
   let history = messages;
 
-  const modeChar = messages?.[messages.length - 1]?.content[0];
+  const modeChar = messages?.[messages.length - 1]?.content?.[0];
   const mode = modeChar === "+" ? "edit" : modeChar === ":" ? "git" : "normal";
 
   const tools = getTools(mode);
