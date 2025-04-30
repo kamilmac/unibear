@@ -4,7 +4,11 @@ import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
 import { BANNER, COLORS, SYSTEM, THE_AI_NAME } from "../utils/constants.ts";
-import { countTokens, getContentFromFile } from "../utils/helpers.ts";
+import {
+  countTokens,
+  fileExists,
+  getContentFromFile,
+} from "../utils/helpers.ts";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 marked.use(markedTerminal());
@@ -108,22 +112,27 @@ export const useStore = create<Store>((set, get) => ({
     }));
     return get().chat;
   },
-  onSubmitUserPrompt: async (prompt) => {
-    let filesContext = "Available files (absolute file paths): ";
+  onSubmitUserPrompt: async (prompt, toolMode) => {
     get().appendChatItem(prompt, prompt, "user");
-    for await (const file of get().filesInContext) {
-      const content = await getContentFromFile(file);
-      if (!content) {
-        get().removeFileFromContext(file);
-        get().appendChatItem(
-          "",
-          `Failed loading ${file}. Removing from context.`,
-          "ai",
-        );
-      } else {
-        filesContext += `
-          ${file}, 
-        `;
+    let filesContext = "";
+    const files = get().filesInContext;
+    if (files.length > 0) {
+      let validatedFiles = "";
+      for await (const file of get().filesInContext) {
+        if (!(await fileExists(file))) {
+          get().removeFileFromContext(file);
+          get().appendChatItem(
+            "",
+            `Failed loading ${file}. Removing from context.`,
+            "ai",
+          );
+        } else {
+          validatedFiles += `${file}\n`;
+        }
+      }
+      if (validatedFiles.length > 0) {
+        filesContext =
+          `Load these files (absolute file paths):\n${validatedFiles}`;
       }
     }
     const chat = get().chat;
@@ -145,6 +154,7 @@ export const useStore = create<Store>((set, get) => ({
     await streamOpenAIResponse(
       filesContext,
       chat,
+      toolMode,
       (chunk) => {
         aiChatitem.content += chunk;
         aiChatitem.visibleContent = marked.parse(

@@ -27,7 +27,7 @@ type Store = {
   textArea: string;
   setTextArea: (text: string) => void;
   chat: ChatItem[];
-  onSubmitUserPrompt: (prompt: string) => void;
+  onSubmitUserPrompt: (prompt: string, toolMode: ToolMode) => void;
   appendChatItem: (
     content: string,
     visibleContent: string,

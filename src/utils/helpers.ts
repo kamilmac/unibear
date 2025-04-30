@@ -47,17 +47,6 @@ export async function handleCliArgs(): Promise<boolean> {
   return true;
 }
 
-export const getContentFromFile = async (
-  filePath: string,
-): Promise<string | undefined> => {
-  try {
-    const fileContent = await Deno.readTextFile(filePath);
-    return fileContent;
-  } catch (error) {
-    console.error("Error reading file: ", error);
-  }
-};
-
 export const countTokens = (str: string): number => {
   return str
     .split("  ")
@@ -68,4 +57,15 @@ export const countTokens = (str: string): number => {
 export const quit = () => {
   Deno.stdout.writeSync(new TextEncoder().encode("\x1b[?1049l"));
   Deno.exit(0);
+};
+
+export const fileExists = async (
+  path: string,
+): Promise<boolean> => {
+  try {
+    await Deno.stat(path);
+    return true;
+  } catch {
+    return false;
+  }
 };

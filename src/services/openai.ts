@@ -49,16 +49,14 @@ function trimHistory(history: Msg[]): Msg[] {
 
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
+  toolMode: ToolMode,
   opts: SendChatOpts = { onData: () => {} },
 ) {
   const model = opts.model || MODEL;
 
   let history = messages;
 
-  const modeChar = String(messages?.[messages.length - 1]?.content?.[0]) || "";
-  const mode = TOOL_MODE_KEY_MAP[modeChar] || TOOL_MODE_KEY_MAP.default;
-
-  const tools = getTools(mode);
+  const tools = getTools(toolMode);
 
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     const stream = await openai.chat.completions.create({
@@ -151,11 +149,12 @@ function buildHistoryMessages(
 export const streamOpenAIResponse = async (
   context: string,
   chat: ChatItem[],
+  toolMode: ToolMode,
   cb: (chunk: string) => void,
 ) => {
   const messages = buildHistoryMessages(context, chat);
   try {
-    await sendChat(messages, { stream: true, onData: cb });
+    await sendChat(messages, toolMode, { stream: true, onData: cb });
   } catch (err) {
     console.error("streamOpenAIResponse error:", err);
   }
