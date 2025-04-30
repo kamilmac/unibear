@@ -100,6 +100,9 @@ async function sendChat(
       let result = "";
       try {
         result = await tools.processes[state.fnName](args, opts.onData);
+        if (state.fnName.startsWith("app_control")) {
+          return;
+        }
       } catch (err) {
         result = err.message;
       }
