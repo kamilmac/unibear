@@ -23,7 +23,6 @@ export const useStore = create<Store>((set, get) => ({
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
   },
-  isGitBaseDiffInjectionEnabled: false,
   injectClipboard: async () => {
     const clipboardContent = await clippy.readText();
     get().appendChatItem(
@@ -99,7 +98,7 @@ export const useStore = create<Store>((set, get) => ({
   },
   onSubmitUserPrompt: async (prompt, toolMode) => {
     get().appendChatItem(prompt, prompt, "user");
-    let filesContext = "";
+    let context = "";
     const files = get().filesInContext;
     if (files.length > 0) {
       let validatedFiles = "";
@@ -116,8 +115,10 @@ export const useStore = create<Store>((set, get) => ({
         }
       }
       if (validatedFiles.length > 0) {
-        filesContext =
-          `Load these files (absolute file paths):\n${validatedFiles}`;
+        context = "CONTEXT:\n\n" +
+          "File paths of relevant files:\n" +
+          validatedFiles +
+          "Read contents of those files with relevant tool if available.";
       }
     }
     const chat = get().chat;
@@ -133,7 +134,7 @@ export const useStore = create<Store>((set, get) => ({
       chat: [...chat, aiChatitem],
     });
     await streamOpenAIResponse(
-      filesContext,
+      context,
       chat,
       toolMode,
       (chunk) => {

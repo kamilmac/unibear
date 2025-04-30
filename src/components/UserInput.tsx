@@ -37,6 +37,7 @@ export const UserInput = () => {
       if (isStreaming) return;
       submit(input, toolMode);
       setInput("");
+      setToolMode("normal");
       return;
     }
     setInput(input + _input);
