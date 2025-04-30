@@ -1,8 +1,7 @@
 import { OpenAI } from "npm:openai";
-import { APP_CONTROL_PREFIX, SYSTEM } from "../utils/constants.ts";
+import { APP_CONTROL_PREFIX, MODEL, SYSTEM } from "../utils/constants.ts";
 import { getTools } from "./tools.ts";
 
-const MODEL = "o4-mini";
 const MAX_HISTORY = 20; // trim history to last N messages
 export const openai = new OpenAI({
   apiKey: Deno.env.get("OPENAI_API_KEY"),
@@ -39,12 +38,19 @@ async function sendChat(
   const tools = getTools(toolMode);
 
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-    const stream = await openai.chat.completions.create({
-      model,
-      messages: history,
-      stream: true,
-      tools: tools.definitions,
-    });
+    let stream;
+    try {
+      stream = await openai.chat.completions.create({
+        model,
+        messages: history,
+        stream: true,
+        tools: tools.definitions,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      opts.onData(errorMessage);
+      return;
+    }
     const state = {
       id: "",
       fnName: "",

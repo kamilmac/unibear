@@ -1,6 +1,8 @@
 import chalk from "npm:chalk";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
+import { config } from "./config.ts";
 
+export const MODEL = config.model ?? "o4-mini";
 export const WORKSPACE_NAME = basename(Deno.cwd());
 export const APP_CONTROL_PREFIX = "app_control";
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
@@ -8,8 +10,9 @@ export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
   "+": "edit",
   default: "normal",
 };
+export const USER_LABEL = config.user_name ?? "USER";
 export const THE_AI_NAME = "UNIBEAR";
-export const PORT = 12496;
+export const PORT = config.port ?? 12496;
 export const IS_DEV = Deno.env.get("DEV") === "true";
 export const TEXT_AREA_HEIGHT = 6;
 export const CURSOR_SCROLL_PADDING = 5;
@@ -61,6 +64,6 @@ const LIGHT_THEME = {
   cursor: chalk.hex(HEX_COLORS.darkGrey),
 };
 
-export const COLORS = DARK_THEME;
-export const SYSTEM =
+export const COLORS = config.theme === "light" ? LIGHT_THEME : DARK_THEME;
+export const SYSTEM = config.system ??
   `You’re a friendly AI programming assistant (called Unibear) with the chops of a senior engineer. Deliver concise, precise solutions—be direct, demand clarity when specs are vague, and season your replies with respectful wit and subtle sarcasm. Always provide readable, best-practice code. Always use markdown format for code blocks in your responses (pure and clean markdown and no comments), try to keep lines length below 80 characters.`;

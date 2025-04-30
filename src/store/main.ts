@@ -3,7 +3,13 @@ import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import { BANNER, COLORS, SYSTEM, THE_AI_NAME } from "../utils/constants.ts";
+import {
+  BANNER,
+  COLORS,
+  SYSTEM,
+  THE_AI_NAME,
+  USER_LABEL,
+} from "../utils/constants.ts";
 import { countTokens, fileExists } from "../utils/helpers.ts";
 
 marked.use(markedTerminal());
@@ -84,7 +90,7 @@ export const useStore = create<Store>((set, get) => ({
     };
     if (type === "user") {
       newChatItem.visibleContent = [
-        COLORS.prompt("USER: ") + visibleContent + "\n",
+        COLORS.prompt(`${USER_LABEL}: `) + visibleContent + "\n",
       ];
     } else if (type === "ai") {
       newChatItem.visibleContent = marked.parse(
@@ -118,7 +124,7 @@ export const useStore = create<Store>((set, get) => ({
         context = "CONTEXT:\n\n" +
           "File paths of relevant files:\n" +
           validatedFiles +
-          "Read contents of those files with relevant tool if available.";
+          "Read contents of those files with relevant tool only if user prompt suggests a need for it.";
       }
     }
     const chat = get().chat;
