@@ -13,7 +13,12 @@ initServer().catch((err) => {
   console.error(`
 ❌ Failed to start server on PORT: ${PORT}
 You're probably running ${THE_AI_NAME} instance already.
-You can still use it in CLI mode to pass context from external sources.\n
+You can still use it in CLI mode to pass context from external sources:
+
+> unibear add_file <file_path>
+
+---
+
 ${err}
   `);
   Deno.exit(1);
