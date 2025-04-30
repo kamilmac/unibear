@@ -1,7 +1,6 @@
 import { Application, Router } from "jsr:@oak/oak";
 import { useStore } from "../store/main.ts";
 import { PORT, THE_AI_NAME, WORKSPACE_NAME } from "../utils/constants.ts";
-import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 // Initialize the server
 export const initServer = async () => {

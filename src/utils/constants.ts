@@ -9,7 +9,7 @@ export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
   default: "normal",
 };
 export const THE_AI_NAME = "UNIBEAR";
-export const PORT = 12492;
+export const PORT = 12496;
 export const IS_DEV = Deno.env.get("DEV") === "true";
 export const TEXT_AREA_HEIGHT = 6;
 export const CURSOR_SCROLL_PADDING = 5;
