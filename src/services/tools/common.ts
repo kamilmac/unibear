@@ -15,10 +15,11 @@ export const commonTools: Tool[] = [
       },
       type: "function",
     },
-    process: async (_args: any, log: (msg: string) => void) => {
+    process: async (_args, log) => {
       log("Resetting chat!");
       await new Promise((res) => setTimeout(res, 600));
       useStore.getState().clearChatHistory();
+      return "";
     },
     mode: ["normal"],
   },
@@ -32,10 +33,11 @@ export const commonTools: Tool[] = [
       },
       type: "function",
     },
-    process: async (_args: any, log: (msg: string) => void) => {
+    process: async (_args, log) => {
       log("Bye!");
       await new Promise((res) => setTimeout(res, 600));
       quit();
+      return "";
     },
     mode: ["normal"],
   },

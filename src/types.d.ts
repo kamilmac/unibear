@@ -23,9 +23,6 @@ type Store = {
   removeFileFromContext: (filePath: string) => void;
   operationMode: OperationMode;
   setOperationMode: (mode: OperationMode) => void;
-  systemMessage: string;
-  textArea: string;
-  setTextArea: (text: string) => void;
   chat: ChatItem[];
   onSubmitUserPrompt: (prompt: string, toolMode: ToolMode) => void;
   appendChatItem: (
@@ -33,10 +30,6 @@ type Store = {
     visibleContent: string,
     type: ChatItemType,
   ) => ChatItem[];
-  workspaceName: string;
   isStreamingResponse: boolean;
   injectClipboard: () => void;
-  tokensInput: number;
-  tokensOutput: number;
-  injectContext: (content: string, visibleContent: string) => void;
 };

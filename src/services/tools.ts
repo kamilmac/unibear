@@ -4,12 +4,11 @@ import { fsTools } from "./tools/fs.ts";
 import { commonTools } from "./tools/common.ts";
 
 export interface Tool {
-  name: string;
   definition: OpenAI.ChatCompletionTool;
   mode: ToolMode[];
   process: (
     args: Record<string, unknown>,
-    log?: (str: string) => void,
+    log: (str: string) => void,
   ) => Promise<string>;
 }
 

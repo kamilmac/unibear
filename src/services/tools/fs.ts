@@ -29,11 +29,11 @@ export const fsTools: Tool[] = [
       type: "function",
     },
     process: async (
-      { file_paths }: { file_paths: string[] },
+      { file_paths },
       log: (str: string) => void,
     ) => {
       const results: Record<string, string> = {};
-      for (const file_path of file_paths) {
+      for (const file_path of file_paths as string[]) {
         log(`reading ${file_path}\n`);
         results[file_path] = await Deno.readTextFile(file_path);
       }

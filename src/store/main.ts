@@ -5,7 +5,6 @@ import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
 import { BANNER, COLORS, SYSTEM, THE_AI_NAME } from "../utils/constants.ts";
 import { countTokens, fileExists } from "../utils/helpers.ts";
-import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 marked.use(markedTerminal());
 
@@ -38,16 +37,11 @@ export const useStore = create<Store>((set, get) => ({
   clearChatHistory: () => {
     set({
       chat: [],
-      tokensInput: 0,
-      tokensOutput: 0,
       filesInContext: [],
       operationMode: "insert",
     });
   },
-  workspaceName: basename(Deno.cwd()),
   filesInContext: [],
-  tokensInput: 0,
-  tokensOutput: 0,
   addFileToContext: (filePath) => {
     const absolute = filePath.startsWith("/")
       ? filePath
@@ -74,11 +68,6 @@ export const useStore = create<Store>((set, get) => ({
     set({ operationMode: mode });
   },
   dimensions: { cols: 0, rows: 0 },
-  systemMessage: "",
-  textArea: "",
-  setTextArea: (text) => {
-    set({ textArea: text });
-  },
   chat: [
     {
       id: getNewChatItemId(),
@@ -141,10 +130,6 @@ export const useStore = create<Store>((set, get) => ({
     get().setOperationMode("normal");
     set({
       isStreamingResponse: true,
-      tokensInput: countTokens(
-        SYSTEM + filesContext +
-          chat.map((c) => c.content).join("\n"),
-      ),
       chat: [...chat, aiChatitem],
     });
     await streamOpenAIResponse(
@@ -165,10 +150,6 @@ export const useStore = create<Store>((set, get) => ({
     );
     set({
       isStreamingResponse: false,
-      tokensOutput: countTokens(aiChatitem.content),
     });
-  },
-  injectContext: (content, visibleContent) => {
-    get().appendChatItem(content, visibleContent, "injector");
   },
 }));

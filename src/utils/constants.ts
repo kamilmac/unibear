@@ -1,5 +1,7 @@
 import chalk from "npm:chalk";
+import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 
+export const WORKSPACE_NAME = basename(Deno.cwd());
 export const APP_CONTROL_PREFIX = "app_control";
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
   ":": "git",
