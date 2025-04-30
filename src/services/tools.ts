@@ -3,8 +3,6 @@ import { gitTools } from "./tools/git.ts";
 import { fsTools } from "./tools/fs.ts";
 import { commonTools } from "./tools/common.ts";
 
-type ToolMode = "git" | "normal" | "edit";
-
 export const getTools = (
   mode: ToolMode = "normal",
 ): Array<OpenAI.ChatCompletionTool> => {

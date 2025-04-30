@@ -1,5 +1,10 @@
 import chalk from "npm:chalk";
 
+export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
+  ":": "git",
+  "+": "edit",
+  default: "normal",
+};
 export const THE_AI_NAME = "UNIBEAR";
 export const PORT = 12492;
 export const IS_DEV = Deno.env.get("DEV") === "true";

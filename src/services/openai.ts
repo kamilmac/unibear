@@ -1,5 +1,5 @@
 import { OpenAI } from "npm:openai";
-import { SYSTEM } from "../utils/constants.ts";
+import { SYSTEM, TOOL_MODE_KEY_MAP } from "../utils/constants.ts";
 import { getTools, toolFuncs } from "./tools.ts";
 
 const MODEL = "o4-mini";
@@ -55,8 +55,8 @@ async function sendChat(
 
   let history = messages;
 
-  const modeChar = messages?.[messages.length - 1]?.content?.[0];
-  const mode = modeChar === "+" ? "edit" : modeChar === ":" ? "git" : "normal";
+  const modeChar = String(messages?.[messages.length - 1]?.content?.[0]) || "";
+  const mode = TOOL_MODE_KEY_MAP[modeChar] || TOOL_MODE_KEY_MAP.default;
 
   const tools = getTools(mode);
 
