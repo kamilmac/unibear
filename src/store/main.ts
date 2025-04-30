@@ -67,14 +67,7 @@ export const useStore = create<Store>((set, get) => ({
     set({ operationMode: mode });
   },
   dimensions: { cols: 0, rows: 0 },
-  chat: [
-    {
-      id: getNewChatItemId(),
-      content: "",
-      visibleContent: COLORS.banner(BANNER).split("\n"),
-      type: "ai",
-    },
-  ],
+  chat: [],
   appendChatItem: (content, visibleContent, type) => {
     const newChatItem: ChatItem = {
       id: getNewChatItemId(),

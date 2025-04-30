@@ -3,7 +3,7 @@ import { Box, Text, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
 import stripAnsi from "npm:strip-ansi";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
-import { COLORS, CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
+import { BANNER, COLORS, CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
 import { Thinking } from "./Thinking.tsx";
 
 function isBetween(number: number, a: number, b: number): boolean {
@@ -225,12 +225,19 @@ export const Chat = (
         flexDirection="column"
         padding={1}
       >
+        <Text>{COLORS.banner(BANNER)}</Text>
         <Text>{formattedContent}</Text>
         {isStreaming && <Thinking />}
         {!isStreaming && opMode === "normal" &&
           (
             <Text dimColor>
               (Press 'i' to prompt)
+            </Text>
+          )}
+        {chat.length === 0 &&
+          (
+            <Text dimColor>
+              (Write 'help' if you're lost)
             </Text>
           )}
       </Box>
