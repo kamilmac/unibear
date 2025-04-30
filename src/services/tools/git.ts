@@ -32,7 +32,8 @@ export const gitTools = [
     definition: {
       function: {
         name: "git_create_msg_and_commit_all_changes",
-        description: "Commit all changes to git repository",
+        description:
+          "Commit all changes to git repository. Run this tool whe user asks to: 'commit all changes', 'git commit'",
         strict: false,
         parameters: {},
       },

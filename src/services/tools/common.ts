@@ -7,7 +7,7 @@ export const commonTools = [
       function: {
         name: "app_control_reset_chat",
         description:
-          "Resets chat history and context. Equivalent of starting new session",
+          "Resets chat history and context. Equivalent of starting new session. Run this tools when user prompts similar message to: 'reset chat', 'clear history', 'clear chat'",
         strict: false,
         parameters: {},
       },
