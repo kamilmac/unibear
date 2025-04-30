@@ -1,11 +1,13 @@
-import { useStore } from "../../store/index.ts";
+import { useStore } from "../../store/main.ts";
+import { APP_CONTROL_PREFIX } from "../../utils/constants.ts";
 import { quit } from "../../utils/helpers.ts";
+import { Tool } from "../tools.ts";
 
-export const commonTools = [
+export const commonTools: Tool[] = [
   {
     definition: {
       function: {
-        name: "app_control_reset_chat",
+        name: APP_CONTROL_PREFIX + "_reset_chat",
         description:
           "Resets chat history and context. Equivalent of starting new session. Run this tools when user prompts similar message to: 'reset chat', 'clear history', 'clear chat'",
         strict: false,
@@ -23,7 +25,7 @@ export const commonTools = [
   {
     definition: {
       function: {
-        name: "app_control_quit",
+        name: APP_CONTROL_PREFIX + "_quit",
         description: "Quits the app completely. Shuts it down.",
         strict: false,
         parameters: {},

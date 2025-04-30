@@ -1,6 +1,6 @@
 import { OpenAI } from "npm:openai";
-import { SYSTEM, TOOL_MODE_KEY_MAP } from "../utils/constants.ts";
-import { getTools, toolFuncs } from "./tools.ts";
+import { APP_CONTROL_PREFIX, SYSTEM } from "../utils/constants.ts";
+import { getTools } from "./tools.ts";
 
 const MODEL = "o4-mini";
 const MAX_HISTORY = 20; // trim history to last N messages
@@ -13,26 +13,6 @@ interface SendChatOpts {
   stream?: boolean;
   onData: (chunk: string) => void;
 }
-
-type AssistantContent = {
-  role: "assistant";
-  content: string;
-  tool_calls: Array<
-    {
-      id: string;
-      function: { arguments: string; name: string };
-      type: "function";
-    }
-  >;
-};
-
-type ToolContent = {
-  role: "tool";
-  tool_call_id: string;
-  content: any;
-};
-
-type AppendedContent = Array<AssistantContent | ToolContent>;
 
 const MAX_ITERATIONS = 16;
 
@@ -98,11 +78,12 @@ async function sendChat(
       let result = "";
       try {
         result = await tools.processes[state.fnName](args, opts.onData);
-        if (state.fnName.startsWith("app_control")) {
+        if (state.fnName.startsWith(APP_CONTROL_PREFIX)) {
           return;
         }
-      } catch (err) {
-        result = err.message;
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        result = `Communicate problem in tool processing: ${errorMessage}`;
       }
       history.push(
         {

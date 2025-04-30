@@ -1,6 +1,6 @@
 import React from "npm:react";
-import { Box, useApp, useInput } from "npm:ink";
-import { useStore } from "../store/index.ts";
+import { Box, useInput } from "npm:ink";
+import { useStore } from "../store/main.ts";
 import { UserInput } from "./UserInput.tsx";
 import { StatusLine } from "./StatusLine.tsx";
 import { Chat } from "./Chat.tsx";

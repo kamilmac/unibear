@@ -1,5 +1,6 @@
 import chalk from "npm:chalk";
 
+export const APP_CONTROL_PREFIX = "app_control";
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
   ":": "git",
   "+": "edit",

@@ -4,11 +4,7 @@ import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
 import { BANNER, COLORS, SYSTEM, THE_AI_NAME } from "../utils/constants.ts";
-import {
-  countTokens,
-  fileExists,
-  getContentFromFile,
-} from "../utils/helpers.ts";
+import { countTokens, fileExists } from "../utils/helpers.ts";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 marked.use(markedTerminal());

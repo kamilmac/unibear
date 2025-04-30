@@ -1,5 +1,6 @@
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { z } from "npm:zod";
+import { Tool } from "../tools.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -10,7 +11,7 @@ const EditFileArgsSchema = z.object({
   edits: z.array(EditOperation),
 }).strict();
 
-export const fsTools = [
+export const fsTools: Tool[] = [
   {
     definition: {
       function: {

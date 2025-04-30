@@ -1,6 +1,6 @@
 import React from "npm:react";
 import { Box, Text, useFocusManager, useInput } from "npm:ink";
-import { useStore } from "../store/index.ts";
+import { useStore } from "../store/main.ts";
 import {
   COLORS,
   TEXT_AREA_HEIGHT,

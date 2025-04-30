@@ -5,8 +5,9 @@ import {
   getGitDiffToBaseBranch,
   getGitDiffToLatestCommit,
 } from "../../utils/git.ts";
+import { Tool } from "../tools.ts";
 
-export const gitTools = [
+export const gitTools: Tool[] = [
   {
     definition: {
       function: {
