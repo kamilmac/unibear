@@ -97,12 +97,12 @@ export const useStore = create<Store>((set, get) => ({
       let validatedFiles = "";
       for await (const file of get().filesInContext) {
         if (!(await fileExists(file))) {
-          get().removeFileFromContext(file);
           get().appendChatItem(
             "",
-            `Failed loading ${file}. Removing from context.`,
+            `Failed loading ${file}. Removing from context...`,
             "ai",
           );
+          get().removeFileFromContext(file);
         } else {
           validatedFiles += `${file}\n`;
         }
@@ -133,7 +133,12 @@ export const useStore = create<Store>((set, get) => ({
       (chunk) => {
         aiChatitem.content += chunk;
         aiChatitem.visibleContent = marked.parse(
-          COLORS.ai(`${AI_LABEL}:\n`) + aiChatitem.content,
+          COLORS.ai(AI_LABEL) +
+            (toolMode !== "normal"
+              ? COLORS.statusLineInactive(" (" + toolMode + ")")
+              : "") +
+            ":\n" +
+            aiChatitem.content,
         ).split(
           "\n",
         );
