@@ -87,10 +87,7 @@ export const UserInput = () => {
         overflow="hidden"
       >
         <Text dimColor={isStreaming}>
-          {prefix}
-          {before}
-          {COLORS.cursor("█")}
-          {after}
+          {prefix + before + COLORS.cursor("█") + after}
         </Text>
       </Box>
     </Box>
