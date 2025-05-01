@@ -9,48 +9,68 @@ import {
 
 export const UserInput = () => {
   const [input, setInput] = React.useState("");
-  const submit = useStore((store) => store.onSubmitUserPrompt);
-  const dims = useStore((store) => store.dimensions);
+  const [cursor, setCursor] = React.useState(0);
+  const submit = useStore((s) => s.onSubmitUserPrompt);
+  const dims = useStore((s) => s.dimensions);
   const { enableFocus } = useFocusManager();
-  const isStreaming = useStore((store) => store.isStreamingResponse);
-  const opMode = useStore((store) => store.operationMode);
+  const isStreaming = useStore((s) => s.isStreamingResponse);
+  const opMode = useStore((s) => s.operationMode);
   const [toolMode, setToolMode] = React.useState<ToolMode>("normal");
 
   React.useEffect(() => {
     setTimeout(enableFocus, 30);
   }, []);
 
-  useInput((_input, key) => {
+  useInput((ch, key) => {
     if (opMode === "normal") return;
-    if (input == "" && TOOL_MODE_KEY_MAP[_input]) {
-      setToolMode(TOOL_MODE_KEY_MAP[_input]);
+
+    if (input === "" && TOOL_MODE_KEY_MAP[ch]) {
+      setToolMode(TOOL_MODE_KEY_MAP[ch]);
       return;
     }
+
+    if (key.leftArrow) {
+      setCursor((c) => Math.max(0, c - 1));
+      return;
+    }
+    if (key.rightArrow) {
+      setCursor((c) => Math.min(input.length, c + 1));
+      return;
+    }
+
     if (key.delete) {
-      if (input === "") {
+      if (cursor > 0) {
+        setInput((s) => s.slice(0, cursor - 1) + s.slice(cursor));
+        setCursor((c) => c - 1);
+      } else if (input === "") {
         setToolMode("normal");
       }
-      setInput(input.slice(0, -1));
       return;
     }
+
     if (key.return) {
       if (isStreaming) return;
       submit(input, toolMode);
       setInput("");
+      setCursor(0);
       setToolMode("normal");
       return;
     }
-    setInput(input + _input);
+
+    setInput((s) => s.slice(0, cursor) + ch + s.slice(cursor));
+    setCursor((c) => c + ch.length);
   });
 
   if (opMode === "normal") return null;
 
   let prefix = "";
   if (toolMode !== "normal") {
-    prefix = COLORS.statusLineInactive(
-      "(" + toolMode + ")" + " ",
-    );
+    prefix = COLORS.statusLineInactive(`(${toolMode}) `);
   }
+
+  const before = input.slice(0, cursor);
+  const after = input.slice(cursor);
+
   return (
     <Box
       borderStyle="round"
@@ -58,11 +78,8 @@ export const UserInput = () => {
       height={TEXT_AREA_HEIGHT}
       flexDirection="row"
     >
-      <Box
-        width={3}
-      >
-        {opMode === "insert" &&
-          <Text>{COLORS.prompt(" > ")}</Text>}
+      <Box width={3}>
+        {opMode === "insert" && <Text>{COLORS.prompt(" > ")}</Text>}
       </Box>
       <Box
         width={dims.cols - 6}
@@ -70,7 +87,10 @@ export const UserInput = () => {
         overflow="hidden"
       >
         <Text dimColor={isStreaming}>
-          {prefix + input + COLORS.cursor("█")}
+          {prefix}
+          {before}
+          {COLORS.cursor("█")}
+          {after}
         </Text>
       </Box>
     </Box>
