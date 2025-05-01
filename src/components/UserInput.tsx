@@ -8,8 +8,8 @@ import {
 } from "../utils/constants.ts";
 
 export const UserInput = () => {
-  const [input, setInput] = React.useState("");
-  const [cursor, setCursor] = React.useState(0);
+  const [input, setInput] = React.useState<string>("");
+  const [cursor, setCursor] = React.useState<number>(0);
   const submit = useStore((s) => s.onSubmitUserPrompt);
   const dims = useStore((s) => s.dimensions);
   const { enableFocus } = useFocusManager();
@@ -30,18 +30,18 @@ export const UserInput = () => {
     }
 
     if (key.leftArrow) {
-      setCursor((c) => Math.max(0, c - 1));
+      setCursor((c: number) => Math.max(0, c - 1));
       return;
     }
     if (key.rightArrow) {
-      setCursor((c) => Math.min(input.length, c + 1));
+      setCursor((c: number) => Math.min(input.length, c + 1));
       return;
     }
 
     if (key.delete) {
       if (cursor > 0) {
-        setInput((s) => s.slice(0, cursor - 1) + s.slice(cursor));
-        setCursor((c) => c - 1);
+        setInput((s: string) => s.slice(0, cursor - 1) + s.slice(cursor));
+        setCursor((c: number) => c - 1);
       } else if (input === "") {
         setToolMode("normal");
       }
@@ -57,8 +57,8 @@ export const UserInput = () => {
       return;
     }
 
-    setInput((s) => s.slice(0, cursor) + ch + s.slice(cursor));
-    setCursor((c) => c + ch.length);
+    setInput((s: string) => s.slice(0, cursor) + ch + s.slice(cursor));
+    setCursor((c: number) => c + ch.length);
   });
 
   if (opMode === "normal") return null;
