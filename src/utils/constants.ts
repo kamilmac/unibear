@@ -54,7 +54,7 @@ const DARK_THEME = {
   statusLineActive: chalk.bgHex(HEX_COLORS.teal).hex(HEX_COLORS.black),
   banner: chalk.hex(HEX_COLORS.purple),
   border: HEX_COLORS.darkGrey,
-  cursor: chalk.hex(HEX_COLORS.lightGrey),
+  cursor: chalk.inverse,
   selectedLineBg: chalk.inverse,
 };
 

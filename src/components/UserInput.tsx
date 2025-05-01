@@ -70,6 +70,8 @@ export const UserInput = () => {
 
   const before = input.slice(0, cursor);
   const after = input.slice(cursor);
+  const currentChar = after.charAt(0) || " ";
+  const rest = after.slice(1);
 
   return (
     <Box
@@ -87,7 +89,7 @@ export const UserInput = () => {
         overflow="hidden"
       >
         <Text dimColor={isStreaming}>
-          {prefix + before + COLORS.cursor("█") + after}
+          {prefix + before + COLORS.cursor(currentChar) + rest}
         </Text>
       </Box>
     </Box>
