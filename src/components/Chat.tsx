@@ -28,7 +28,10 @@ export const Chat = (
   const innerRef = React.useRef();
 
   const fullChatLines: string[] = React.useMemo(
-    () => chat.flatMap((c) => c.visibleContent),
+    () => [
+      ...COLORS.banner(BANNER).split("\n"),
+      ...chat.flatMap((c) => c.visibleContent),
+    ],
     [
       chat,
     ],
@@ -225,7 +228,6 @@ export const Chat = (
         flexDirection="column"
         padding={1}
       >
-        <Text>{COLORS.banner(BANNER)}</Text>
         <Text>{formattedContent}</Text>
         {isStreaming && <Thinking />}
         {!isStreaming && opMode === "normal" &&

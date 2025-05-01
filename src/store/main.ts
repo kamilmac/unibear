@@ -3,7 +3,7 @@ import { streamOpenAIResponse } from "../services/openai.ts";
 import * as clippy from "https://deno.land/x/clippy/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
-import { AI_LABEL, BANNER, COLORS, USER_LABEL } from "../utils/constants.ts";
+import { AI_LABEL, COLORS, USER_LABEL } from "../utils/constants.ts";
 import { fileExists } from "../utils/helpers.ts";
 
 marked.use(markedTerminal());
