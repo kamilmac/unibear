@@ -5,9 +5,26 @@ import { config } from "./config.ts";
 export const MODEL = config.model ?? "o4-mini";
 export const WORKSPACE_NAME = basename(Deno.cwd());
 export const APP_CONTROL_PREFIX = "app_control";
+export const KEY_BINDINGS = {
+  moveDown: ["j"],
+  moveUp: ["k"],
+  bigMoveDown: ["J"],
+  bigMoveUp: ["K"],
+  yank: ["y"],
+  select: ["v"],
+  insertMode: ["i"],
+  goErrorEnd: ["ge", "G"],
+  goToTop: ["gg"],
+  paste: ["p"],
+  useGitTools: [":"],
+  useEditTools: ["+"],
+} as const;
+
+export type KeyBindings = typeof KEY_BINDINGS;
+
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
-  ":": "git",
-  "+": "edit",
+  [KEY_BINDINGS.useGitTools[0]]: "git",
+  [KEY_BINDINGS.useEditTools[0]]: "edit",
   default: "normal",
 };
 export const USER_LABEL = config.user_name ?? "USER";
@@ -61,7 +78,6 @@ const DARK_THEME = {
 const LIGHT_THEME = {
   ...DARK_THEME,
   border: HEX_COLORS.lightGrey,
-  cursor: chalk.hex(HEX_COLORS.darkGrey),
 };
 
 export const COLORS = config.theme === "light" ? LIGHT_THEME : DARK_THEME;
