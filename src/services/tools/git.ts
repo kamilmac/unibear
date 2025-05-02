@@ -52,9 +52,19 @@ export const gitTools: Tool[] = [
     },
     process: async (args: any) => {
       const diff = await getGitDiffToBaseBranch();
-      const system =
-        "You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format";
-      return `${system}. The diff: ${diff}`;
+      const { choices } = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format",
+          },
+          { role: "user", content: diff },
+        ],
+      });
+      return choices[0].message?.content?.trim() ||
+        "No PR description generated";
     },
     mode: ["normal", "git"],
   },
@@ -70,14 +80,23 @@ export const gitTools: Tool[] = [
     },
     process: async (args: any) => {
       const diff = await getGitDiffToBaseBranch();
-      const system = `
+      const { choices } = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: "system",
+            content: `
 You are an AI assistant creating Pull Request (PR) descriptions. Analyze the provided code to understand the changes and their purpose.
 Generate a PR description in Markdown with the following sections:
 1.  **# Summary:** Briefly state the PR's goal (problem solved or feature added). Infer this from the changes.
 2.  **# Changes:** Describe the main technical modifications (key files, components, implementation approach). Be concise.
-Keep the tone clear and professional. If the purpose is unclear from the code, note that the summary is an inference. Do not invent information not present in the diff.
-      `;
-      return `${system}. The diff to main branch: ${diff}`;
+Keep the tone clear and professional. If the purpose is unclear from the code, note that the summary is an inference. Do not invent information not present in the diff.`,
+          },
+          { role: "user", content: diff },
+        ],
+      });
+      return choices[0].message?.content?.trim() ||
+        "No review generated";
     },
     mode: ["normal", "git"],
   },
