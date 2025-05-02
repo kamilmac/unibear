@@ -65,7 +65,7 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
         choices[0].message?.content?.trim()
       }`;
     },
-    mode: ["normal", "git"],
+    mode: ["git"],
   },
   {
     definition: {
@@ -98,6 +98,6 @@ Keep the tone clear and professional. If the purpose is unclear from the code, n
         choices[0].message?.content?.trim()
       }`;
     },
-    mode: ["normal", "git"],
+    mode: ["git"],
   },
 ];

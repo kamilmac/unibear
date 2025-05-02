@@ -9,8 +9,7 @@ export const openai = new OpenAI({
 
 interface SendChatOpts {
   model?: string;
-  stream?: boolean;
-  onData: (chunk: string) => void;
+  onChunk: (chunk: string) => void;
 }
 
 const MAX_ITERATIONS = 16;
@@ -29,7 +28,7 @@ function trimHistory(history: Msg[]): Msg[] {
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
   toolMode: ToolMode,
-  opts: SendChatOpts = { onData: () => {} },
+  opts: SendChatOpts = { onChunk: () => {} },
 ) {
   const model = opts.model || MODEL;
 
@@ -48,7 +47,7 @@ async function sendChat(
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      opts.onData(errorMessage);
+      opts.onChunk(errorMessage);
       return;
     }
     const state = {
@@ -70,7 +69,7 @@ async function sendChat(
       const content = delta?.content;
       if (content) {
         state.content += content;
-        opts.onData(content);
+        opts.onChunk(content);
       }
       if (chunk.choices[0].finish_reason === "stop") {
         state.stop = true;
@@ -83,7 +82,7 @@ async function sendChat(
       const args = JSON.parse(state.fnArgs);
       let result = "";
       try {
-        result = await tools.processes[state.fnName](args, opts.onData);
+        result = await tools.processes[state.fnName](args, opts.onChunk);
         if (state.fnName.startsWith(APP_CONTROL_PREFIX)) {
           return;
         }
@@ -141,7 +140,7 @@ export const streamOpenAIResponse = async (
 ) => {
   const messages = buildHistoryMessages(context, chat);
   try {
-    await sendChat(messages, toolMode, { stream: true, onData: cb });
+    await sendChat(messages, toolMode, { onChunk: cb });
   } catch (err) {
     console.error("streamOpenAIResponse error:", err);
   }

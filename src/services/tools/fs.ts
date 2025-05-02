@@ -147,6 +147,7 @@ async function applyFileEdits(
 function normalizeLineEndings(text: string): string {
   return text.replace(/\r\n/g, "\n");
 }
+
 function createUnifiedDiff(
   originalContent: string,
   newContent: string,

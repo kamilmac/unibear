@@ -108,7 +108,7 @@ export const useStore = create<Store>((set, get) => ({
         }
       }
       if (validatedFiles.length > 0) {
-        context = "CONTEXT:\n\n" +
+        context = "\n\nCONTEXT:\n" +
           "File paths of relevant files:\n" +
           validatedFiles +
           "Read contents of those files with relevant tool only if user prompt suggests a need for it.";
