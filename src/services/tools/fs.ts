@@ -1,3 +1,4 @@
+import { createTwoFilesPatch } from "npm:diff";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { z } from "npm:zod";
 import { Tool } from "../tools.ts";
@@ -128,11 +129,39 @@ async function applyFileEdits(
       throw new Error(`Could not find exact match for edit:\n${edit.old_text}`);
     }
   }
+  // Create unified diff
+  const diff = createUnifiedDiff(content, modifiedContent, filePath);
 
+  // Format diff with appropriate number of backticks
+  let numBackticks = 3;
+  while (diff.includes("`".repeat(numBackticks))) {
+    numBackticks++;
+  }
+  const formattedDiff = `${"`".repeat(numBackticks)}diff\n${diff}${
+    "`".repeat(numBackticks)
+  }\n\n`;
   await Deno.writeTextFile(filePath, modifiedContent);
-  return "success";
+  return formattedDiff;
 }
 
 function normalizeLineEndings(text: string): string {
   return text.replace(/\r\n/g, "\n");
+}
+function createUnifiedDiff(
+  originalContent: string,
+  newContent: string,
+  filepath: string = "file",
+): string {
+  // Ensure consistent line endings for diff
+  const normalizedOriginal = normalizeLineEndings(originalContent);
+  const normalizedNew = normalizeLineEndings(newContent);
+
+  return createTwoFilesPatch(
+    filepath,
+    filepath,
+    normalizedOriginal,
+    normalizedNew,
+    "original",
+    "modified",
+  );
 }
