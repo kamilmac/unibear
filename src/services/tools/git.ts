@@ -25,18 +25,16 @@ export const gitTools: Tool[] = [
         messages: [
           {
             role: "system",
-            content:
-              "You are an expert senior engineer. Generate a concise git commit message for the following diff.",
+            content: `
+You are an expert senior engineer. Generate a concise git commit message for the following diff.`,
           },
           { role: "user", content: diff },
         ],
       });
       const message = choices[0].message?.content?.trim() || "";
-      if (!message) {
-        return "Commit message provided by LLM is empty. Ignoring commit.";
-      }
       await commitAllChanges(message);
-      return `Committed with message: "${message}"`;
+      return `Return directly to user and informa about successfull commit with following message:
+      ${message}`;
     },
     mode: ["git"],
   },
@@ -57,14 +55,15 @@ export const gitTools: Tool[] = [
         messages: [
           {
             role: "system",
-            content:
-              "You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format",
+            content: `
+You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format.`,
           },
           { role: "user", content: diff },
         ],
       });
-      return choices[0].message?.content?.trim() ||
-        "No PR description generated";
+      return `Return directly to user with following review: ${
+        choices[0].message?.content?.trim()
+      }`;
     },
     mode: ["normal", "git"],
   },
@@ -95,8 +94,9 @@ Keep the tone clear and professional. If the purpose is unclear from the code, n
           { role: "user", content: diff },
         ],
       });
-      return choices[0].message?.content?.trim() ||
-        "No review generated";
+      return `Return directly to user with following PR description: ${
+        choices[0].message?.content?.trim()
+      }`;
     },
     mode: ["normal", "git"],
   },
