@@ -34,7 +34,7 @@ export const fsTools: Tool[] = [
     ) => {
       const results: Record<string, string> = {};
       for (const file_path of file_paths as string[]) {
-        log(`reading ${file_path}\n`);
+        log(`reading from ${file_path}\n`);
         results[file_path] = await Deno.readTextFile(file_path);
       }
       return JSON.stringify(results);
@@ -59,7 +59,7 @@ export const fsTools: Tool[] = [
         log(`Failed parsing changes for ${args.file_path}\n`);
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
-      log(`Writing changes to ${args.file_path}\n`);
+      log(`Writing to ${args.file_path}\n`);
       return await applyFileEdits(args.file_path, args.edits);
     },
     mode: ["edit"],

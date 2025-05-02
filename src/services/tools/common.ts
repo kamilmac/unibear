@@ -78,8 +78,7 @@ Not all tools are avaiable at all time.
 User can get into "prompt" mode by pressing "i" key.
 Tools can be enabled with following keys in prompt mode:
 ${keyDetails}
-App is loosely inspired by Vim and Helix modes nad user can use HJKL keys in visual mode. Also in visual mode: "p" for paste, "v" for selection, "y" for copy. JK with shift are quick scroll.
-      `;
+App is loosely inspired by Vim and Helix modes nad user can use HJKL keys in visual mode. Also in visual mode: "p" for paste, "v" for selection, "y" for copy. JK with shift are quick scroll.`;
       return response;
     },
     mode: ["normal"],

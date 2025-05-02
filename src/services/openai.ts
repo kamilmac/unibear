@@ -2,7 +2,7 @@ import { OpenAI } from "npm:openai";
 import { APP_CONTROL_PREFIX, MODEL, SYSTEM } from "../utils/constants.ts";
 import { getTools } from "./tools.ts";
 
-const MAX_HISTORY = 20; // trim history to last N messages
+const MAX_HISTORY = 16; // trim history to last N messages
 export const openai = new OpenAI({
   apiKey: Deno.env.get("OPENAI_API_KEY"),
 });
