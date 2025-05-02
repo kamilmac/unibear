@@ -1,50 +1,42 @@
-import { zodToJsonSchema } from "npm:zod-to-json-schema";
-import { z } from "npm:zod";
 import {
   commitAllChanges,
   getGitDiffToBaseBranch,
   getGitDiffToLatestCommit,
 } from "../../utils/git.ts";
 import { Tool } from "../tools.ts";
+import { openai } from "../openai.ts";
+import { MODEL } from "../../utils/constants.ts";
 
 export const gitTools: Tool[] = [
   {
     definition: {
       function: {
-        name: "git_commit_with_message",
-        description: "Creates git commit based on given message",
-        strict: true,
-        parameters: zodToJsonSchema(
-          z.object({
-            message: z.string().describe("Message for git commit"),
-          }).strict(),
-        ),
-      },
-      type: "function",
-    },
-    process: async (args: any) => {
-      await commitAllChanges(args.message);
-      return "Prompt user about succesfull commit with following message: " +
-        args.message;
-    },
-    mode: ["git"],
-  },
-  {
-    definition: {
-      function: {
-        name: "git_create_msg_and_commit_all_changes",
-        description:
-          "Commit all changes to git repository. Run this tool whe user asks to: 'commit all changes', 'git commit'",
+        name: "git_auto_commit",
+        description: "Generate commit message from diff and commit all changes",
         strict: false,
         parameters: {},
       },
       type: "function",
     },
-    process: async (args: any) => {
+    process: async () => {
       const diff = await getGitDiffToLatestCommit();
-      return `
-        1. Create commit message based on following diff: ${diff}.
-        2. Use git_commit_with_message tool to commit changes with created message.`;
+      const { choices } = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert senior engineer. Generate a concise git commit message for the following diff.",
+          },
+          { role: "user", content: diff },
+        ],
+      });
+      const message = choices[0].message?.content?.trim() || "";
+      if (!message) {
+        return "Commit message provided by LLM is empty. Ignoring commit.";
+      }
+      await commitAllChanges(message);
+      return `Committed with message: "${message}"`;
     },
     mode: ["git"],
   },
