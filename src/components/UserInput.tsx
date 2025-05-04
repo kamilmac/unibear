@@ -73,6 +73,8 @@ export const UserInput = () => {
   const currentChar = after.charAt(0) || " ";
   const rest = after.slice(1);
 
+  const placeholder = "Press ':' for git tool, '+' for edit, '?' for web";
+
   return (
     <Box
       borderStyle="round"
@@ -88,9 +90,13 @@ export const UserInput = () => {
         height={TEXT_AREA_HEIGHT - 2}
         overflow="hidden"
       >
-        <Text dimColor={isStreaming}>
-          {prefix + before + COLORS.cursor(currentChar) + rest}
-        </Text>
+        {(input === "" && prefix === "")
+          ? <Text dimColor>{COLORS.statusLineInactive(placeholder)}</Text>
+          : (
+            <Text dimColor={isStreaming}>
+              {prefix + before + COLORS.cursor(currentChar) + rest}
+            </Text>
+          )}
       </Box>
     </Box>
   );
