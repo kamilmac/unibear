@@ -2,14 +2,20 @@ import { createTwoFilesPatch } from "npm:diff";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { z } from "npm:zod";
 import { Tool } from "../tools.ts";
+import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
   new_text: z.string().describe("Text to replace with"),
 }).strict();
+
 const EditFileArgsSchema = z.object({
   file_path: z.string().describe("Absolute path pointing to file to edit"),
   edits: z.array(EditOperation),
+}).strict();
+
+const SearchOperation = z.object({
+  pattern: z.string().describe("Pattern (possibly file name) to match"),
 }).strict();
 
 export const fsTools: Tool[] = [
@@ -38,6 +44,42 @@ export const fsTools: Tool[] = [
         log(`reading from ${file_path}\n`);
         results[file_path] = await Deno.readTextFile(file_path);
       }
+      return JSON.stringify(results);
+    },
+    mode: ["normal", "edit", "git"],
+  },
+  {
+    definition: {
+      function: {
+        name: "search_files",
+        description:
+          "Recursively search for files and directories matching a pattern. " +
+          "Searches through all subdirectories in the current workspace. The search " +
+          "is case-insensitive and matches partial names. Returns full paths to all " +
+          "matching items. Great for finding files when you don't know their exact location. " +
+          "Never read the given file, Just directly return to user with search results",
+        strict: true,
+        parameters: zodToJsonSchema(
+          z.object({
+            pattern: z.string().describe("pattert to match"),
+          }).strict(),
+        ),
+      },
+      type: "function",
+    },
+    process: async (
+      args,
+      log: (str: string) => void,
+    ) => {
+      const parsed = SearchOperation.safeParse(args);
+      if (!parsed.success) {
+        log(`Invalid arguments for search_files: ${parsed.error}`);
+        throw new Error(`Invalid arguments for search_files: ${parsed.error}`);
+      }
+      const results = await searchFiles(
+        Deno.cwd(),
+        args.pattern as string,
+      );
       return JSON.stringify(results);
     },
     mode: ["normal", "edit", "git"],
@@ -165,4 +207,36 @@ function createUnifiedDiff(
     "original",
     "modified",
   );
+}
+async function searchFiles(
+  rootPath: string,
+  pattern: string,
+): Promise<string[]> {
+  const results: string[] = [];
+  const skipDirectories = ['node_modules'];
+
+  async function search(currentPath: string) {
+    const entries = Deno.readDirSync(currentPath);
+
+    for (const entry of entries) {
+      const fullPath = join(currentPath, entry.name);
+      if (entry.isDirectory && skipDirectories.includes(entry.name)) {
+        continue;
+      }
+
+      try {
+        if (entry.name.toLowerCase().includes(pattern.toLowerCase())) {
+          results.push(fullPath);
+        }
+        if (entry.isDirectory) {
+          await search(fullPath);
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+  }
+
+  await search(rootPath);
+  return results;
 }
