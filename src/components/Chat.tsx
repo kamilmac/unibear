@@ -21,6 +21,7 @@ export const Chat = (
   const dims = useStore((store) => store.dimensions);
   const injectClipboard = useStore((store) => store.injectClipboard);
   const isStreaming = useStore((store) => store.isStreamingResponse);
+  const removeChatItem = useStore((store) => store.removeChatItem);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
   const [selectionOriginLineIndex, setSelectionOriginLineIndex] = React
@@ -188,6 +189,24 @@ export const Chat = (
       }
       if (_input === "K") {
         scrollUpBy(4);
+        return;
+      }
+      if (_input === "d") {
+        const bannerLinesCount = COLORS.banner(BANNER).split("\n").length;
+        const lineIndex = cursorLineIndex - bannerLinesCount;
+        if (lineIndex >= 0) {
+          let acc = 0;
+          for (const item of chat) {
+            const len = item.visibleContent.length;
+            if (lineIndex < acc + len) {
+              removeChatItem(item.id);
+              setCursorLineIndex(Math.max(0, cursorLineIndex - 1));
+              setSelectionOriginLineIndex(null);
+              break;
+            }
+            acc += len;
+          }
+        }
         return;
       }
     }

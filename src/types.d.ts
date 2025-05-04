@@ -30,6 +30,7 @@ type Store = {
     visibleContent: string,
     type: ChatItemType,
   ) => ChatItem[];
+  removeChatItem: (id: number) => void;
   isStreamingResponse: boolean;
   injectClipboard: () => void;
 };

@@ -80,14 +80,19 @@ export const useStore = create<Store>((set, get) => ({
         COLORS.prompt(`${USER_LABEL}: `) + visibleContent + "\n",
       ];
     } else if (type === "ai") {
-      newChatItem.visibleContent = marked.parse(
+      newChatItem.visibleContent = (marked.parse(
         COLORS.ai(`${AI_LABEL}:\n`) + visibleContent,
-      ).split("\n");
+      ) as string).split("\n");
     }
     set((state) => ({
       chat: state.chat.concat(newChatItem),
     }));
     return get().chat;
+  },
+  removeChatItem: (id: number) => {
+    set(state => ({
+      chat: state.chat.filter(item => item.id !== id)
+    }));
   },
   onSubmitUserPrompt: async (prompt, toolMode) => {
     get().appendChatItem(prompt, prompt, "user");
