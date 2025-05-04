@@ -1,4 +1,4 @@
-type ChatItemType = "user" | "ai";
+type ChatItemType = "user" | "ai" | "external";
 
 type ChatItem = {
   id: number;

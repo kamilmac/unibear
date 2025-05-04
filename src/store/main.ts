@@ -45,8 +45,8 @@ export const useStore = create<Store>((set, get) => ({
     const absolute = filePath.startsWith("/")
       ? filePath
       : `${Deno.cwd()}/${filePath}`;
-    get().appendChatItem("", `Added ${absolute} to context.`, "ai");
     if (get().filesInContext.includes(absolute)) return;
+    get().appendChatItem("", `Added ${absolute} to context.`, "external");
     set({
       filesInContext: [
         ...get().filesInContext,
@@ -62,7 +62,7 @@ export const useStore = create<Store>((set, get) => ({
     });
   },
   isStreamingResponse: false,
-  operationMode: "insert",
+  operationMode: "insert" as OperationMode,
   setOperationMode: (mode) => {
     set({ operationMode: mode });
   },
@@ -79,7 +79,7 @@ export const useStore = create<Store>((set, get) => ({
       newChatItem.visibleContent = [
         COLORS.prompt(`${USER_LABEL}: `) + visibleContent + "\n",
       ];
-    } else if (type === "ai") {
+    } else if (type === "ai" || type === "external") {
       newChatItem.visibleContent = (marked.parse(
         COLORS.ai(`${AI_LABEL}:\n`) + visibleContent,
       ) as string).split("\n");
@@ -90,8 +90,18 @@ export const useStore = create<Store>((set, get) => ({
     return get().chat;
   },
   removeChatItem: (id: number) => {
-    set(state => ({
-      chat: state.chat.filter(item => item.id !== id)
+    const item = get().chat.find((c) => c.id === id);
+    if (item?.type === "external") {
+      get().filesInContext.forEach((file) => {
+        if (
+          item.visibleContent.some((line) => line.includes(file))
+        ) {
+          get().removeFileFromContext(file);
+        }
+      });
+    }
+    set((state) => ({
+      chat: state.chat.filter((c) => c.id !== id),
     }));
   },
   onSubmitUserPrompt: async (prompt, toolMode) => {
@@ -137,14 +147,14 @@ export const useStore = create<Store>((set, get) => ({
       toolMode,
       (chunk) => {
         aiChatitem.content += chunk;
-        aiChatitem.visibleContent = marked.parse(
+        aiChatitem.visibleContent = (marked.parse(
           COLORS.ai(AI_LABEL) +
             (toolMode !== "normal"
               ? COLORS.statusLineInactive(" (" + toolMode + ")")
               : "") +
             ":\n" +
             aiChatitem.content,
-        ).split(
+        ) as string).split(
           "\n",
         );
         set({
