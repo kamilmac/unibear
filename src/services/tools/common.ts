@@ -9,14 +9,11 @@ import { quit } from "../../utils/helpers.ts";
 import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
-import { APP_DIR, kbPath } from "../../utils/config.ts";
 import { openai } from "../openai.ts";
 import { MODEL } from "../../utils/constants.ts";
 
-const KbArgs = z.object({
-  action: z.enum(["add", "edit", "remove", "list"]),
-  text: z.string().optional(),
-  key: z.string().optional(),
+const WebSearchOperation = z.object({
+  search_string: z.string().describe("String for search input."),
 }).strict();
 
 export const commonTools: Tool[] = [
@@ -46,20 +43,19 @@ export const commonTools: Tool[] = [
         name: "web_search",
         description: "Does a web search for given string",
         strict: true,
-        parameters: zodToJsonSchema(
-          z.object({
-            search_string: z.array(z.string()).describe(
-              "String used for web search",
-            ),
-          }).strict(),
-        ),
+        parameters: zodToJsonSchema(WebSearchOperation),
       },
       type: "function",
     },
     process: async (args, log) => {
-      log(`Searching web for ${args.search_sring}`);
+      const parsed = WebSearchOperation.safeParse(args);
+      if (!parsed.success) {
+        log(`Invalid arguments for web_search: ${parsed.error}`);
+        throw new Error(`Invalid arguments for web_search: ${parsed.error}`);
+      }
+      log(`Searching web for ${args.search_string}\n`);
       const response = await openai.responses.create({
-        model: MODEL,
+        model: "gpt-4.1-mini",
         tools: [{
           type: "web_search_preview",
           search_context_size: "low",
