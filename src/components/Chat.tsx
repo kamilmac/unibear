@@ -79,7 +79,7 @@ export const Chat = (
   const scrollDownBy = React.useCallback((num: number) => {
     const newCursorLineIndex = cursorLineIndex + num;
     if (
-      newCursorLineIndex > fullChatLinesNumber + CURSOR_SCROLL_PADDING
+      newCursorLineIndex >= fullChatLinesNumber
     ) {
       return;
     }
