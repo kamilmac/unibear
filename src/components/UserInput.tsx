@@ -53,7 +53,7 @@ export const UserInput = () => {
   const { enableFocus } = useFocusManager();
   const isStreaming = useStore((s) => s.isStreamingResponse);
   const opMode = useStore((s) => s.operationMode);
-  const [toolMode, setToolMode] = React.useState<"normal" | string>(
+  const [toolMode, setToolMode] = React.useState<ToolMode>(
     "normal",
   );
 
@@ -70,26 +70,26 @@ export const UserInput = () => {
     }
 
     if (key.leftArrow) {
-      setCursor((c) => Math.max(0, c - 1));
+      setCursor((c: number) => Math.max(0, c - 1));
       setSuggestActive(false);
       return;
     }
     if (key.rightArrow && suggestActive) {
-      setInput((s) => s.slice(0, cursor) + suggest + s.slice(cursor));
-      setCursor((c) => c + suggest.length);
+      setInput((s: string) => s.slice(0, cursor) + suggest + s.slice(cursor));
+      setCursor((c: number) => c + suggest.length);
       setSuggest("");
       setSuggestActive(false);
       return;
     }
     if (key.rightArrow) {
-      setCursor((c) => Math.min(input.length, c + 1));
+      setCursor((c: number) => Math.min(input.length, c + 1));
       return;
     }
 
     if (key.delete) {
       if (cursor > 0) {
-        setInput((s) => s.slice(0, cursor - 1) + s.slice(cursor));
-        setCursor((c) => c - 1);
+        setInput((s: string) => s.slice(0, cursor - 1) + s.slice(cursor));
+        setCursor((c: number) => c - 1);
       } else if (input === "") {
         setToolMode("normal");
       }
