@@ -10,7 +10,6 @@ import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
 import { openai } from "../openai.ts";
-import { MODEL } from "../../utils/constants.ts";
 
 const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
@@ -98,7 +97,7 @@ export const commonTools: Tool[] = [
       },
       type: "function",
     },
-    process: async (_args, log) => {
+    process: async (_args, _log) => {
       const allTools = [
         ...commonTools,
         ...fsTools,

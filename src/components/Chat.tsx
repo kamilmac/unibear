@@ -2,7 +2,7 @@ import React from "npm:react";
 import { Box, Text, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
 import stripAnsi from "npm:strip-ansi";
-import * as clippy from "https://deno.land/x/clippy/mod.ts";
+import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
 import { BANNER, COLORS, CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
 import { Thinking } from "./Thinking.tsx";
 

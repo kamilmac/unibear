@@ -1,6 +1,6 @@
 import { create } from "npm:zustand";
 import { streamOpenAIResponse } from "../services/openai.ts";
-import * as clippy from "https://deno.land/x/clippy/mod.ts";
+import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
 import { AI_LABEL, COLORS, USER_LABEL } from "../utils/constants.ts";
