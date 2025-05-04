@@ -1,3 +1,5 @@
+import { z } from "npm:zod";
+import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { useStore } from "../../store/main.ts";
 import {
   APP_CONTROL_PREFIX,
@@ -7,6 +9,15 @@ import { quit } from "../../utils/helpers.ts";
 import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
+import { APP_DIR, kbPath } from "../../utils/config.ts";
+import { openai } from "../openai.ts";
+import { MODEL } from "../../utils/constants.ts";
+
+const KbArgs = z.object({
+  action: z.enum(["add", "edit", "remove", "list"]),
+  text: z.string().optional(),
+  key: z.string().optional(),
+}).strict();
 
 export const commonTools: Tool[] = [
   {
@@ -28,6 +39,7 @@ export const commonTools: Tool[] = [
     },
     mode: ["normal"],
   },
+
   {
     definition: {
       function: {
@@ -46,6 +58,7 @@ export const commonTools: Tool[] = [
     },
     mode: ["normal"],
   },
+
   {
     definition: {
       function: {

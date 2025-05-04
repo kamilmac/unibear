@@ -111,7 +111,7 @@ export const useStore = create<Store>((set, get) => ({
         context = "\n\nCONTEXT:\n" +
           "File paths of relevant files:\n" +
           validatedFiles +
-          "Read contents of those files with relevant tool only if user prompt suggests a need for it.";
+          "Read those files with relevant tool if their content is not already in the context.";
       }
     }
     const chat = get().chat;
