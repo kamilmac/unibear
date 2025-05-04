@@ -226,7 +226,7 @@ export const Chat = (
         ref={innerRef}
         flexShrink={0}
         flexDirection="column"
-        padding={1}
+        paddingX={1}
       >
         <Text>{formattedContent}</Text>
         {isStreaming && <Thinking />}
