@@ -42,11 +42,10 @@ export const useStore = create<Store>((set, get) => ({
   },
   filesInContext: [],
   addFileToContext: (filePath) => {
-    const absolute = filePath.startsWith("/")
-      ? filePath
-      : `${Deno.cwd()}/${filePath}`;
+    const cwd = Deno.cwd();
+    const absolute = filePath.startsWith("/") ? filePath : `${cwd}/${filePath}`;
     if (get().filesInContext.includes(absolute)) return;
-    get().appendChatItem("", `Added ${absolute} to context.`, "external");
+    get().appendChatItem("", `Added ${filePath} to context.\n`, "external");
     set({
       filesInContext: [
         ...get().filesInContext,
@@ -79,10 +78,12 @@ export const useStore = create<Store>((set, get) => ({
       newChatItem.visibleContent = [
         COLORS.prompt(`${USER_LABEL}: `) + visibleContent + "\n",
       ];
-    } else if (type === "ai" || type === "external") {
+    } else if (type === "ai") {
       newChatItem.visibleContent = (marked.parse(
         COLORS.ai(`${AI_LABEL}:\n`) + visibleContent,
       ) as string).split("\n");
+    } else if (type === "external") {
+      newChatItem.visibleContent = [COLORS.statusLineInactive(visibleContent)];
     }
     set((state) => ({
       chat: state.chat.concat(newChatItem),
@@ -90,11 +91,13 @@ export const useStore = create<Store>((set, get) => ({
     return get().chat;
   },
   removeChatItem: (id: number) => {
+    if (get().isStreamingResponse) return;
     const item = get().chat.find((c) => c.id === id);
     if (item?.type === "external") {
       get().filesInContext.forEach((file) => {
+        const relative = file.slice(Deno.cwd().length + 1);
         if (
-          item.visibleContent.some((line) => line.includes(file))
+          item.visibleContent.some((line) => line.includes(relative))
         ) {
           get().removeFileFromContext(file);
         }
