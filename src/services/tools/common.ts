@@ -25,7 +25,7 @@ export const commonTools: Tool[] = [
       function: {
         name: APP_CONTROL_PREFIX + "_reset_chat",
         description:
-          "Resets chat history and context. Equivalent of starting new session. Run this tools when user prompts similar message to: 'reset chat', 'clear history', 'clear chat'",
+          "Resets chat history and context. Equivalent of starting new session. This tool can only be run When user directly assks to reset or clear the chat content. Run this tools when user prompts similar message to: 'reset chat', 'clear history', 'clear chat'",
         strict: false,
         parameters: {},
       },
@@ -43,8 +43,40 @@ export const commonTools: Tool[] = [
   {
     definition: {
       function: {
+        name: "web_search",
+        description: "Does a web search for given string",
+        strict: true,
+        parameters: zodToJsonSchema(
+          z.object({
+            search_string: z.array(z.string()).describe(
+              "String used for web search",
+            ),
+          }).strict(),
+        ),
+      },
+      type: "function",
+    },
+    process: async (args, log) => {
+      log(`Searching web for ${args.search_sring}`);
+      const response = await openai.responses.create({
+        model: MODEL,
+        tools: [{
+          type: "web_search_preview",
+          search_context_size: "low",
+        }],
+        input: args.search_string as string,
+      });
+      return response.output_text;
+    },
+    mode: ["web"],
+  },
+
+  {
+    definition: {
+      function: {
         name: APP_CONTROL_PREFIX + "_quit",
-        description: "Quits the app completely. Shuts it down.",
+        description:
+          "Never run this tool until user directly asks you to quit. Quits the app completely. Shuts it down.",
         strict: false,
         parameters: {},
       },

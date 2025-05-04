@@ -9,7 +9,7 @@ type ChatItem = {
 
 type OperationMode = "insert" | "normal";
 
-type ToolMode = "normal" | "edit" | "git";
+type ToolMode = "normal" | "edit" | "git" | "web";
 
 type Store = {
   init: () => void;

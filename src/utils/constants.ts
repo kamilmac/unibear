@@ -18,6 +18,7 @@ export const KEY_BINDINGS = {
   paste: ["p"],
   useGitTools: [":"],
   useEditTools: ["+"],
+  useWebTools: ["?"],
 } as const;
 
 export type KeyBindings = typeof KEY_BINDINGS;
@@ -25,6 +26,7 @@ export type KeyBindings = typeof KEY_BINDINGS;
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
   [KEY_BINDINGS.useGitTools[0]]: "git",
   [KEY_BINDINGS.useEditTools[0]]: "edit",
+  [KEY_BINDINGS.useWebTools[0]]: "web",
   default: "normal",
 };
 export const USER_LABEL = config.user_name ?? "USER";

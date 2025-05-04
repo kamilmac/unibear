@@ -61,7 +61,7 @@ export const fsTools: Tool[] = [
         strict: true,
         parameters: zodToJsonSchema(
           z.object({
-            pattern: z.string().describe("pattert to match"),
+            pattern: z.string().describe("pattern to match"),
           }).strict(),
         ),
       },
@@ -213,7 +213,7 @@ async function searchFiles(
   pattern: string,
 ): Promise<string[]> {
   const results: string[] = [];
-  const skipDirectories = ['node_modules'];
+  const skipDirectories = ["node_modules"];
 
   async function search(currentPath: string) {
     const entries = Deno.readDirSync(currentPath);
