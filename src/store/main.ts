@@ -37,7 +37,7 @@ export const useStore = create<Store>((set, get) => ({
     set({
       chat: [],
       filesInContext: [],
-      operationMode: "insert",
+      operationMode: "prompt",
     });
   },
   filesInContext: [],

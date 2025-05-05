@@ -41,7 +41,8 @@ export const commonTools: Tool[] = [
     definition: {
       function: {
         name: "web_search",
-        description: "Does a web search for given string",
+        description:
+          "Does a web search for given string. Always use this tool when available.",
         strict: true,
         parameters: zodToJsonSchema(WebSearchOperation),
       },

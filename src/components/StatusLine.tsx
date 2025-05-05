@@ -8,8 +8,8 @@ export const StatusLine = () => {
   const files = useStore((store) => store.filesInContext);
 
   const modes = {
-    insert: COLORS.prompt(" PROMPT "),
-    normal: COLORS.visual(" VISUAL "),
+    prompt: COLORS.prompt(" PROMPT "),
+    visual: COLORS.visual(" VISUAL "),
   };
 
   return (
