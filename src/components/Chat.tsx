@@ -59,7 +59,7 @@ export const Chat = (
   const renderedChatWrappedLinesNumber: number = React.useMemo(() => {
     let num = 0;
     for (let i = 0; i < renderedChatContentLines.length; i += 1) {
-      const w = dims.cols * 1.0;
+      const w = dims.cols * 1.1;
       const wraptimes = Math.floor(
         stripAnsi(renderedChatContentLines[i]).length / w,
       );
