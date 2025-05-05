@@ -12,7 +12,7 @@ export const KEY_BINDINGS = {
   bigMoveUp: ["K"],
   yank: ["y"],
   select: ["v"],
-  insertMode: ["i"],
+  promptMode: ["i"],
   goToEnd: ["ge", "G"],
   goToTop: ["gg"],
   paste: ["p"],

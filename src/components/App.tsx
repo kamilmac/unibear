@@ -26,7 +26,7 @@ export const App = () => {
       setOpMode("normal");
       return;
     }
-    if (opMode === "normal" && _input === KEY_BINDINGS.insertMode[0]) {
+    if (opMode === "normal" && _input === KEY_BINDINGS.promptMode[0]) {
       setOpMode("insert");
       return;
     }

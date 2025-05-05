@@ -3,6 +3,7 @@ import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { useStore } from "../../store/main.ts";
 import {
   APP_CONTROL_PREFIX,
+  KEY_BINDINGS,
   TOOL_MODE_KEY_MAP,
 } from "../../utils/constants.ts";
 import { quit } from "../../utils/helpers.ts";
@@ -108,17 +109,12 @@ export const commonTools: Tool[] = [
         tool_mode: t.mode,
         tool_description: t.definition.function.description,
       })));
-      const keyDetails = JSON.stringify(TOOL_MODE_KEY_MAP);
       const response = `
 User needs help and doesn't know how to use the app so use below information to help the user. Structure everything in markdown format.
-
-We provide following tools:
-${toolDetails}
-Not all tools are avaiable at all time.
-User can get into "prompt" mode by pressing "i" key.
-Tools can be enabled with following keys in prompt mode:
-${keyDetails}
-App is loosely inspired by Vim and Helix modes nad user can use HJKL keys in visual mode. Also in visual mode: "p" for paste, "v" for selection, "y" for copy. JK with shift are quick scroll.`;
+Unibear navigation is loosely based on Vim and Helix editors.
+Key bindings: ${JSON.stringify(KEY_BINDINGS)}
+Tools that can be enabled in prompt mode:
+${toolDetails}`;
       return response;
     },
     mode: ["normal"],
