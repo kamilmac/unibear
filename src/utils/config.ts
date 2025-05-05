@@ -6,6 +6,11 @@ export interface Config {
   port?: number;
   theme?: "light" | "dark";
   user_name?: string;
+  key_bindings?: {
+    useGitTools?: string;
+    useEditTools?: string;
+    useWebTools?: string;
+  };
 }
 
 const xdg = Deno.env.get("XDG_CONFIG_HOME") ??

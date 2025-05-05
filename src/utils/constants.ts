@@ -17,9 +17,9 @@ export const KEY_BINDINGS = {
   goToTop: ["gg"],
   paste: ["p"],
   del: ["d"],
-  useGitTools: [":"],
-  useEditTools: ["+"],
-  useWebTools: ["?"],
+  useGitTools: [config.key_bindings?.useGitTools ?? ":"],
+  useEditTools: [config.key_bindings?.useEditTools ?? "+"],
+  useWebTools: [config.key_bindings?.useWebTools ?? "?"],
 } as const;
 
 export type KeyBindings = typeof KEY_BINDINGS;

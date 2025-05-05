@@ -4,7 +4,7 @@ import { useStore } from "../store/main.ts";
 import { UserInput } from "./UserInput.tsx";
 import { StatusLine } from "./StatusLine.tsx";
 import { Chat } from "./Chat.tsx";
-import { TEXT_AREA_HEIGHT } from "../utils/constants.ts";
+import { KEY_BINDINGS, TEXT_AREA_HEIGHT } from "../utils/constants.ts";
 import { quit } from "../utils/helpers.ts";
 
 export const App = () => {
@@ -26,7 +26,7 @@ export const App = () => {
       setOpMode("normal");
       return;
     }
-    if (opMode === "normal" && _input === "i") {
+    if (opMode === "normal" && _input === KEY_BINDINGS.insertMode[0]) {
       setOpMode("insert");
       return;
     }
