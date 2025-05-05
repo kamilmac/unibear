@@ -3,7 +3,12 @@ import { Box, Text, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
 import stripAnsi from "npm:strip-ansi";
 import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
-import { BANNER, COLORS, CURSOR_SCROLL_PADDING } from "../utils/constants.ts";
+import {
+  BANNER,
+  COLORS,
+  CURSOR_SCROLL_PADDING,
+  KEY_BINDINGS,
+} from "../utils/constants.ts";
 import { Thinking } from "./Thinking.tsx";
 
 function isBetween(number: number, a: number, b: number): boolean {
@@ -27,6 +32,7 @@ export const Chat = (
   const [selectionOriginLineIndex, setSelectionOriginLineIndex] = React
     .useState(null);
   const innerRef = React.useRef();
+  const kb = KEY_BINDINGS;
 
   const fullChatLines: string[] = React.useMemo(
     () => [
@@ -117,98 +123,97 @@ export const Chat = (
       scrollDownBy(2);
       return;
     }
-
     if (key.upArrow) {
       scrollUpBy(2);
       return;
     }
+    if (opMode !== "normal") return;
 
-    if (opMode === "normal") {
-      if (
-        opMode === "normal" &&
-        selectionOriginLineIndex === null &&
-        _input === "p"
-      ) {
-        injectClipboard();
-        return;
+    const matchKey = (arr: readonly string[]): boolean => {
+      const next = seqBuffer + _input;
+      if (arr.includes(next)) {
+        setSeqBuffer("");
+        return true;
       }
-      if (key.escape) {
+      if (arr.some((s) => s.startsWith(next))) {
+        setSeqBuffer(_input);
+        return false;
+      }
+      return false;
+    };
+
+    if (matchKey(kb.paste) && selectionOriginLineIndex === null) {
+      injectClipboard();
+      return;
+    }
+    if (key.escape) {
+      setSelectionOriginLineIndex(null);
+      return;
+    }
+    if (matchKey(kb.select)) {
+      setSelectionOriginLineIndex(
+        selectionOriginLineIndex === null ? cursorLineIndex : null,
+      );
+      return;
+    }
+    if (matchKey(kb.yank)) {
+      const clipped = fullChatLines.filter((_, i) =>
+        isBetween(
+          i,
+          selectionOriginLineIndex ?? cursorLineIndex,
+          cursorLineIndex,
+        )
+      );
+      if (clipped.length) {
+        clippy.writeText(stripAnsi(clipped.join("\n")) + "\n");
         setSelectionOriginLineIndex(null);
       }
-      if (_input === "v") {
-        if (selectionOriginLineIndex === null) {
-          setSelectionOriginLineIndex(cursorLineIndex);
-        } else {
-          setSelectionOriginLineIndex(null);
-        }
-      }
-      if (_input === "y") {
-        const clipped = fullChatLines.filter((_, index) => {
-          return isBetween(
-            index,
-            selectionOriginLineIndex || cursorLineIndex,
-            cursorLineIndex,
-          );
-        });
-        if (clipped.length > 0) {
-          clippy.writeText(
-            stripAnsi(clipped.filter((c) => c !== null).join("\n")) + "\n",
-          );
-          setSelectionOriginLineIndex(null);
-        }
-      }
-      if (_input === "g" || _input === "e" || _input === "G") {
-        const buf = seqBuffer + _input;
-        setSeqBuffer(buf);
-        if (buf === "ge" || buf === "G") {
-          const newPos = Math.max(
-            0,
-            fullChatLinesNumber - Math.round(height / 4),
-          );
-          setCursorLineIndex(fullChatLinesNumber - 1);
-          setChatRenderOffset(newPos);
-          setSeqBuffer("");
-        } else if (buf === "gg") {
-          setCursorLineIndex(1);
-          setChatRenderOffset(0);
-          setSeqBuffer("");
-        }
-        return;
-      }
-      if (_input === "j") {
-        scrollDownBy(1);
-        return;
-      }
-      if (_input === "k") {
-        scrollUpBy(1);
-        return;
-      }
-      if (_input === "J") {
-        scrollDownBy(4);
-        return;
-      }
-      if (_input === "K") {
-        scrollUpBy(4);
-        return;
-      }
-      if (_input === "d") {
-        const bannerLinesCount = COLORS.banner(BANNER).split("\n").length;
-        const lineIndex = cursorLineIndex - bannerLinesCount;
-        if (lineIndex >= 0) {
-          let acc = 0;
-          for (const item of chat) {
-            const len = item.visibleContent.length;
-            if (lineIndex < acc + len) {
-              removeChatItem(item.id);
-              setCursorLineIndex(Math.max(0, cursorLineIndex - 1));
-              setSelectionOriginLineIndex(null);
-              break;
-            }
-            acc += len;
+      return;
+    }
+    if (matchKey(kb.goToEnd)) {
+      setCursorLineIndex(fullChatLinesNumber - 1);
+      setChatRenderOffset(
+        Math.max(0, fullChatLinesNumber - Math.round(height / 4)),
+      );
+      return;
+    }
+    if (matchKey(kb.goToTop)) {
+      setCursorLineIndex(1);
+      setChatRenderOffset(0);
+      return;
+    }
+    if (matchKey(kb.moveDown)) {
+      scrollDownBy(1);
+      return;
+    }
+    if (matchKey(kb.moveUp)) {
+      scrollUpBy(1);
+      return;
+    }
+    if (matchKey(kb.bigMoveDown)) {
+      scrollDownBy(4);
+      return;
+    }
+    if (matchKey(kb.bigMoveUp)) {
+      scrollUpBy(4);
+      return;
+    }
+    if (matchKey(kb.del)) {
+      const bannerLinesCount = COLORS.banner(BANNER).split("\n").length;
+      const idx = cursorLineIndex - bannerLinesCount;
+      if (idx >= 0) {
+        let acc = 0;
+        for (const item of chat) {
+          if (idx < acc + item.visibleContent.length) {
+            removeChatItem(item.id);
+            setCursorLineIndex(Math.max(0, cursorLineIndex - 1));
+            setSelectionOriginLineIndex(null);
+            break;
           }
+          acc += item.visibleContent.length;
         }
-        return;
       }
+      return;
     }
   });
 

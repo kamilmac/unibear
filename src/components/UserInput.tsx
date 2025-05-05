@@ -3,6 +3,7 @@ import { Box, Text, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
 import {
   COLORS,
+  KEY_BINDINGS,
   TEXT_AREA_HEIGHT,
   TOOL_MODE_KEY_MAP,
 } from "../utils/constants.ts";
@@ -73,7 +74,11 @@ export const UserInput = () => {
   const currentChar = after.charAt(0) || " ";
   const rest = after.slice(1);
 
-  const placeholder = "Press ':' for git tool, '+' for edit, '?' for web";
+  const placeholder = [
+    `Press '${KEY_BINDINGS.useGitTools[0]}' for git`,
+    ` '${KEY_BINDINGS.useEditTools[0]}' for edit`,
+    ` '${KEY_BINDINGS.useWebTools[0]}' for web`,
+  ].join(",");
 
   return (
     <Box
