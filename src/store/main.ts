@@ -61,7 +61,7 @@ export const useStore = create<Store>((set, get) => ({
     });
   },
   isStreamingResponse: false,
-  operationMode: "insert" as OperationMode,
+  operationMode: "prompt" as OperationMode,
   setOperationMode: (mode) => {
     set({ operationMode: mode });
   },
@@ -139,7 +139,7 @@ export const useStore = create<Store>((set, get) => ({
       visibleContent: [],
       type: "ai",
     };
-    get().setOperationMode("normal");
+    get().setOperationMode("visual");
     set({
       isStreamingResponse: true,
       chat: [...chat, aiChatitem],

@@ -7,7 +7,7 @@ type ChatItem = {
   type: ChatItemType;
 };
 
-type OperationMode = "insert" | "normal";
+type OperationMode = "prompt" | "visual";
 
 type ToolMode = "normal" | "edit" | "git" | "web";
 

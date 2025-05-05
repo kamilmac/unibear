@@ -23,7 +23,7 @@ export const UserInput = () => {
   }, []);
 
   useInput((ch, key) => {
-    if (opMode === "normal") return;
+    if (opMode === "visual") return;
 
     if (input === "" && TOOL_MODE_KEY_MAP[ch]) {
       setToolMode(TOOL_MODE_KEY_MAP[ch]);
@@ -62,7 +62,7 @@ export const UserInput = () => {
     setCursor((c: number) => c + ch.length);
   });
 
-  if (opMode === "normal") return null;
+  if (opMode === "visual") return null;
 
   let prefix = "";
   if (toolMode !== "normal") {
@@ -88,7 +88,7 @@ export const UserInput = () => {
       flexDirection="row"
     >
       <Box width={3}>
-        {opMode === "insert" && <Text>{COLORS.prompt(" > ")}</Text>}
+        {opMode === "prompt" && <Text>{COLORS.prompt(" > ")}</Text>}
       </Box>
       <Box
         width={dims.cols - 6}

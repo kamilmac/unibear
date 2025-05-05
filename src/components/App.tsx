@@ -22,17 +22,17 @@ export const App = () => {
       quit();
     }
 
-    if (opMode !== "normal" && key.escape) {
-      setOpMode("normal");
+    if (opMode !== "visual" && key.escape) {
+      setOpMode("visual");
       return;
     }
-    if (opMode === "normal" && _input === KEY_BINDINGS.promptMode[0]) {
-      setOpMode("insert");
+    if (opMode === "visual" && _input === KEY_BINDINGS.promptMode[0]) {
+      setOpMode("prompt");
       return;
     }
   });
 
-  const chatHeight = opMode === "normal"
+  const chatHeight = opMode === "visual"
     ? dims.rows
     : dims.rows - TEXT_AREA_HEIGHT;
 

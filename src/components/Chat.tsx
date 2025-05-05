@@ -129,7 +129,7 @@ export const Chat = (
       scrollUpBy(2);
       return;
     }
-    if (opMode !== "normal") return;
+    if (opMode !== "visual") return;
 
     const matchKey = (arr: readonly string[]): boolean => {
       const next = seqBuffer + _input;
@@ -219,7 +219,7 @@ export const Chat = (
   });
 
   const formattedContent = renderedChatContentLines.map((line, i) => {
-    if (chatRenderOffset + i === cursorLineIndex && opMode === "normal") {
+    if (chatRenderOffset + i === cursorLineIndex && opMode === "visual") {
       return COLORS.selectedLineBg(stripAnsi(line || " "));
     }
     if (
@@ -255,7 +255,7 @@ export const Chat = (
       >
         <Text>{formattedContent}</Text>
         {isStreaming && <Thinking />}
-        {!isStreaming && opMode === "normal" &&
+        {!isStreaming && opMode === "visual" &&
           (
             <Text dimColor>
               (Press 'i' to prompt)
