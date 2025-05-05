@@ -33,6 +33,7 @@ export const Chat = (
     .useState(null);
   const innerRef = React.useRef();
   const kb = KEY_BINDINGS;
+  const bannerLinesCount = COLORS.banner(BANNER).split("\n").length;
 
   const fullChatLines: string[] = React.useMemo(
     () => [
@@ -58,7 +59,7 @@ export const Chat = (
   const renderedChatWrappedLinesNumber: number = React.useMemo(() => {
     let num = 0;
     for (let i = 0; i < renderedChatContentLines.length; i += 1) {
-      const w = dims.cols * 1.1;
+      const w = dims.cols * 1.0;
       const wraptimes = Math.floor(
         stripAnsi(renderedChatContentLines[i]).length / w,
       );
@@ -85,7 +86,7 @@ export const Chat = (
   const scrollDownBy = React.useCallback((num: number) => {
     const newCursorLineIndex = cursorLineIndex + num;
     if (
-      newCursorLineIndex >= fullChatLinesNumber
+      newCursorLineIndex >= fullChatLinesNumber + CURSOR_SCROLL_PADDING
     ) {
       return;
     }
@@ -112,9 +113,10 @@ export const Chat = (
 
   // Hack-ish solution to scroll to the top when chat got cleared
   React.useEffect(() => {
-    if (fullChatLinesNumber < 5) {
+    if (fullChatLinesNumber < bannerLinesCount + 2) {
       setChatRenderOffset(0);
       setCursorLineIndex(0);
+      return;
     }
   }, [fullChatLinesNumber]);
 
@@ -199,7 +201,6 @@ export const Chat = (
       return;
     }
     if (matchKey(kb.del)) {
-      const bannerLinesCount = COLORS.banner(BANNER).split("\n").length;
       const idx = cursorLineIndex - bannerLinesCount;
       if (idx >= 0) {
         let acc = 0;
