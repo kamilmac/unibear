@@ -1,4 +1,4 @@
-name: "CI & Release"
+name: Main
 
 on:
   pull_request:
@@ -12,14 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Fmt & Lint"
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
-      - uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
-      - run: deno fmt --check
-      - run: deno lint
+        run: deno fmt --check
+        run: deno lint
 
       - name: "Build"
         if: startsWith(github.ref, 'refs/tags/')
