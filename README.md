@@ -1,3 +1,5 @@
+![Unibear image](assets/unibear.png)
+
 # Unibear
 
 A terminal-based AI assistant powered by Deno, React Ink and OpenAI. Interact in
