@@ -1,15 +1,14 @@
 name: "CI & Release"
 
 on:
-  pull_request:
-    branches: [main]
+  # pull_request:
+  #   branches: [main]
   push:
     branches: [main]
-    tags: ["v*"]
+    # tags: ["v*"]
 
 jobs:
-  build-and-test:
-    name: "Fmt · Lint · Test"
+  ci-and-release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
