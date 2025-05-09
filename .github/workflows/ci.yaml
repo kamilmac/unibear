@@ -2,10 +2,10 @@ name: "CI & Release"
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
-    tags: [ "v*" ]
+    branches: [main]
+    tags: ["v*"]
 
 jobs:
   build-and-test:

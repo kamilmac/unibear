@@ -1,7 +1,8 @@
 # Unibear
 
-A terminal-based AI assistant powered by Deno, React Ink and OpenAI.
-Interact in prompt or visual (Vim-like) modes, inject file context, run git and fs tools, or even web search.
+A terminal-based AI assistant powered by Deno, React Ink and OpenAI. Interact in
+prompt or visual (Vim-like) modes, inject file context, run git and fs tools, or
+even web search.
 
 ## Features
 
