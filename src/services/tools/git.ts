@@ -48,7 +48,7 @@ You are an expert senior engineer. Generate a concise git commit message for the
       },
       type: "function",
     },
-    process: async (args: any) => {
+    process: async (_args: unknown) => {
       const diff = await getGitDiffToBaseBranch();
       const { choices } = await openai.chat.completions.create({
         model: MODEL,
@@ -77,7 +77,7 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
       },
       type: "function",
     },
-    process: async (args: any) => {
+    process: async (_args: unknown) => {
       const diff = await getGitDiffToBaseBranch();
       const { choices } = await openai.chat.completions.create({
         model: MODEL,

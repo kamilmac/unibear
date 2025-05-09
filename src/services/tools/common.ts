@@ -1,11 +1,7 @@
 import { z } from "npm:zod";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { useStore } from "../../store/main.ts";
-import {
-  APP_CONTROL_PREFIX,
-  KEY_BINDINGS,
-  TOOL_MODE_KEY_MAP,
-} from "../../utils/constants.ts";
+import { APP_CONTROL_PREFIX, KEY_BINDINGS } from "../../utils/constants.ts";
 import { quit } from "../../utils/helpers.ts";
 import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
@@ -99,6 +95,7 @@ export const commonTools: Tool[] = [
       },
       type: "function",
     },
+    // deno-lint-ignore require-await
     process: async (_args, _log) => {
       const allTools = [
         ...commonTools,

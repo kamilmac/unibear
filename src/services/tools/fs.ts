@@ -96,6 +96,7 @@ export const fsTools: Tool[] = [
       },
       type: "function",
     },
+    // deno-lint-ignore no-explicit-any
     process: async (args: any, log: any) => {
       const parsed = EditFileArgsSchema.safeParse(args);
       if (!parsed.success) {
@@ -231,6 +232,7 @@ async function searchFiles(
         if (entry.isDirectory) {
           await search(fullPath);
         }
+        // deno-lint-ignore no-unused-vars
       } catch (error) {
         continue;
       }
