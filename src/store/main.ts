@@ -24,14 +24,24 @@ export const useStore = create<Store>((set, get) => ({
     setDimensions();
   },
   injectClipboard: async () => {
-    const clipboardContent = await clippy.readText();
-    get().appendChatItem(
-      clipboardContent,
-      `Pasted content from clipboard:\n${
-        COLORS.prompt(clipboardContent.slice(0, 128))
-      }\n...`,
-      "ai",
-    );
+    try {
+      const { appendChatItem, lastClipboard } = get()
+      const text = await clippy.readText()
+      if (!text || text === lastClipboard) return
+
+      const max = 128
+      const preview = text.slice(0, max)
+      const suffix = text.length > max ? "…" : ""
+
+      appendChatItem(
+        text,
+        `Pasted content from clipboard:\n${COLORS.prompt(preview)}${suffix}`,
+        "ai",
+      )
+      set({ lastClipboard: text })
+    } catch {
+      // silently ignore failures
+    }
   },
   clearChatHistory: () => {
     set({

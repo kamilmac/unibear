@@ -1,4 +1,4 @@
-![Unibear image](assets/unibear.png)
+![Unibear image](assets/unibear_shot.png)
 
 # Unibear
 
