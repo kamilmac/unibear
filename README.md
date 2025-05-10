@@ -3,7 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases)
 
-![Unibear](assets/unibear-face-small-shaded.png)
+![Unibear](assets/unibear-face-small.png)
+
 A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 
 ![Unibear Screenshot](assets/unibear-shot.png)
