@@ -23,7 +23,7 @@ export const useStore = create<Store>((set, get) => ({
     Deno.addSignalListener("SIGWINCH", setDimensions);
     setDimensions();
   },
-  injectClipboard: async () => {
+  injectClipboard: () => {
     try {
       const text = clipboard.readSync();
       if (!text) return;
