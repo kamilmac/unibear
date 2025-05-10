@@ -4,7 +4,7 @@
     "compile": "deno compile -A -o bin/unibear src/main.ts",
     "compile-no-check": "deno compile -A --no-check -o bin/unibear src/main.ts"
   },
-  "version": "0.2.5",
+  "version": "0.2.6",
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
     "ink": "npm:ink@^5.2.0",

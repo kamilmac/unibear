@@ -9,7 +9,7 @@ import { getTools } from "./tools.ts";
 
 const MAX_HISTORY = 16; // trim history to last N messages
 export const openai = new OpenAI({
-  apiKey: Deno.env.get("OPENAI_API_KEY"),
+  apiKey: Deno.env.get("OPENAI_API_KEY") ?? "",
 });
 
 interface SendChatOpts {
