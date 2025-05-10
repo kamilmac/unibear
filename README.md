@@ -13,6 +13,7 @@ LLM support expanding soon.
 - [Features](#features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Development](#development)
 - [Modes](#modes)
   - [Prompt Mode](#prompt-mode)
   - [Visual Mode](#visual-mode)
@@ -56,6 +57,30 @@ curl -fsSL \
    ```
 2. Switch modes with `i` (Prompt) and `Esc` (Visual).
 3. Enable tools via their special keys (see Key Bindings).
+
+---
+
+## Development
+
+Clone the repo and get going locally:
+
+```bash
+git clone https://github.com/kamilmac/unibear.git
+cd unibear
+```
+
+Leverage the built-in Deno tasks:
+
+```bash
+# watch & run in dev mode
+deno task dev
+
+# compile a standalone binary
+deno task compile
+
+# faster compile skipping type checks
+deno task compile-no-check
+```
 
 ---
 
