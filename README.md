@@ -8,8 +8,8 @@ A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 
 ## Table of Contents
 
-- [Features](#features)
 - [Installation](#installation)
+- [Features](#features)
 - [Quick Start](#quick-start)
 - [Development](#development)
 - [Modes](#modes)
@@ -25,16 +25,6 @@ A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 
 ---
 
-## Features
-
-- 🚀 Work in **Prompt** or **Visual** (Vim/Helix-like) modes
-- 🔍 Inject arbitrary file context
-- 🔧 Built-in Git, filesystem and web-search tools
-- 🤝 Plan & pair-program with your AI buddy before applying edits
-- 🖥️ Responsive TUI
-
----
-
 ## Installation
 
 ```bash
@@ -44,6 +34,16 @@ curl -fsSL \
 ```
 
 > Ensure `OPENAI_API_KEY` is set in your environment.
+
+---
+
+## Features
+
+- 🚀 Work in **Prompt** or **Visual** (Vim/Helix-like) modes
+- 🔍 Inject arbitrary file context
+- 🔧 Built-in Git, filesystem and web-search tools
+- 🤝 Plan & pair-program with your AI buddy before applying edits
+- 🖥️ Responsive TUI
 
 ---
 
@@ -182,7 +182,8 @@ Create `~/.config/unibear/config.json`:
 
 ## Contributing
 
-Contributions welcome! Please open issues or pull requests with clear descriptions. Follow DWYL style guide and run `deno fmt` & `deno lint`.
+Contributions welcome! Please open issues or pull requests with clear descriptions.
+Follow DWYL style guide and run `deno fmt` & `deno lint`.
 
 ## Roadmap
 
