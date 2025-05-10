@@ -1,3 +1,5 @@
+![Unibear](assets/unibear-face-small.png)
+
 # Unibear
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases) [![Deno](https://img.shields.io/badge/Deno-^1.0-blue.svg)](https://deno.land/x/unibear)
