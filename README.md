@@ -6,8 +6,9 @@
 <p align="center">
   <img src="https://github.com/kamilmac/unibear/blob/main/assets/unibear-face-small.png" alt="Unibear" />
 </p>
-
-A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
+<p align="center">
+  A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
+</p>
 
 ![Unibear Screenshot](assets/unibear-shot.png)
 
