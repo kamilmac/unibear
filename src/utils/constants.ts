@@ -92,14 +92,14 @@ const HEX_COLORS = {
   grey: "#999999",
   darkGrey: "#333333",
   lightGrey: "#cccccc",
-  navy: "#2C3E50", // deep base
-  teal: "#1ABC9C", // calm accent
-  skyBlue: "#3498DB", // bright highlight
-  orange: "#E67E22", // warm contrast
-  red: "#E74C3C", // alert/danger
-  purple: "#9B59B6", // secondary accent
-  greyLight: "#ECF0F1", // backgrounds
-  greyDark: "#95A5A6", // text/lines
+  navy: "#2C3E50",
+  teal: "#1ABC9C",
+  skyBlue: "#3498DB",
+  orange: "#E67E22",
+  red: "#E74C3C",
+  purple: "#9B59B6",
+  greyLight: "#ECF0F1",
+  greyDark: "#95A5A6",
 };
 
 const DARK_THEME = {
@@ -117,6 +117,7 @@ const DARK_THEME = {
 const LIGHT_THEME = {
   ...DARK_THEME,
   border: HEX_COLORS.lightGrey,
+  prompt: chalk.bold.hex(HEX_COLORS.navy),
 };
 
 export const COLORS = config.theme === "light" ? LIGHT_THEME : DARK_THEME;
