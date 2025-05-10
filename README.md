@@ -24,7 +24,6 @@ A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 - [FAQ](#faq)
 
 <br>
-<br>
 
 ## Installation
 
@@ -43,7 +42,6 @@ unibear
 ```
 
 <br>
-<br>
 
 ## Features
 
@@ -53,7 +51,6 @@ unibear
 - 🤝 Plan & pair-program with your AI buddy before applying edits
 - 🖥️ Responsive TUI
 
-<br>
 <br>
 
 ## Editor Integrations
@@ -77,7 +74,6 @@ C-a = [":sh unibear add_file %{buffer_name}"]
 ```
 
 <br>
-<br>
 
 ## Configuration
 
@@ -99,7 +95,6 @@ Create `~/.config/unibear/config.json`:
 ```
 
 <br>
-<br>
 
 ## Modes
 
@@ -117,7 +112,6 @@ Create `~/.config/unibear/config.json`:
 - Jump to top (`gg`) or end (`G`/`ge`)
 
 <br>
-<br>
 
 ## Tools
 
@@ -128,7 +122,6 @@ Create `~/.config/unibear/config.json`:
 | Edit       | `+` | edit_file                                                                         |
 | Web        | `?` | web_search                                                                        |
 
-<br>
 <br>
 
 ## Key Bindings
@@ -157,7 +150,6 @@ Create `~/.config/unibear/config.json`:
 ```
 
 <br>
-<br>
 
 ## Development
 
@@ -181,7 +173,6 @@ deno task compile
 deno task compile-no-check
 ```
 
-<br>
 <br>
 
 ## Contributing
