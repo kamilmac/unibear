@@ -2,7 +2,7 @@ import React from "npm:react";
 import { Box, Text, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
 import stripAnsi from "npm:strip-ansi";
-import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
+import clipboard from "npm:clipboardy";
 import {
   BANNER,
   COLORS,
@@ -167,7 +167,7 @@ export const Chat = (
         )
       );
       if (clipped.length) {
-        clippy.writeText(stripAnsi(clipped.join("\n")) + "\n");
+        clipboard.write(stripAnsi(clipped.join("\n")) + "\n");
         setSelectionOriginLineIndex(null);
       }
       return;

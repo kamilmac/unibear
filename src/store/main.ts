@@ -1,10 +1,10 @@
 import { create } from "npm:zustand";
 import { streamOpenAIResponse } from "../services/openai.ts";
-import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
 import { AI_LABEL, COLORS, USER_LABEL } from "../utils/constants.ts";
 import { fileExists } from "../utils/helpers.ts";
+import clipboard from "npm:clipboardy";
 
 marked.use(markedTerminal());
 
@@ -25,7 +25,7 @@ export const useStore = create<Store>((set, get) => ({
   },
   injectClipboard: async () => {
     try {
-      const text = await clippy.readText();
+      const text = clipboard.readSync();
       if (!text) return;
       const max = 128;
       const preview = text.slice(0, max);
