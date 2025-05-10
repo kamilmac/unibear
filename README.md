@@ -1,14 +1,12 @@
 # Unibear
 
-[![CI](https://github.com/kamilmac/unibear/actions/workflows/ci.yml/badge.svg)](https://github.com/kamilmac/unibear/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases) [![Deno](https://img.shields.io/badge/Deno-^1.0-blue.svg)](https://deno.land/x/unibear)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases) [![Deno](https://img.shields.io/badge/Deno-^1.0-blue.svg)](https://deno.land/x/unibear)
 
 A developer-focused terminal AI assistant for seamless code exploration and editing.
-
 (**not so magical**) terminal-based AI assistant powered by Deno, Ink, and OpenAI.
-
 LLM support expanding soon.
 
-![Unibear Screenshot](assets/unibear_shot.png)
+![Unibear Screenshot](assets/unibear-shot.png)
 
 ## Table of Contents
 
@@ -181,3 +179,5 @@ A: Ensure `$OPENAI_API_KEY` is set correctly.
 ## License
 
 MIT
+
+![Unibear](assets/unibear-face.png)
