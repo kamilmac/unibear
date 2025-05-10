@@ -1,2 +1,3 @@
 .aider*
 bin/**
+.DS_Store
