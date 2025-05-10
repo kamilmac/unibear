@@ -1,23 +1,30 @@
 # Unibear
 
-A (**not so magical**) terminal-based AI assistant powered by Deno, Ink, and OpenAI  
-(LLM support expanding soon).
+[![CI](https://github.com/kamilmac/unibear/actions/workflows/ci.yml/badge.svg)](https://github.com/kamilmac/unibear/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases) [![Deno](https://img.shields.io/badge/Deno-^1.0-blue.svg)](https://deno.land/x/unibear)
+
+A developer-focused terminal AI assistant for seamless code exploration and editing.
+
+(**not so magical**) terminal-based AI assistant powered by Deno, Ink, and OpenAI.
+
+LLM support expanding soon.
 
 ![Unibear Screenshot](assets/unibear_shot.png)
 
 ## Table of Contents
 
-1. [Features](#features)
-2. [Installation](#installation)
-3. [Quick Start](#quick-start)
-4. [Modes](#modes)
-   - [Prompt Mode](#prompt-mode)
-   - [Visual Mode](#visual-mode)
-5. [Editor Integrations](#editor-integrations)
-6. [Configuration](#configuration)
-7. [Tools](#tools)
-8. [Key Bindings](#key-bindings)
-9. [License](#license)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Modes](#modes)
+  - [Prompt Mode](#prompt-mode)
+  - [Visual Mode](#visual-mode)
+- [Editor Integrations](#editor-integrations)
+- [Configuration](#configuration)
+- [Tools](#tools)
+- [Key Bindings](#key-bindings)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+- [FAQ](#faq)
 
 ---
 
@@ -27,6 +34,7 @@ A (**not so magical**) terminal-based AI assistant powered by Deno, Ink, and Ope
 - 🔍 Inject arbitrary file context
 - 🔧 Built-in Git, filesystem and web-search tools
 - 🤝 Plan & pair-program with your AI buddy before applying edits
+- 🖥️ Responsive TUI
 
 ---
 
@@ -115,21 +123,18 @@ Create `~/.config/unibear/config.json`:
 
 ## Tools
 
-- **Default**  
-  `read_multiple_files`, `search_files`,  
-  `app_control_reset_chat`, `app_control_quit`, `help`
-- **Git** (`:`)  
-  `git_auto_commit`, `git_review`, `git_create_pr_description`
-- **Edit** (`+`)  
-  `edit_file`
-- **Web** (`?`)  
-  `web_search`
+| Tool Group | Key | Commands                                                                          |
+| ---------- | --- | --------------------------------------------------------------------------------- |
+| Default    | –   | read_multiple_files, search_files, app_control_reset_chat, app_control_quit, help |
+| Git        | `:` | git_auto_commit, git_review, git_create_pr_description                            |
+| Edit       | `+` | edit_file                                                                         |
+| Web        | `?` | web_search                                                                        |
 
 ---
 
 ## Key Bindings
 
-```jsonc
+```json
 {
   "promptMode": ["i"],
   "visual": {
@@ -142,17 +147,36 @@ Create `~/.config/unibear/config.json`:
     "paste": ["p"],
     "delete": ["d"],
     "goToTop": ["gg"],
-    "goToEnd": ["G", "ge"],
+    "goToEnd": ["G", "ge"]
   },
   "tools": {
     "git": [":"],
     "edit": ["+"],
-    "web": ["?"],
-  },
+    "web": ["?"]
+  }
 }
 ```
 
 ---
+
+## Contributing
+
+Contributions welcome! Please open issues or pull requests with clear descriptions. Follow DWYL style guide and run `deno fmt` & `deno lint`.
+
+## Roadmap
+
+- Better Windows build support
+- Enhanced LLM model options
+- Support for images
+- Tools as plugins architecture
+
+## FAQ
+
+**Q: Port already in use?**  
+A: Run `lsof -i :<port>` and kill the process or change `port` in config.
+
+**Q: Invalid API key?**  
+A: Ensure `$OPENAI_API_KEY` is set correctly.
 
 ## License
 
