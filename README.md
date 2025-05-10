@@ -1,6 +1,8 @@
 # Unibear
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases) [![Deno](https://img.shields.io/badge/Deno-^1.0-blue.svg)](https://deno.land/x/unibear)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases)
+[![Deno](https://img.shields.io/badge/Deno-^1.0-blue.svg)](https://deno.land/x/unibear)
 
 A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 
@@ -182,8 +184,8 @@ Create `~/.config/unibear/config.json`:
 
 ## Contributing
 
-Contributions welcome! Please open issues or pull requests with clear descriptions.
-Follow DWYL style guide and run `deno fmt` & `deno lint`.
+Contributions welcome! Please open issues or pull requests with clear
+descriptions. Follow DWYL style guide and run `deno fmt` & `deno lint`.
 
 ## Roadmap
 
@@ -194,10 +196,10 @@ Follow DWYL style guide and run `deno fmt` & `deno lint`.
 
 ## FAQ
 
-**Q: Port already in use?**  
+**Q: Port already in use?**\
 A: Run `lsof -i :<port>` and kill the process or change `port` in config.
 
-**Q: Invalid API key?**  
+**Q: Invalid API key?**\
 A: Ensure `$OPENAI_API_KEY` is set correctly.
 
 ## License

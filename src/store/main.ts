@@ -25,20 +25,16 @@ export const useStore = create<Store>((set, get) => ({
   },
   injectClipboard: async () => {
     try {
-      const { appendChatItem, lastClipboard } = get()
-      const text = await clippy.readText()
-      if (!text || text === lastClipboard) return
-
-      const max = 128
-      const preview = text.slice(0, max)
-      const suffix = text.length > max ? "…" : ""
-
-      appendChatItem(
+      const text = await clippy.readText();
+      if (!text) return;
+      const max = 128;
+      const preview = text.slice(0, max);
+      const suffix = text.length > max ? "…" : "";
+      get().appendChatItem(
         text,
         `Pasted content from clipboard:\n${COLORS.prompt(preview)}${suffix}`,
         "ai",
-      )
-      set({ lastClipboard: text })
+      );
     } catch {
       // silently ignore failures
     }
