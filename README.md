@@ -2,9 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases) [![Deno](https://img.shields.io/badge/Deno-^1.0-blue.svg)](https://deno.land/x/unibear)
 
-A developer-focused terminal AI assistant for seamless code exploration and editing.
-(**not so magical**) terminal-based AI assistant powered by Deno, Ink, and OpenAI.
-LLM support expanding soon.
+A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 
 ![Unibear Screenshot](assets/unibear-shot.png)
 
