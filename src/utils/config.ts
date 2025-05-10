@@ -25,7 +25,8 @@ try {
   const raw = await Deno.readTextFile(configPath);
   file = JSON.parse(raw);
 } catch (error) {
-  console.warn(`Failed to load config from ${configPath}: ${error}`);
+  console.warn(`Failed to load config from ${configPath}:\n ${error}`);
+  console.warn(`\nUsing default config\n`);
 }
 
 export const config: Config = { ...file };

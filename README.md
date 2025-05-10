@@ -32,7 +32,7 @@ A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 ```bash
 curl -fsSL \
   https://raw.githubusercontent.com/kamilmac/unibear/main/install.sh \
-  | sh
+  | bash
 ```
 
 > Ensure `OPENAI_API_KEY` is set in your environment.
