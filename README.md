@@ -12,15 +12,14 @@ A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
 
 - [Installation](#installation)
 - [Features](#features)
-- [Quick Start](#quick-start)
-- [Development](#development)
+- [Editor Integrations](#editor-integrations)
+- [Configuration](#configuration)
 - [Modes](#modes)
   - [Prompt Mode](#prompt-mode)
   - [Visual Mode](#visual-mode)
-- [Editor Integrations](#editor-integrations)
-- [Configuration](#configuration)
 - [Tools](#tools)
 - [Key Bindings](#key-bindings)
+- [Development](#development)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
 - [FAQ](#faq)
@@ -37,6 +36,12 @@ curl -fsSL \
 
 > Ensure `OPENAI_API_KEY` is set in your environment.
 
+Launch Unibear:
+
+```bash
+unibear
+```
+
 ---
 
 ## Features
@@ -46,58 +51,6 @@ curl -fsSL \
 - 🔧 Built-in Git, filesystem and web-search tools
 - 🤝 Plan & pair-program with your AI buddy before applying edits
 - 🖥️ Responsive TUI
-
----
-
-## Quick Start
-
-1. Launch Unibear:
-   ```bash
-   unibear
-   ```
-2. Switch modes with `i` (Prompt) and `Esc` (Visual).
-3. Enable tools via their special keys (see Key Bindings).
-
----
-
-## Development
-
-Clone the repo and get going locally:
-
-```bash
-git clone https://github.com/kamilmac/unibear.git
-cd unibear
-```
-
-Leverage the built-in Deno tasks:
-
-```bash
-# watch & run in dev mode
-deno task dev
-
-# compile a standalone binary
-deno task compile
-
-# faster compile skipping type checks
-deno task compile-no-check
-```
-
----
-
-## Modes
-
-### Prompt Mode
-
-- Press `i`
-- Type your prompt and hit ↵
-- Invoke tools like `edit`, `git`, or `web_search`
-
-### Visual Mode
-
-- Press `Esc`
-- Navigate output with `j`/`k` (or `J`/`K` for big scroll)
-- Select (`v`), yank (`y`), paste (`p`), delete (`d`)
-- Jump to top (`gg`) or end (`G`/`ge`)
 
 ---
 
@@ -144,6 +97,23 @@ Create `~/.config/unibear/config.json`:
 
 ---
 
+## Modes
+
+### Prompt Mode
+
+- Press `i`
+- Type your prompt and hit ↵
+- Invoke tools like `edit`, `git`, or `web_search`
+
+### Visual Mode
+
+- Press `Esc`
+- Navigate output with `j`/`k` (or `J`/`K` for big scroll)
+- Select (`v`), yank (`y`), paste (`p`), delete (`d`)
+- Jump to top (`gg`) or end (`G`/`ge`)
+
+---
+
 ## Tools
 
 | Tool Group | Key | Commands                                                                          |
@@ -178,6 +148,30 @@ Create `~/.config/unibear/config.json`:
     "web": ["?"]
   }
 }
+```
+
+---
+
+## Development
+
+Clone the repo and get going locally:
+
+```bash
+git clone https://github.com/kamilmac/unibear.git
+cd unibear
+```
+
+Leverage the built-in Deno tasks:
+
+```bash
+# watch & run in dev mode
+deno task dev
+
+# compile a standalone binary
+deno task compile
+
+# faster compile skipping type checks
+deno task compile-no-check
 ```
 
 ---
