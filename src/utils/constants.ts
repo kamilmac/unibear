@@ -1,7 +1,9 @@
 import chalk from "npm:chalk";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 import { config } from "./config.ts";
+import cfg from "../../deno.json" with { type: "json" };
 
+export const VERSION = cfg.version;
 export const MODEL = config.model ?? "o4-mini";
 export const WORKSPACE_NAME = basename(Deno.cwd());
 export const APP_CONTROL_PREFIX = "app_control";

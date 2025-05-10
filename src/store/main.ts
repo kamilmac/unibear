@@ -5,7 +5,6 @@ import { markedTerminal } from "npm:marked-terminal";
 import { AI_LABEL, COLORS, USER_LABEL } from "../utils/constants.ts";
 import { fileExists } from "../utils/helpers.ts";
 import clipboard from "npm:clipboardy";
-
 marked.use(markedTerminal());
 
 let latestChatItemId = 0;

@@ -1,9 +1,13 @@
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
-import { PORT } from "./constants.ts";
+import { PORT, VERSION } from "./constants.ts";
 
 export async function handleCliArgs(): Promise<boolean> {
   const args = Deno.args;
   if (!args[0]) return false;
+  if (["-v", "--version"].includes(args[0])) {
+    console.log("Version: ", VERSION);
+    return true;
+  }
   const workspaceName = basename(Deno.cwd());
   try {
     const response = await fetch(
