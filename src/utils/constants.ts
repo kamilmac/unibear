@@ -95,7 +95,7 @@ const HEX_COLORS = {
   navy: "#2C3E50", // deep base
   teal: "#1ABC9C", // calm accent
   skyBlue: "#3498DB", // bright highlight
-  orange: "#e1562d", // warm contrast
+  orange: "#E67E22", // warm contrast
   red: "#E74C3C", // alert/danger
   purple: "#9B59B6", // secondary accent
   greyLight: "#ECF0F1", // backgrounds
@@ -104,11 +104,11 @@ const HEX_COLORS = {
 
 const DARK_THEME = {
   prompt: chalk.bold.hex(HEX_COLORS.teal),
-  ai: chalk.hex(HEX_COLORS.orange),
+  ai: chalk.hex(HEX_COLORS.purple),
   visual: chalk.hex(HEX_COLORS.white),
   statusLineInactive: chalk.hex(HEX_COLORS.grey),
   statusLineActive: chalk.bgHex(HEX_COLORS.teal).hex(HEX_COLORS.black),
-  banner: chalk.hex(HEX_COLORS.orange),
+  banner: chalk.hex(HEX_COLORS.purple),
   border: HEX_COLORS.darkGrey,
   cursor: chalk.inverse,
   selectedLineBg: chalk.inverse,
