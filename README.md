@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/github/v/release/kamilmac/unibear)](https://github.com/kamilmac/unibear/releases)
 
 <p align="center">
-  <img src="https://github.com/kamilmac/unibear/blob/main/assets/unibear-face-small.png" alt="Unibear" />
+  <img src="https://raw.githubusercontent.com/kamilmac/unibear/main/assets/unibear-face-small.png" alt="Unibear" />
 </p>
 <p align="center">
   A lean TUI AI assistant: run your tools, stay in charge, zero magic tricks.
@@ -38,9 +38,9 @@ curl -fsSL \
   | bash
 ```
 
-> Ensure `OPENAI_API_KEY` is set in your environment.
+> Ensure `OPENAI_API_KEY` is set in your environment. (Support for more LLMs is on the way)
 
-Launch Unibear:
+Launch Unibear in your git repository:
 
 ```bash
 unibear
