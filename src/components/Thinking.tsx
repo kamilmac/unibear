@@ -1,4 +1,3 @@
-// WaveLoader.tsx
 import React from "react";
 import { Box, Text } from "ink";
 
