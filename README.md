@@ -39,7 +39,8 @@ curl -fsSL \
   | bash
 ```
 
-> Ensure `OPENAI_API_KEY` is set in your environment. (Support for more LLMs is on the way)
+> Ensure `OPENAI_API_KEY` is set in your environment. (Support for more LLMs is
+> on the way)
 
 Launch Unibear in your git repository:
 
