@@ -11,7 +11,7 @@
 </p>
 
 ![Unibear Screenshot](assets/unibear-shot.png)
-![Unibear Demo gif](assets/unibear_demo.gif)
+![Unibear Demo gif](assets/unibear-demo.gif)
 
 ## Table of Contents
 
