@@ -29,6 +29,10 @@ const CreateDirectoryArgsSchema = z.object({
   path: z.string(),
 }).strict();
 
+const ListDirectoryArgsSchema = z.object({
+  path: z.string(),
+}).strict();
+
 export const fsTools: Tool[] = [
   {
     definition: {
@@ -87,6 +91,7 @@ export const fsTools: Tool[] = [
         log(`Invalid arguments for search_files: ${parsed.error}`);
         throw new Error(`Invalid arguments for search_files: ${parsed.error}`);
       }
+      log(`Searching for files:\n${parsed.data.pattern}\n`);
       const results = await searchFiles(
         Deno.cwd(),
         parsed.data.pattern,
@@ -108,7 +113,7 @@ export const fsTools: Tool[] = [
       },
       type: "function",
     },
-    process: async (args, log) => {
+    process: async (args, _log) => {
       const parsed = CreateFilesArgsSchema.safeParse(args);
       if (!parsed.success) {
         throw new Error(`Invalid arguments for write_file: ${parsed.error}`);
@@ -171,6 +176,36 @@ export const fsTools: Tool[] = [
       return `Successfully created directory ${parsed.data.path}`;
     },
     mode: ["edit"],
+  },
+  {
+    definition: {
+      function: {
+        name: "list_directory",
+        description:
+          "Get a detailed listing of all files and directories in a specified path. " +
+          "Results clearly distinguish between files and directories with [FILE] and [DIR] " +
+          "prefixes. This tool is essential for understanding directory structure and " +
+          "finding specific files within a directory. Only works within allowed directories.",
+        parameters: zodToJsonSchema(ListDirectoryArgsSchema),
+      },
+      type: "function",
+    },
+    process: async (args: any, _log: any) => {
+      const parsed = ListDirectoryArgsSchema.safeParse(args);
+      if (!parsed.success) {
+        throw new Error(
+          `Invalid arguments for list_directory: ${parsed.error}`,
+        );
+      }
+      const validPath = await validatePath(parsed.data.path);
+      const entries = Deno.readDir(validPath);
+      const formatted = [];
+      for await (const item of entries) {
+        formatted.push(`${item.isDirectory ? "[DIR]" : "[FILE]"} ${item.name}`);
+      }
+      return formatted.join("\n");
+    },
+    mode: ["normal", "edit"],
   },
 ];
 
@@ -276,10 +311,10 @@ function createUnifiedDiff(
   );
 }
 
-async function searchFiles(
+const searchFiles = async (
   rootPath: string,
   pattern: string,
-): Promise<string[]> {
+): Promise<string[]> => {
   const results: string[] = [];
   const skipDirectories = ["node_modules"];
 
@@ -308,17 +343,17 @@ async function searchFiles(
 
   await search(rootPath);
   return results;
-}
+};
 
-function expandHome(filepath: string): string {
+const expandHome = (filepath: string): string => {
   if (filepath.startsWith("~/") || filepath === "~") {
     return path.join(os.homedir(), filepath.slice(1));
   }
   return filepath;
-}
+};
 
 // Security utilities
-async function validatePath(requestedPath: string): Promise<string> {
+const validatePath = async (requestedPath: string): Promise<string> => {
   const expandedPath = expandHome(requestedPath);
   const absolute = path.isAbsolute(expandedPath)
     ? path.resolve(expandedPath)
@@ -362,4 +397,4 @@ async function validatePath(requestedPath: string): Promise<string> {
       throw new Error(`Parent directory does not exist: ${parentDir}`);
     }
   }
-}
+};
