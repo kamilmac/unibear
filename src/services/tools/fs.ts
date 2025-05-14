@@ -2,7 +2,7 @@ import { createTwoFilesPatch } from "npm:diff";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { z } from "npm:zod";
 import { Tool } from "../tools.ts";
-import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -16,6 +16,12 @@ const EditFileArgsSchema = z.object({
 
 const SearchOperation = z.object({
   pattern: z.string().describe("Pattern (possibly file name) to match"),
+}).strict();
+
+const CreateFilesArgsSchema = z.object({
+  file_paths: z
+    .array(z.string())
+    .describe("Relative file paths to create under current working dir"),
 }).strict();
 
 export const fsTools: Tool[] = [
@@ -87,6 +93,45 @@ export const fsTools: Tool[] = [
   {
     definition: {
       function: {
+        name: "create_files",
+        description:
+          "Create multiple files under the current working directory if they don't exist",
+        strict: true,
+        parameters: zodToJsonSchema(CreateFilesArgsSchema),
+      },
+      type: "function",
+    },
+    process: async (args, log) => {
+      const parsed = CreateFilesArgsSchema.safeParse(args);
+      if (!parsed.success) {
+        throw new Error(`Invalid args for create_files: ${parsed.error}`);
+      }
+      const cwd = Deno.cwd();
+      const created: string[] = [];
+      const skipped: string[] = [];
+      for (const rel of args.file_paths as string[]) {
+        const full = join(cwd, rel);
+        if (!full.startsWith(cwd + "/") && full !== cwd) {
+          throw new Error(`Path "${rel}" is outside working directory`);
+        }
+        try {
+          await Deno.stat(full);
+          log(`skip (exists): ${full}\n`);
+          skipped.push(rel);
+        } catch {
+          log(`create: ${full}\n`);
+          await Deno.mkdir(dirname(full), { recursive: true });
+          await Deno.writeTextFile(full, "");
+          created.push(rel);
+        }
+      }
+      return JSON.stringify({ created, skipped });
+    },
+    mode: ["edit"],
+  },
+  {
+    definition: {
+      function: {
         name: "edit_file",
         description:
           "Make line-based edits to a text file. Each edit replaces exact line sequences " +
@@ -109,6 +154,8 @@ export const fsTools: Tool[] = [
     mode: ["edit"],
   },
 ];
+
+// --- new create_files tool ---
 
 async function applyFileEdits(
   filePath: string,
