@@ -163,6 +163,7 @@ export const fsTools: Tool[] = [
       },
       type: "function",
     },
+    // deno-lint-ignore no-explicit-any
     process: async (args: any, log: any) => {
       const parsed = CreateDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
@@ -190,6 +191,7 @@ export const fsTools: Tool[] = [
       },
       type: "function",
     },
+    // deno-lint-ignore no-explicit-any
     process: async (args: any, _log: any) => {
       const parsed = ListDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
