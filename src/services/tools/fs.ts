@@ -25,6 +25,10 @@ const CreateFilesArgsSchema = z.object({
   content: z.string(),
 }).strict();
 
+const CreateDirectoryArgsSchema = z.object({
+  path: z.string(),
+}).strict();
+
 export const fsTools: Tool[] = [
   {
     definition: {
@@ -98,7 +102,7 @@ export const fsTools: Tool[] = [
         description:
           "Create a new file or completely overwrite an existing file with new content. " +
           "Use with caution as it will overwrite existing files without warning. " +
-          "Handles text content with proper encoding. Only works within allowed directories.",
+          "Handles text content with proper encoding.",
         strict: true,
         parameters: zodToJsonSchema(CreateFilesArgsSchema),
       },
@@ -135,8 +139,36 @@ export const fsTools: Tool[] = [
         log(`Edit file - failed parsing changes:\n${args.file_path}\n`);
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
-      log(`Edit file - writing to:\n${args.file_path}\n`);
-      return await applyFileEdits(args.file_path, args.edits);
+      const validPath = await validatePath(parsed.data.file_path);
+      log(`Edit file - writing to:\n${validPath}\n`);
+      return await applyFileEdits(validPath, parsed.data.edits);
+    },
+    mode: ["edit"],
+  },
+  {
+    definition: {
+      function: {
+        name: "create_directory",
+        description:
+          "Create a new directory or ensure a directory exists. Can create multiple " +
+          "nested directories in one operation. If the directory already exists, " +
+          "this operation will succeed silently. Perfect for setting up directory " +
+          "structures for projects or ensuring required paths exist. Only works within allowed directories.",
+        parameters: zodToJsonSchema(CreateDirectoryArgsSchema),
+      },
+      type: "function",
+    },
+    process: async (args: any, log: any) => {
+      const parsed = CreateDirectoryArgsSchema.safeParse(args);
+      if (!parsed.success) {
+        throw new Error(
+          `Invalid arguments for create_directory: ${parsed.error}`,
+        );
+      }
+      const validPath = await validatePath(parsed.data.path);
+      log(`Creating dir:\n${parsed.data.path}\n`);
+      await Deno.mkdir(validPath, { recursive: true });
+      return `Successfully created directory ${parsed.data.path}`;
     },
     mode: ["edit"],
   },
