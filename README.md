@@ -147,8 +147,10 @@ OPENAI_API_URL=http://localhost:11434/v1 unibear
 
 ```json
 {
-  "promptMode": ["i"],
   "visual": {
+    "quit": ["ctrl-q"],
+    "clearChat": ["ctrl-d"],
+    "promptMode": ["i"],
     "moveUp": ["k"],
     "moveDown": ["j"],
     "bigMoveUp": ["K"],

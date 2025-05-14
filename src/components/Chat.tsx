@@ -258,7 +258,7 @@ export const Chat = (
         {!isStreaming && opMode === "visual" &&
           (
             <Text dimColor>
-              (Press 'i' to prompt, 'Ctrl-Q' to exit)
+              (Press 'i' to prompt, 'Ctrl-q' to exit, 'Ctrl-d' to clear chat)
             </Text>
           )}
         {chat.length === 0 &&

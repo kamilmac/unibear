@@ -1,10 +1,5 @@
 import { OpenAI } from "npm:openai";
-import {
-  APP_CONTROL_PREFIX,
-  LLM_TEMPERATURE,
-  MODEL,
-  SYSTEM,
-} from "../utils/constants.ts";
+import { LLM_TEMPERATURE, MODEL, SYSTEM } from "../utils/constants.ts";
 import { getTools } from "./tools.ts";
 
 const MAX_HISTORY = 16; // trim history to last N messages
@@ -90,9 +85,6 @@ async function sendChat(
       let result = "";
       try {
         result = await tools.processes[state.fnName](args, opts.onChunk);
-        if (state.fnName.startsWith(APP_CONTROL_PREFIX)) {
-          return;
-        }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         result = `Communicate problem in tool processing: ${errorMessage}`;
