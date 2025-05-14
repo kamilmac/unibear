@@ -1,8 +1,10 @@
 import { createTwoFilesPatch } from "npm:diff";
+import * as path from "jsr:@std/path";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { z } from "npm:zod";
 import { Tool } from "../tools.ts";
-import { dirname, join } from "https://deno.land/std@0.205.0/path/mod.ts";
+import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
+import * as os from "node:os";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -19,9 +21,8 @@ const SearchOperation = z.object({
 }).strict();
 
 const CreateFilesArgsSchema = z.object({
-  file_paths: z
-    .array(z.string())
-    .describe("Relative file paths to create under current working dir"),
+  path: z.string(),
+  content: z.string(),
 }).strict();
 
 export const fsTools: Tool[] = [
@@ -47,7 +48,7 @@ export const fsTools: Tool[] = [
     ) => {
       const results: Record<string, string> = {};
       for (const file_path of file_paths as string[]) {
-        log(`reading from ${file_path}\n`);
+        log(`Reading from:\n${file_path}\n`);
         results[file_path] = await Deno.readTextFile(file_path);
       }
       return JSON.stringify(results);
@@ -84,7 +85,7 @@ export const fsTools: Tool[] = [
       }
       const results = await searchFiles(
         Deno.cwd(),
-        args.pattern as string,
+        parsed.data.pattern,
       );
       return JSON.stringify(results);
     },
@@ -93,9 +94,11 @@ export const fsTools: Tool[] = [
   {
     definition: {
       function: {
-        name: "create_files",
+        name: "write_file",
         description:
-          "Create multiple files under the current working directory if they don't exist",
+          "Create a new file or completely overwrite an existing file with new content. " +
+          "Use with caution as it will overwrite existing files without warning. " +
+          "Handles text content with proper encoding. Only works within allowed directories.",
         strict: true,
         parameters: zodToJsonSchema(CreateFilesArgsSchema),
       },
@@ -104,28 +107,12 @@ export const fsTools: Tool[] = [
     process: async (args, log) => {
       const parsed = CreateFilesArgsSchema.safeParse(args);
       if (!parsed.success) {
-        throw new Error(`Invalid args for create_files: ${parsed.error}`);
+        throw new Error(`Invalid arguments for write_file: ${parsed.error}`);
       }
-      const cwd = Deno.cwd();
-      const created: string[] = [];
-      const skipped: string[] = [];
-      for (const rel of args.file_paths as string[]) {
-        const full = join(cwd, rel);
-        if (!full.startsWith(cwd + "/") && full !== cwd) {
-          throw new Error(`Path "${rel}" is outside working directory`);
-        }
-        try {
-          await Deno.stat(full);
-          log(`skip (exists): ${full}\n`);
-          skipped.push(rel);
-        } catch {
-          log(`create: ${full}\n`);
-          await Deno.mkdir(dirname(full), { recursive: true });
-          await Deno.writeTextFile(full, "");
-          created.push(rel);
-        }
-      }
-      return JSON.stringify({ created, skipped });
+      const validPath = await validatePath(parsed.data.path);
+      const data = new TextEncoder().encode(parsed.data.content);
+      await Deno.writeFile(validPath, data);
+      return `Successfully wrote to ${parsed.data.path}`;
     },
     mode: ["edit"],
   },
@@ -145,10 +132,10 @@ export const fsTools: Tool[] = [
     process: async (args: any, log: any) => {
       const parsed = EditFileArgsSchema.safeParse(args);
       if (!parsed.success) {
-        log(`Failed parsing changes for ${args.file_path}\n`);
+        log(`Edit file - failed parsing changes:\n${args.file_path}\n`);
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
-      log(`Writing to ${args.file_path}\n`);
+      log(`Edit file - writing to:\n${args.file_path}\n`);
       return await applyFileEdits(args.file_path, args.edits);
     },
     mode: ["edit"],
@@ -256,6 +243,7 @@ function createUnifiedDiff(
     "modified",
   );
 }
+
 async function searchFiles(
   rootPath: string,
   pattern: string,
@@ -288,4 +276,58 @@ async function searchFiles(
 
   await search(rootPath);
   return results;
+}
+
+function expandHome(filepath: string): string {
+  if (filepath.startsWith("~/") || filepath === "~") {
+    return path.join(os.homedir(), filepath.slice(1));
+  }
+  return filepath;
+}
+
+// Security utilities
+async function validatePath(requestedPath: string): Promise<string> {
+  const expandedPath = expandHome(requestedPath);
+  const absolute = path.isAbsolute(expandedPath)
+    ? path.resolve(expandedPath)
+    : path.resolve(Deno.cwd(), expandedPath);
+
+  const normalizedRequested = path.normalize(absolute);
+
+  // Check if path is within allowed directories
+  const isAllowed = normalizedRequested.startsWith(Deno.cwd());
+  if (!isAllowed) {
+    throw new Error(
+      `Access denied - path outside allowed directories: ${absolute} not in ${Deno.cwd()}`,
+    );
+  }
+
+  // Handle symlinks by checking their real path
+  try {
+    const realPath = await Deno.realPath(absolute);
+    const normalizedReal = path.normalize(realPath);
+    const isRealPathAllowed = normalizedReal.startsWith(Deno.cwd());
+    if (!isRealPathAllowed) {
+      throw new Error(
+        "Access denied - symlink target outside allowed directories",
+      );
+    }
+    return realPath;
+  } catch (_error) {
+    // For new files that don't exist yet, verify parent directory
+    const parentDir = path.dirname(absolute);
+    try {
+      const realParentPath = await Deno.realPath(parentDir);
+      const normalizedParent = path.normalize(realParentPath);
+      const isParentAllowed = normalizedParent.startsWith(Deno.cwd());
+      if (!isParentAllowed) {
+        throw new Error(
+          "Access denied - parent directory outside allowed directories",
+        );
+      }
+      return absolute;
+    } catch {
+      throw new Error(`Parent directory does not exist: ${parentDir}`);
+    }
+  }
 }
