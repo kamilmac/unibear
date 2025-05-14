@@ -57,6 +57,8 @@ unibear
 - 🔧 Built-in Git, filesystem and web-search tools
 - 🤝 Plan & pair-program with your AI buddy before applying edits
 - 🖥️ Responsive TUI
+- 📁 Ability to use a local LLM server that supports the OpenAI chat completions
+  API (eg. Ollama)
 
 <br>
 
@@ -103,6 +105,16 @@ Create `~/.config/unibear/config.json`:
 
 <br>
 
+### Using a local LLM (eg. Ollama)
+
+Unibear supports using local LLMs via the OpenAI chat completions API by
+providing `OPENAI_API_URL` environment variable.
+
+```bash
+# Example using Ollama:
+OPENAI_API_URL=http://localhost:11434/v1 unibear
+```
+
 ## Modes
 
 ### Prompt Mode
@@ -135,8 +147,10 @@ Create `~/.config/unibear/config.json`:
 
 ```json
 {
-  "promptMode": ["i"],
   "visual": {
+    "quit": ["ctrl-q"],
+    "clearChat": ["ctrl-d"],
+    "promptMode": ["i"],
     "moveUp": ["k"],
     "moveDown": ["j"],
     "bigMoveUp": ["K"],

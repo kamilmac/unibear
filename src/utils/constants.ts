@@ -6,7 +6,6 @@ import cfg from "../../deno.json" with { type: "json" };
 export const VERSION = cfg.version;
 export const MODEL = config.model ?? "o4-mini";
 export const WORKSPACE_NAME = basename(Deno.cwd());
-export const APP_CONTROL_PREFIX = "app_control";
 export const KEY_BINDINGS = {
   moveDown: ["j"],
   moveUp: ["k"],

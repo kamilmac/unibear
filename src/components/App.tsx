@@ -12,6 +12,7 @@ export const App = () => {
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
   const setOpMode = useStore((store) => store.setOperationMode);
+  const resetChat = useStore((store) => store.clearChatHistory);
 
   React.useEffect(() => {
     init();
@@ -20,6 +21,10 @@ export const App = () => {
   useInput((_input, key) => {
     if (key.ctrl && _input === "q") {
       quit();
+    }
+
+    if (key.ctrl && _input === "d") {
+      resetChat();
     }
 
     if (opMode !== "visual" && key.escape) {
