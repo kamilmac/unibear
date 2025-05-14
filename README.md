@@ -108,11 +108,9 @@ Create `~/.config/unibear/config.json`:
 
 Unibear supports using local LLMs via the OpenAI chat completions API by providing `OPENAI_API_URL` environment variable.
 
-Note: even if no API key is required, you may still need to provide a dummy value.
-
 ```bash
 # Example using Ollama:
-OPENAI_API_URL=http://localhost:11434/v1 OPENAI_API_KEY=unibear unibear
+OPENAI_API_URL=http://localhost:11434/v1 unibear
 ```
 
 ## Modes
