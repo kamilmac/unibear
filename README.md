@@ -138,7 +138,7 @@ OPENAI_API_URL=http://localhost:11434/v1 unibear
 | ---------- | --- | --------------------------------------------------------------------------------- |
 | Default    | –   | read_multiple_files, search_files, app_control_reset_chat, app_control_quit, help |
 | Git        | `:` | git_auto_commit, git_review, git_create_pr_description                            |
-| Edit       | `+` | edit_file                                                                         |
+| Edit       | `+` | edit_file, write_file, create_directory, list_directory                           |
 | Web        | `?` | web_search                                                                        |
 
 <br>
