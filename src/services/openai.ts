@@ -9,6 +9,7 @@ import { getTools } from "./tools.ts";
 
 const MAX_HISTORY = 16; // trim history to last N messages
 export const openai = new OpenAI({
+  baseURL: Deno.env.get("OPENAI_API_URL") ?? undefined,
   apiKey: Deno.env.get("OPENAI_API_KEY") ?? "",
 });
 
