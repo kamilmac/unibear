@@ -1,8 +1,10 @@
 import { createTwoFilesPatch } from "npm:diff";
+import * as path from "jsr:@std/path";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { z } from "npm:zod";
 import { Tool } from "../tools.ts";
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
+import * as os from "node:os";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -16,6 +18,19 @@ const EditFileArgsSchema = z.object({
 
 const SearchOperation = z.object({
   pattern: z.string().describe("Pattern (possibly file name) to match"),
+}).strict();
+
+const CreateFilesArgsSchema = z.object({
+  path: z.string(),
+  content: z.string(),
+}).strict();
+
+const CreateDirectoryArgsSchema = z.object({
+  path: z.string(),
+}).strict();
+
+const ListDirectoryArgsSchema = z.object({
+  path: z.string(),
 }).strict();
 
 export const fsTools: Tool[] = [
@@ -41,7 +56,7 @@ export const fsTools: Tool[] = [
     ) => {
       const results: Record<string, string> = {};
       for (const file_path of file_paths as string[]) {
-        log(`reading from ${file_path}\n`);
+        log(`Reading from:\n${file_path}\n`);
         results[file_path] = await Deno.readTextFile(file_path);
       }
       return JSON.stringify(results);
@@ -76,13 +91,39 @@ export const fsTools: Tool[] = [
         log(`Invalid arguments for search_files: ${parsed.error}`);
         throw new Error(`Invalid arguments for search_files: ${parsed.error}`);
       }
+      log(`Searching for files:\n${parsed.data.pattern}\n`);
       const results = await searchFiles(
         Deno.cwd(),
-        args.pattern as string,
+        parsed.data.pattern,
       );
       return JSON.stringify(results);
     },
     mode: ["normal", "edit", "git"],
+  },
+  {
+    definition: {
+      function: {
+        name: "write_file",
+        description:
+          "Create a new file or completely overwrite an existing file with new content. " +
+          "Use with caution as it will overwrite existing files without warning. " +
+          "Handles text content with proper encoding.",
+        strict: true,
+        parameters: zodToJsonSchema(CreateFilesArgsSchema),
+      },
+      type: "function",
+    },
+    process: async (args, _log) => {
+      const parsed = CreateFilesArgsSchema.safeParse(args);
+      if (!parsed.success) {
+        throw new Error(`Invalid arguments for write_file: ${parsed.error}`);
+      }
+      const validPath = await validatePath(parsed.data.path);
+      const data = new TextEncoder().encode(parsed.data.content);
+      await Deno.writeFile(validPath, data);
+      return `Successfully wrote to ${parsed.data.path}`;
+    },
+    mode: ["edit"],
   },
   {
     definition: {
@@ -100,15 +141,77 @@ export const fsTools: Tool[] = [
     process: async (args: any, log: any) => {
       const parsed = EditFileArgsSchema.safeParse(args);
       if (!parsed.success) {
-        log(`Failed parsing changes for ${args.file_path}\n`);
+        log(`Edit file - failed parsing changes:\n${args.file_path}\n`);
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
-      log(`Writing to ${args.file_path}\n`);
-      return await applyFileEdits(args.file_path, args.edits);
+      const validPath = await validatePath(parsed.data.file_path);
+      log(`Edit file - writing to:\n${validPath}\n`);
+      return await applyFileEdits(validPath, parsed.data.edits);
     },
     mode: ["edit"],
   },
+  {
+    definition: {
+      function: {
+        name: "create_directory",
+        description:
+          "Create a new directory or ensure a directory exists. Can create multiple " +
+          "nested directories in one operation. If the directory already exists, " +
+          "this operation will succeed silently. Perfect for setting up directory " +
+          "structures for projects or ensuring required paths exist. Only works within allowed directories.",
+        parameters: zodToJsonSchema(CreateDirectoryArgsSchema),
+      },
+      type: "function",
+    },
+    // deno-lint-ignore no-explicit-any
+    process: async (args: any, log: any) => {
+      const parsed = CreateDirectoryArgsSchema.safeParse(args);
+      if (!parsed.success) {
+        throw new Error(
+          `Invalid arguments for create_directory: ${parsed.error}`,
+        );
+      }
+      const validPath = await validatePath(parsed.data.path);
+      log(`Creating dir:\n${parsed.data.path}\n`);
+      await Deno.mkdir(validPath, { recursive: true });
+      return `Successfully created directory ${parsed.data.path}`;
+    },
+    mode: ["edit"],
+  },
+  {
+    definition: {
+      function: {
+        name: "list_directory",
+        description:
+          "Get a detailed listing of all files and directories in a specified path. " +
+          "Results clearly distinguish between files and directories with [FILE] and [DIR] " +
+          "prefixes. This tool is essential for understanding directory structure and " +
+          "finding specific files within a directory. Only works within allowed directories.",
+        parameters: zodToJsonSchema(ListDirectoryArgsSchema),
+      },
+      type: "function",
+    },
+    // deno-lint-ignore no-explicit-any
+    process: async (args: any, _log: any) => {
+      const parsed = ListDirectoryArgsSchema.safeParse(args);
+      if (!parsed.success) {
+        throw new Error(
+          `Invalid arguments for list_directory: ${parsed.error}`,
+        );
+      }
+      const validPath = await validatePath(parsed.data.path);
+      const entries = Deno.readDir(validPath);
+      const formatted = [];
+      for await (const item of entries) {
+        formatted.push(`${item.isDirectory ? "[DIR]" : "[FILE]"} ${item.name}`);
+      }
+      return formatted.join("\n");
+    },
+    mode: ["normal", "edit"],
+  },
 ];
+
+// --- new create_files tool ---
 
 async function applyFileEdits(
   filePath: string,
@@ -209,10 +312,11 @@ function createUnifiedDiff(
     "modified",
   );
 }
-async function searchFiles(
+
+const searchFiles = async (
   rootPath: string,
   pattern: string,
-): Promise<string[]> {
+): Promise<string[]> => {
   const results: string[] = [];
   const skipDirectories = ["node_modules"];
 
@@ -241,4 +345,58 @@ async function searchFiles(
 
   await search(rootPath);
   return results;
-}
+};
+
+const expandHome = (filepath: string): string => {
+  if (filepath.startsWith("~/") || filepath === "~") {
+    return path.join(os.homedir(), filepath.slice(1));
+  }
+  return filepath;
+};
+
+// Security utilities
+const validatePath = async (requestedPath: string): Promise<string> => {
+  const expandedPath = expandHome(requestedPath);
+  const absolute = path.isAbsolute(expandedPath)
+    ? path.resolve(expandedPath)
+    : path.resolve(Deno.cwd(), expandedPath);
+
+  const normalizedRequested = path.normalize(absolute);
+
+  // Check if path is within allowed directories
+  const isAllowed = normalizedRequested.startsWith(Deno.cwd());
+  if (!isAllowed) {
+    throw new Error(
+      `Access denied - path outside allowed directories: ${absolute} not in ${Deno.cwd()}`,
+    );
+  }
+
+  // Handle symlinks by checking their real path
+  try {
+    const realPath = await Deno.realPath(absolute);
+    const normalizedReal = path.normalize(realPath);
+    const isRealPathAllowed = normalizedReal.startsWith(Deno.cwd());
+    if (!isRealPathAllowed) {
+      throw new Error(
+        "Access denied - symlink target outside allowed directories",
+      );
+    }
+    return realPath;
+  } catch (_error) {
+    // For new files that don't exist yet, verify parent directory
+    const parentDir = path.dirname(absolute);
+    try {
+      const realParentPath = await Deno.realPath(parentDir);
+      const normalizedParent = path.normalize(realParentPath);
+      const isParentAllowed = normalizedParent.startsWith(Deno.cwd());
+      if (!isParentAllowed) {
+        throw new Error(
+          "Access denied - parent directory outside allowed directories",
+        );
+      }
+      return absolute;
+    } catch {
+      throw new Error(`Parent directory does not exist: ${parentDir}`);
+    }
+  }
+};
