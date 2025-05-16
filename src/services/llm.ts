@@ -9,6 +9,7 @@ import { AnthropicAdapter } from "./llm_providers/anthropic.ts";
 import { OpenAIAdapter } from "./llm_providers/openai.ts";
 import { GeminiAdapter } from "./llm_providers/gemini.ts";
 import { config } from "../utils/config.ts";
+import clipboard from "npm:clipboardy";
 
 export interface LLMAdapter {
   init: () => void;
@@ -86,7 +87,12 @@ async function sendChat(
       break;
     }
     if (state.id) {
-      const args = JSON.parse(state.fnArgs);
+      let args = {};
+      try {
+        args = JSON.parse(state.fnArgs);
+      } catch {
+        args = {};
+      }
       let result = "";
       try {
         result = await tools.processes[state.fnName](args, onChunk);
@@ -101,7 +107,10 @@ async function sendChat(
           tool_calls: [
             {
               id: state.id,
-              function: { arguments: state.fnArgs, name: state.fnName },
+              function: {
+                arguments: state.fnArgs,
+                name: state.fnName,
+              },
               type: "function",
             },
           ],
@@ -114,6 +123,7 @@ async function sendChat(
           content: result,
         },
       );
+      clipboard.write(JSON.stringify(history));
     }
   }
 }

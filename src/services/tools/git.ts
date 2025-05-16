@@ -5,6 +5,8 @@ import {
 } from "../../utils/git.ts";
 import { LLMAdapter } from "../llm.ts";
 import { Tool } from "../tools.ts";
+import { zodToJsonSchema } from "npm:zod-to-json-schema";
+import { z } from "npm:zod";
 
 export const gitTools = (llm: LLMAdapter): Tool[] => [
   {
@@ -12,8 +14,10 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "git_auto_commit",
         description: "Generate commit message from diff and commit all changes",
-        strict: false,
-        parameters: {},
+        strict: true,
+        parameters: zodToJsonSchema(
+          z.object({}).strict(),
+        ),
       },
       type: "function",
     },
@@ -34,8 +38,6 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "git_review",
         description: "Creates a review of all changes to base git branch",
-        strict: false,
-        parameters: {},
       },
       type: "function",
     },
@@ -55,12 +57,14 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
       function: {
         name: "git_create_pr_description",
         description: "Creates PR description based on diff to base branch",
-        strict: false,
-        parameters: {},
+        strict: true,
+        parameters: zodToJsonSchema(
+          z.object({}).strict(),
+        ),
       },
       type: "function",
     },
-    process: async (_args: unknown) => {
+    process: async (_args, _log) => {
       const diff = await getGitDiffToBaseBranch();
       const response = await llm.send(
         `
