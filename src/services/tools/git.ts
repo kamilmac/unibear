@@ -3,9 +3,10 @@ import {
   getGitDiffToBaseBranch,
   getGitDiffToLatestCommit,
 } from "../../utils/git.ts";
+import { LLMAdapter } from "../llm.ts";
 import { Tool } from "../tools.ts";
 
-export const gitTools = (llm): Tool[] => [
+export const gitTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
       function: {

@@ -5,6 +5,7 @@ import { z } from "npm:zod";
 import { Tool } from "../tools.ts";
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import * as os from "node:os";
+import { LLMAdapter } from "../llm.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -33,7 +34,7 @@ const ListDirectoryArgsSchema = z.object({
   path: z.string(),
 }).strict();
 
-export const fsTools = (llm): Tool[] => [
+export const fsTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
       function: {

@@ -12,13 +12,15 @@ export interface Tool {
   ) => Promise<string>;
 }
 
+export interface PreparedTools {
+  definitions: Array<OpenAI.ChatCompletionTool>;
+  processes: Record<Tool["definition"]["function"]["name"], Tool["process"]>;
+}
+
 export const getTools = (
   mode: ToolMode = "normal",
   llm: any,
-): {
-  definitions: Array<OpenAI.ChatCompletionTool>;
-  processes: Record<Tool["definition"]["function"]["name"], Tool["process"]>;
-} => {
+): PreparedTools => {
   const allTools = [
     ...commonTools(llm),
     ...gitTools(llm),

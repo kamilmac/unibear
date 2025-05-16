@@ -6,10 +6,11 @@ import {
   ANTHROPIC_WEB_SEARCH_MODEL,
   TEMPERATURE,
 } from "../../utils/constants.ts";
+import { LLMAdapter } from "../llm.ts";
 
 let llm: OpenAI;
 
-const init = (): OpenAI => {
+const init: LLMAdapter["init"] = () => {
   llm = new OpenAI({
     baseURL: ANTHROPIC_API_URL,
     apiKey: ANTHROPIC_API_KEY,
@@ -17,7 +18,7 @@ const init = (): OpenAI => {
   return llm;
 };
 
-const stream = async (messages, tools) => {
+const stream: LLMAdapter["stream"] = async (messages, tools) => {
   return await llm.chat.completions.create({
     model: ANTHROPIC_MODEL,
     messages,
@@ -36,7 +37,7 @@ const stream = async (messages, tools) => {
   });
 };
 
-const webSearch = async (searchString: string): Promise<string> => {
+const webSearch: LLMAdapter["webSearch"] = async (searchString) => {
   const response = await llm.responses.create({
     model: ANTHROPIC_WEB_SEARCH_MODEL,
     tools: [{
@@ -48,7 +49,7 @@ const webSearch = async (searchString: string): Promise<string> => {
   return response.output_text;
 };
 
-const send = async (system: string, content: string): Promise<string> => {
+const send: LLMAdapter["send"] = async (system, content) => {
   const { choices } = await llm.chat.completions.create({
     model: ANTHROPIC_MODEL,
     messages: [
@@ -66,7 +67,7 @@ const send = async (system: string, content: string): Promise<string> => {
   return message;
 };
 
-export const AnthropicAdapter = {
+export const AnthropicAdapter: LLMAdapter = {
   init,
   stream,
   webSearch,

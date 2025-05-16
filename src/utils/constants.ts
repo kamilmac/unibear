@@ -1,9 +1,9 @@
 import chalk from "npm:chalk";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
 import { config } from "./config.ts";
-import cfg from "../../deno.json" with { type: "json" };
+import pkg from "../../deno.json" with { type: "json" };
 
-export const VERSION = cfg.version;
+export const VERSION = pkg.version;
 
 export const OPENAI_MODEL = config.model ?? "o4-mini";
 export const OPENAI_API_URL = Deno.env.get("OPENAI_API_URL") ?? "";
@@ -21,6 +21,10 @@ export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
 export const TEMPERATURE = config.temperature ?? 1;
 export const PROVIDER = config.provider ?? "openai";
 export const WORKSPACE_NAME = basename(Deno.cwd());
+
+export const MAX_CHAT_HISTORY = 32; // trim history to last N messages
+export const MAX_TOOL_ITERATIONS = 24;
+
 export const KEY_BINDINGS = {
   moveDown: ["j"],
   moveUp: ["k"],

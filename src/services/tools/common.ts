@@ -4,12 +4,13 @@ import { KEY_BINDINGS } from "../../utils/constants.ts";
 import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
+import { LLMAdapter } from "../llm.ts";
 
 const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
 }).strict();
 
-export const commonTools = (llm): Tool[] => [
+export const commonTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
       function: {
