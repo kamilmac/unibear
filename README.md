@@ -39,8 +39,8 @@ curl -fsSL \
   | bash
 ```
 
-> Ensure `OPENAI_API_KEY` is set in your environment. (Support for more LLMs is
-> on the way)
+> Ensure `OPENAI_API_KEY` (and optionally `ANTHROPIC_API_KEY`) are set in your
+> environment. (Currently OpenAI and Anthropic providers are supported)
 
 Launch Unibear in your git repository:
 
@@ -88,9 +88,15 @@ C-a = [":sh unibear add_file %{buffer_name}"]
 
 Create `~/.config/unibear/config.json`:
 
+> Note: Currently only OpenAI and Anthropic providers are supported.
+
 ```json
 {
+  "provider": "openai",
   "model": "o4-mini",
+  "reasoning_effort": "standard", // not used currently
+  "webSearchModel": "gpt-4.1-mini",
+  "temperature": 0.7,
   "system": "Your custom system prompt",
   "port": 12496,
   "theme": "dark",
