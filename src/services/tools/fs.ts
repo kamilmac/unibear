@@ -18,7 +18,7 @@ const SearchOperation = z.object({
   pattern: z.string().describe("Pattern (possibly file name) to match"),
 }).strict();
 
-export const fsTools: Tool[] = [
+export const fsTools = (): Tool[] => [
   {
     definition: {
       function: {

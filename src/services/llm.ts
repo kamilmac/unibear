@@ -1,22 +1,28 @@
 import { OpenAI } from "npm:openai";
-import { LLM_TEMPERATURE, MODEL, SYSTEM } from "../utils/constants.ts";
+import { SYSTEM } from "../utils/constants.ts";
 import { getTools } from "./tools.ts";
+import { AnthropicAdapter } from "./llm_providers/anthropic.ts";
+import { OpenAIAdapter } from "./llm_providers/openai.ts";
+import { config } from "../utils/config.ts";
 
 const MAX_HISTORY = 16; // trim history to last N messages
-export const openai = new OpenAI({
-  baseURL: Deno.env.get("OPENAI_API_URL") ?? undefined,
-  apiKey: Deno.env.get("OPENAI_API_KEY") ?? "",
-});
+const MAX_ITERATIONS = 16;
+
+export let LLM = OpenAIAdapter;
+
+if (config.provider === "anthropic") {
+  LLM = AnthropicAdapter;
+}
+
+LLM.init();
 
 interface SendChatOpts {
-  model?: string;
   onChunk: (chunk: string) => void;
 }
 
-const MAX_ITERATIONS = 16;
-
 // trim helper preserves system and first user messages
 type Msg = OpenAI.ChatCompletionMessageParam;
+
 function trimHistory(history: Msg[]): Msg[] {
   const prefixCount =
     history[0]?.role === "system" && history[1]?.role === "user" ? 2 : 0;
@@ -31,27 +37,11 @@ async function sendChat(
   toolMode: ToolMode,
   opts: SendChatOpts = { onChunk: () => {} },
 ) {
-  const model = opts.model || MODEL;
-
   let history = messages;
 
-  const tools = getTools(toolMode);
+  const tools = getTools(toolMode, LLM, opts.onChunk);
 
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-    let stream;
-    try {
-      stream = await openai.chat.completions.create({
-        model,
-        messages: history,
-        stream: true,
-        temperature: LLM_TEMPERATURE,
-        tools: tools.definitions,
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      opts.onChunk(errorMessage);
-      return;
-    }
     const state = {
       id: "",
       fnName: "",
@@ -59,23 +49,12 @@ async function sendChat(
       content: "",
       stop: false,
     };
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0].delta;
-      if (delta?.tool_calls) {
-        state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
-        state.fnName = state.fnName ||
-          (delta?.tool_calls?.[0]?.function?.name || "");
-        state.fnArgs = state.fnArgs +
-          (delta?.tool_calls?.[0]?.function?.arguments || "");
-      }
-      const content = delta?.content;
-      if (content) {
-        state.content += content;
-        opts.onChunk(content);
-      }
-      if (chunk.choices[0].finish_reason === "stop") {
-        state.stop = true;
-      }
+    try {
+      await LLM.stream(history, tools, state, opts);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      opts.onChunk(errorMessage);
+      return;
     }
     if (state.stop) {
       break;

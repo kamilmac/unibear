@@ -1,5 +1,5 @@
 import { create } from "npm:zustand";
-import { streamOpenAIResponse } from "../services/openai.ts";
+import { streamOpenAIResponse } from "../services/llm.ts";
 import { marked } from "npm:marked";
 import { markedTerminal } from "npm:marked-terminal";
 import { AI_LABEL, COLORS, USER_LABEL } from "../utils/constants.ts";

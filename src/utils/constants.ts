@@ -4,7 +4,21 @@ import { config } from "./config.ts";
 import cfg from "../../deno.json" with { type: "json" };
 
 export const VERSION = cfg.version;
-export const MODEL = config.model ?? "o4-mini";
+
+export const OPENAI_MODEL = config.model ?? "o4-mini";
+export const OPENAI_API_URL = Deno.env.get("OPENAI_API_URL") ?? "";
+export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? undefined;
+export const OPENAI_WEB_SEARCH_MODEL = config.webSearchModel ?? "gpt-4.1-mini";
+
+export const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? undefined;
+export const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/";
+export const ANTHROPIC_MODEL = config.model ?? "claude-3-7-sonnet-20250219";
+export const ANTHROPIC_WEB_SEARCH_MODEL = config.webSearchModel ?? "";
+
+export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
+
+export const TEMPERATURE = config.temperature ?? 1;
+export const PROVIDER = config.provider ?? "openai";
 export const WORKSPACE_NAME = basename(Deno.cwd());
 export const KEY_BINDINGS = {
   moveDown: ["j"],
@@ -23,7 +37,6 @@ export const KEY_BINDINGS = {
   useWebTools: [config.key_bindings?.useWebTools ?? "?"],
 } as const;
 export type KeyBindings = typeof KEY_BINDINGS;
-export const LLM_TEMPERATURE = 1;
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
   [KEY_BINDINGS.useGitTools[0]]: "git",
   [KEY_BINDINGS.useEditTools[0]]: "edit",

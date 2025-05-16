@@ -4,13 +4,12 @@ import { KEY_BINDINGS } from "../../utils/constants.ts";
 import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
-import { openai } from "../openai.ts";
 
 const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
 }).strict();
 
-export const commonTools: Tool[] = [
+export const commonTools = (llm): Tool[] => [
   {
     definition: {
       function: {
@@ -29,49 +28,41 @@ export const commonTools: Tool[] = [
         throw new Error(`Invalid arguments for web_search: ${parsed.error}`);
       }
       log(`Searching web for ${args.search_string}\n`);
-      const response = await openai.responses.create({
-        model: "gpt-4.1-mini",
-        tools: [{
-          type: "web_search_preview",
-          search_context_size: "low",
-        }],
-        input: args.search_string as string,
-      });
-      return response.output_text;
+      return await llm.webSearch(parsed.data.search_string);
     },
     mode: ["web"],
   },
-  {
-    definition: {
-      function: {
-        name: "help",
-        description:
-          "If user ask for help -> use this tool to provide details about app usage",
-        strict: false,
-        parameters: {},
-      },
-      type: "function",
-    },
-    // deno-lint-ignore require-await
-    process: async (_args, _log) => {
-      const allTools = [
-        ...commonTools,
-        ...fsTools,
-        ...gitTools,
-      ];
-      const toolDetails = JSON.stringify(allTools.map((t) => ({
-        tool_name: t.definition.function.name,
-        tool_mode: t.mode,
-        tool_description: t.definition.function.description,
-      })));
-      const response = `
-User needs help and doesn't know how to use the app so use below information to help the user. Structure everything in markdown format.
-Unibear navigation is loosely based on Vim and Helix editors.
-Key bindings: ${JSON.stringify(KEY_BINDINGS)}
-Tools that can be enabled in prompt mode:
-${toolDetails}`;
-      return response;
-    },
-    mode: ["normal"],
-  },
+  //   {
+  //     definition: {
+  //       function: {
+  //         name: "help",
+  //         description:
+  //           "If user ask for help -> use this tool to provide details about app usage",
+  //         strict: false,
+  //         parameters: {},
+  //       },
+  //       type: "function",
+  //     },
+  //     // deno-lint-ignore require-await
+  //     process: async (_args, _log) => {
+  //       const allTools = [
+  //         ...commonTools,
+  //         ...fsTools,
+  //         ...gitTools,
+  //       ];
+  //       const toolDetails = JSON.stringify(allTools.map((t) => ({
+  //         tool_name: t.definition.function.name,
+  //         tool_mode: t.mode,
+  //         tool_description: t.definition.function.description,
+  //       })));
+  //       const response = `
+  // User needs help and doesn't know how to use the app so use below information to help the user. Structure everything in markdown format.
+  // Unibear navigation is loosely based on Vim and Helix editors.
+  // Key bindings: ${JSON.stringify(KEY_BINDINGS)}
+  // Tools that can be enabled in prompt mode:
+  // ${toolDetails}`;
+  //       return response;
+  //     },
+  //     mode: ["normal"],
+  //   },
 ];

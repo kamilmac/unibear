@@ -14,15 +14,18 @@ export interface Tool {
 
 export const getTools = (
   mode: ToolMode = "normal",
+  llm: any,
+  log: any,
 ): {
   definitions: Array<OpenAI.ChatCompletionTool>;
   processes: Record<Tool["definition"]["function"]["name"], Tool["process"]>;
 } => {
   const allTools = [
-    ...commonTools,
-    ...gitTools,
-    ...fsTools,
+    ...commonTools(llm),
+    ...gitTools(llm),
+    ...fsTools(llm),
   ];
+  log(allTools.length);
   const filtered = allTools
     .filter((t) => t.mode.includes(mode));
   const processes: Record<
