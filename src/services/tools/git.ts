@@ -18,7 +18,7 @@ export const gitTools = (llm): Tool[] => [
     },
     process: async () => {
       const diff = await getGitDiffToLatestCommit();
-      const response = llm.send(
+      const response = await llm.send(
         "You are an expert senior engineer. Generate a concise git commit message for the following diff.",
         diff,
       );
@@ -40,7 +40,7 @@ export const gitTools = (llm): Tool[] => [
     },
     process: async (_args: unknown) => {
       const diff = await getGitDiffToBaseBranch();
-      const response = llm.send(
+      const response = await llm.send(
         `
 You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format.`,
         diff,
@@ -61,7 +61,7 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
     },
     process: async (_args: unknown) => {
       const diff = await getGitDiffToBaseBranch();
-      const response = llm.send(
+      const response = await llm.send(
         `
 You are an AI assistant creating Pull Request (PR) descriptions. Analyze the provided code to understand the changes and their purpose.
 Generate a PR description in Markdown with the following sections:

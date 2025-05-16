@@ -114,7 +114,9 @@ export const useStore = create<Store>((set, get) => ({
   },
   onSubmitUserPrompt: async (prompt, toolMode) => {
     get().appendChatItem(prompt, prompt, "user");
-    let context = "";
+    let context = "\n\nCONTEXT:\n" +
+      "Current Working Directory: " + Deno.cwd() + "\n" +
+      "It may be relevant later when using filesystem tools\n";
     const files = get().filesInContext;
     if (files.length > 0) {
       let validatedFiles = "";
@@ -131,8 +133,7 @@ export const useStore = create<Store>((set, get) => ({
         }
       }
       if (validatedFiles.length > 0) {
-        context = "\n\nCONTEXT:\n" +
-          "File paths of relevant files:\n" +
+        context += "File paths of relevant files:\n" +
           validatedFiles +
           "Read those files with relevant tool if their content is not already in the context.";
       }
