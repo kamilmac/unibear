@@ -5,8 +5,8 @@ import { AnthropicAdapter } from "./llm_providers/anthropic.ts";
 import { OpenAIAdapter } from "./llm_providers/openai.ts";
 import { config } from "../utils/config.ts";
 
-const MAX_HISTORY = 16; // trim history to last N messages
-const MAX_ITERATIONS = 16;
+const MAX_HISTORY = 32; // trim history to last N messages
+const MAX_ITERATIONS = 24;
 
 export let LLM = OpenAIAdapter;
 
@@ -20,17 +20,14 @@ interface SendChatOpts {
   onChunk: (chunk: string) => void;
 }
 
-// trim helper preserves system and first user messages
-type Msg = OpenAI.ChatCompletionMessageParam;
-
-function trimHistory(history: Msg[]): Msg[] {
-  const prefixCount =
-    history[0]?.role === "system" && history[1]?.role === "user" ? 2 : 0;
-  const prefix = history.slice(0, prefixCount);
-  const rest = history.slice(prefixCount);
-  if (rest.length <= MAX_HISTORY) return history;
-  return [...prefix, ...rest.slice(rest.length - MAX_HISTORY)];
-}
+const trimHistory = (
+  history: OpenAI.ChatCompletionMessageParam[],
+): OpenAI.ChatCompletionMessageParam[] => {
+  if (history.length > MAX_HISTORY) {
+    return [history[0], ...history.slice(history.length - MAX_HISTORY)];
+  }
+  return history;
+};
 
 async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
@@ -39,7 +36,7 @@ async function sendChat(
 ) {
   let history = messages;
 
-  const tools = getTools(toolMode, LLM, opts.onChunk);
+  const tools = getTools(toolMode, LLM);
 
   for (let i = 0; i < MAX_ITERATIONS; i += 1) {
     const state = {
@@ -50,7 +47,7 @@ async function sendChat(
       stop: false,
     };
     try {
-      const _stream = await LLM.stream(history, tools, state, opts);
+      const _stream = await LLM.stream(history, tools);
       for await (const chunk of _stream) {
         const delta = chunk.choices?.[0].delta;
         if (delta?.tool_calls) {

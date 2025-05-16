@@ -33,7 +33,7 @@ const ListDirectoryArgsSchema = z.object({
   path: z.string(),
 }).strict();
 
-export const fsTools = (): Tool[] => [
+export const fsTools = (llm): Tool[] => [
   {
     definition: {
       function: {

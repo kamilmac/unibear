@@ -17,7 +17,7 @@ const init = (): OpenAI => {
   return llm;
 };
 
-const stream = async (messages, tools, state, opts) => {
+const stream = async (messages, tools) => {
   return await llm.chat.completions.create({
     model: OPENAI_MODEL,
     messages,

@@ -32,37 +32,37 @@ export const commonTools = (llm): Tool[] => [
     },
     mode: ["web"],
   },
-  //   {
-  //     definition: {
-  //       function: {
-  //         name: "help",
-  //         description:
-  //           "If user ask for help -> use this tool to provide details about app usage",
-  //         strict: false,
-  //         parameters: {},
-  //       },
-  //       type: "function",
-  //     },
-  //     // deno-lint-ignore require-await
-  //     process: async (_args, _log) => {
-  //       const allTools = [
-  //         ...commonTools,
-  //         ...fsTools,
-  //         ...gitTools,
-  //       ];
-  //       const toolDetails = JSON.stringify(allTools.map((t) => ({
-  //         tool_name: t.definition.function.name,
-  //         tool_mode: t.mode,
-  //         tool_description: t.definition.function.description,
-  //       })));
-  //       const response = `
-  // User needs help and doesn't know how to use the app so use below information to help the user. Structure everything in markdown format.
-  // Unibear navigation is loosely based on Vim and Helix editors.
-  // Key bindings: ${JSON.stringify(KEY_BINDINGS)}
-  // Tools that can be enabled in prompt mode:
-  // ${toolDetails}`;
-  //       return response;
-  //     },
-  //     mode: ["normal"],
-  //   },
+  {
+    definition: {
+      function: {
+        name: "help",
+        description:
+          "If user ask for help -> use this tool to provide details about app usage",
+        strict: false,
+        parameters: {},
+      },
+      type: "function",
+    },
+    // deno-lint-ignore require-await
+    process: async (_args, _log) => {
+      const allTools = [
+        ...commonTools(llm),
+        ...fsTools(llm),
+        ...gitTools(llm),
+      ];
+      const toolDetails = JSON.stringify(allTools.map((t) => ({
+        tool_name: t.definition.function.name,
+        tool_mode: t.mode,
+        tool_description: t.definition.function.description,
+      })));
+      const response = `
+User needs help and doesn't know how to use the app so use below information to help the user. Structure everything in markdown format.
+Unibear navigation is loosely based on Vim and Helix editors.
+Key bindings: ${JSON.stringify(KEY_BINDINGS)}
+Tools that can be enabled in prompt mode:
+${toolDetails}`;
+      return response;
+    },
+    mode: ["normal"],
+  },
 ];
