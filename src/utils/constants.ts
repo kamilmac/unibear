@@ -13,7 +13,8 @@ export const OPENAI_WEB_SEARCH_MODEL = config.webSearchModel ?? "gpt-4.1-mini";
 export const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? undefined;
 export const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/";
 export const ANTHROPIC_MODEL = config.model ?? "claude-3-7-sonnet-20250219";
-export const ANTHROPIC_WEB_SEARCH_MODEL = config.webSearchModel ?? "";
+export const ANTHROPIC_WEB_SEARCH_MODEL = config.webSearchModel ??
+  ANTHROPIC_MODEL;
 
 export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
 

@@ -3,6 +3,7 @@ import {
   ANTHROPIC_API_KEY,
   ANTHROPIC_API_URL,
   ANTHROPIC_MODEL,
+  ANTHROPIC_WEB_SEARCH_MODEL,
   TEMPERATURE,
 } from "../../utils/constants.ts";
 
@@ -17,7 +18,7 @@ const init = (): OpenAI => {
 };
 
 const stream = async (messages, tools, state, opts) => {
-  let _stream = await llm.chat.completions.create({
+  return await llm.chat.completions.create({
     model: ANTHROPIC_MODEL,
     messages,
     stream: true,
@@ -33,27 +34,41 @@ const stream = async (messages, tools, state, opts) => {
       },
     })),
   });
-  for await (const chunk of _stream) {
-    const delta = chunk.choices?.[0].delta;
-    if (delta?.tool_calls) {
-      state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
-      state.fnName = state.fnName ||
-        (delta?.tool_calls?.[0]?.function?.name || "");
-      state.fnArgs = state.fnArgs +
-        (delta?.tool_calls?.[0]?.function?.arguments || "");
-    }
-    const content = delta?.content;
-    if (content) {
-      state.content += content;
-      opts.onChunk(content);
-    }
-    if (chunk.choices?.[0].finish_reason === "stop") {
-      state.stop = true;
-    }
-  }
+};
+
+const webSearch = async (searchString: string): Promise<string> => {
+  const response = await llm.responses.create({
+    model: ANTHROPIC_WEB_SEARCH_MODEL,
+    tools: [{
+      type: "web_search_preview",
+      search_context_size: "medium",
+    }],
+    input: searchString as string,
+  });
+  return response.output_text;
+};
+
+const send = async (system: string, content: string): Promise<string> => {
+  const { choices } = await llm.chat.completions.create({
+    model: ANTHROPIC_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: system,
+      },
+      {
+        role: "user",
+        content,
+      },
+    ],
+  });
+  const message = choices[0].message?.content?.trim() || "";
+  return message;
 };
 
 export const AnthropicAdapter = {
   init,
   stream,
+  webSearch,
+  send,
 };

@@ -50,7 +50,25 @@ async function sendChat(
       stop: false,
     };
     try {
-      await LLM.stream(history, tools, state, opts);
+      const _stream = await LLM.stream(history, tools, state, opts);
+      for await (const chunk of _stream) {
+        const delta = chunk.choices?.[0].delta;
+        if (delta?.tool_calls) {
+          state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
+          state.fnName = state.fnName ||
+            (delta?.tool_calls?.[0]?.function?.name || "");
+          state.fnArgs = state.fnArgs +
+            (delta?.tool_calls?.[0]?.function?.arguments || "");
+        }
+        const content = delta?.content;
+        if (content) {
+          state.content += content;
+          opts.onChunk(content);
+        }
+        if (chunk.choices?.[0].finish_reason === "stop") {
+          state.stop = true;
+        }
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       opts.onChunk(errorMessage);
