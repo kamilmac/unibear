@@ -34,6 +34,7 @@ const ListDirectoryArgsSchema = z.object({
   path: z.string(),
 }).strict();
 
+// deno-lint-ignore no-unused-vars
 export const fsTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {

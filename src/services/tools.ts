@@ -2,6 +2,7 @@ import { OpenAI } from "npm:openai";
 import { gitTools } from "./tools/git.ts";
 import { fsTools } from "./tools/fs.ts";
 import { commonTools } from "./tools/common.ts";
+import { LLMAdapter } from "./llm.ts";
 
 export interface Tool {
   definition: OpenAI.ChatCompletionTool;
@@ -19,7 +20,7 @@ export interface PreparedTools {
 
 export const getTools = (
   mode: ToolMode = "normal",
-  llm: any,
+  llm: LLMAdapter,
 ): PreparedTools => {
   const allTools = [
     ...commonTools(llm),
