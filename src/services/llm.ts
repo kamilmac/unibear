@@ -7,6 +7,7 @@ import {
 import { getTools, PreparedTools } from "./tools.ts";
 import { AnthropicAdapter } from "./llm_providers/anthropic.ts";
 import { OpenAIAdapter } from "./llm_providers/openai.ts";
+import { GeminiAdapter } from "./llm_providers/gemini.ts";
 import { config } from "../utils/config.ts";
 
 export interface LLMAdapter {
@@ -23,6 +24,8 @@ let LLM = OpenAIAdapter;
 
 if (config.provider === "anthropic") {
   LLM = AnthropicAdapter;
+} else if (config.provider === "gemini") {
+  LLM = GeminiAdapter;
 }
 
 LLM.init();

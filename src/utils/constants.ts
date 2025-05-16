@@ -16,6 +16,12 @@ export const ANTHROPIC_MODEL = config.model ?? "claude-3-7-sonnet-20250219";
 export const ANTHROPIC_WEB_SEARCH_MODEL = config.webSearchModel ??
   ANTHROPIC_MODEL;
 
+export const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? undefined;
+export const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/openai/";
+export const GEMINI_MODEL = config.model ?? "gemini-2.5-flash-preview-04-17";
+export const GEMINI_WEB_SEARCH_MODEL = config.webSearchModel ?? GEMINI_MODEL;
+
 export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
 
 export const TEMPERATURE = config.temperature ?? 1;
