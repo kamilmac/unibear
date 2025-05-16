@@ -1,7 +1,7 @@
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 export interface Config {
-  provider?: "openai" | "anthropic" | "ollama";
+  provider?: "openai" | "anthropic";
   model?: string;
   reasoning_effort?: string;
   webSearchModel?: string;
