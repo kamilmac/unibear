@@ -4,7 +4,7 @@
     "compile": "deno compile -A -o bin/unibear src/main.ts",
     "compile-no-check": "deno compile -A --no-check -o bin/unibear src/main.ts"
   },
-  "version": "0.3.0",
+  "version": "0.3.5",
   "imports": {
     "ink": "npm:ink@^5.2.0",
     "react": "npm:react@^18.3.1"
