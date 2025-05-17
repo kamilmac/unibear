@@ -39,11 +39,10 @@ curl -fsSL \
   | bash
 ```
 
-> Ensure `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY` are set
-> in your environment, depending on the provider you intend to use.
-> (OpenAI, Anthropic, Gemini, and Ollama (for local LLMs)  are supported).
-> For Ollama, you might also need to set `OPENAI_API_URL` (see "Using a local
-> LLM" section).
+> Ensure `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY` are set in
+> your environment, depending on the provider you intend to use. (OpenAI,
+> Anthropic, Gemini, and Ollama (for local LLMs) are supported). For Ollama, you
+> might also need to set `OPENAI_API_URL` (see "Using a local LLM" section).
 
 Launch Unibear in your git repository:
 
@@ -223,10 +222,10 @@ descriptions. Follow DWYL style guide and run `deno fmt` & `deno lint`.
 A: Run `lsof -i :<port>` and kill the process or change `port` in config.
 
 **Q: Invalid API key?**\
-A: Ensure `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`
-is set correctly in your environment, corresponding to the selected `provider`
-in your configuration. For Ollama, an API key is typically not required if
-using the default "ollama" value.
+A: Ensure `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY` is set
+correctly in your environment, corresponding to the selected `provider` in your
+configuration. For Ollama, an API key is typically not required if using the
+default "ollama" value.
 
 ## License
 
