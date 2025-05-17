@@ -264,7 +264,7 @@ export const Chat = (
         {chat.length === 0 &&
           (
             <Text dimColor>
-              (Write 'help' if you're lost)
+              (Write 'help!' if you're lost)
             </Text>
           )}
       </Box>

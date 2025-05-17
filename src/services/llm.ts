@@ -108,7 +108,7 @@ async function sendChat(
             {
               id: state.id,
               function: {
-                arguments: state.fnArgs,
+                arguments: JSON.stringify(args),
                 name: state.fnName,
               },
               type: "function",
@@ -123,7 +123,6 @@ async function sendChat(
           content: result,
         },
       );
-      clipboard.write(JSON.stringify(history));
     }
   }
 }

@@ -38,20 +38,12 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "help",
         description:
-          "If user ask for help -> use this tool to provide details about app usage",
-        strict: true,
-        parameters: zodToJsonSchema(
-          z.object({
-            context: z.string().describe(
-              "what kind of issue user wants to solve",
-            ).default("general info"),
-          }),
-        ),
+          "Provide details about how to use this App. Always run this tool when users shouts for help.",
       },
       type: "function",
     },
     // deno-lint-ignore require-await
-    process: async (_args, _log) => {
+    process: async (args, log) => {
       const allTools = [
         ...commonTools(llm),
         ...fsTools(llm),
@@ -66,7 +58,6 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
 User needs help and doesn't know how to use the app so use below information to help the user. Structure everything in markdown format.
 Unibear navigation is loosely based on Vim and Helix editors.
 Key bindings: ${JSON.stringify(KEY_BINDINGS)}
-User want to solve: ${_args.context}
 Tools that can be enabled in prompt mode:
 ${toolDetails}`;
       return response;
