@@ -27,8 +27,8 @@ const gemini_config = {
 const ollama_config = {
   baseURL: "http://localhost:11434/v1",
   apiKey: "ollama",
-  model: "ollama",
-  webSearchModel: "ollama",
+  model: config.model ?? "qwen3:30b-a3b",
+  webSearchModel: config.model ?? "qwen3:30b-a3b",
 };
 
 export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
