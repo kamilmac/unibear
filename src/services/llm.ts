@@ -4,30 +4,8 @@ import {
   MAX_TOOL_ITERATIONS,
   SYSTEM,
 } from "../utils/constants.ts";
-import { getTools, PreparedTools } from "./tools.ts";
-import { AnthropicAdapter } from "./llm_providers/anthropic.ts";
-import { OpenAIAdapter } from "./llm_providers/openai.ts";
-import { GeminiAdapter } from "./llm_providers/gemini.ts";
-import { config } from "../utils/config.ts";
-import clipboard from "npm:clipboardy";
-
-export interface LLMAdapter {
-  init: () => void;
-  stream: (
-    messages: OpenAI.ChatCompletionMessageParam[],
-    tools: PreparedTools,
-  ) => Promise<AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>>;
-  send: (system: string, content: string) => Promise<string>;
-  webSearch: (searchString: string) => Promise<string>;
-}
-
-let LLM = OpenAIAdapter;
-
-if (config.provider === "anthropic") {
-  LLM = AnthropicAdapter;
-} else if (config.provider === "gemini") {
-  LLM = GeminiAdapter;
-}
+import { getTools } from "./tools.ts";
+import { LLM } from "./llm_providers/default.ts";
 
 LLM.init();
 

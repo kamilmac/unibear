@@ -4,7 +4,7 @@ import { KEY_BINDINGS } from "../../utils/constants.ts";
 import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
-import { LLMAdapter } from "../llm.ts";
+import { LLMAdapter } from "../llm_providers/default.ts";
 
 const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
@@ -43,7 +43,7 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore require-await
-    process: async (args, log) => {
+    process: async (_args, _log) => {
       const allTools = [
         ...commonTools(llm),
         ...fsTools(llm),

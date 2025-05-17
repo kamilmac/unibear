@@ -4,7 +4,7 @@ export interface Config {
   provider?: "openai" | "anthropic" | "gemini";
   model?: string;
   reasoning_effort?: string;
-  webSearchModel?: string;
+  web_search_model?: string;
   temperature?: number;
   system?: string;
   port?: number;
