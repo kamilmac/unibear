@@ -86,6 +86,26 @@ C-a = [":sh unibear add_file %{buffer_name}"]
 
 <br>
 
+### Neovim
+
+Bind a key to send the current buffer path to Unibear:
+
+#### init.vim
+
+```vim
+nnoremap <leader>ua :silent !unibear add_file %:p<CR>
+```
+
+#### init.lua
+
+```lua
+vim.keymap.set("n", "<leader>ua", function()
+  vim.cmd("silent !unibear add_file " .. vim.fn.expand("%:p"))
+end, { noremap = true, silent = true })
+```
+
+<br>
+
 ## Configuration
 
 Create `~/.config/unibear/config.json`:
