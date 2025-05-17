@@ -68,7 +68,7 @@ unibear
 
 > Only one Unibear instance at a time (it runs a local server).
 
-### Helix / Vim
+### Helix ❤️
 
 Add a buffer to Unibear’s context:
 
