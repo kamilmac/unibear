@@ -72,7 +72,7 @@ async function sendChat(
       state.id = state.fnName + alternativeIdCounter++;
       state.content = `Running tool: ${state.fnName}`;
     }
-    // onChunk(JSON.stringify(state, null, 2));
+    onChunk(JSON.stringify(state, null, 2));
     if (state.id) {
       let args = {};
       try {
