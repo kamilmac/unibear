@@ -70,7 +70,7 @@ async function sendChat(
     // Handle Gemini tool calls where id and content is empty
     if (state.fnName && !state.id) {
       state.id = state.fnName + alternativeIdCounter++;
-      state.content = `Running tool: ${state.fnName}`;
+      state.content = "_";
     }
     onChunk(JSON.stringify(state, null, 2));
     if (state.id) {
