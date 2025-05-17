@@ -28,6 +28,7 @@ export const Chat = (
   const isStreaming = useStore((store) => store.isStreamingResponse);
   const removeChatItem = useStore((store) => store.removeChatItem);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
+  const [autoscrollActive, setAutoscrollActive] = React.useState(false);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
   const [selectionOriginLineIndex, setSelectionOriginLineIndex] = React
     .useState(null);
@@ -120,7 +121,25 @@ export const Chat = (
     }
   }, [fullChatLinesNumber]);
 
+  // Autoscroll to bottom when new message comes in
+  React.useEffect(() => {
+    if (isStreaming && autoscrollActive) { // Modified condition
+      setCursorLineIndex(fullChatLinesNumber - 1);
+      setChatRenderOffset(
+        Math.max(0, fullChatLinesNumber - Math.round(height / 2)),
+      );
+    }
+  }, [fullChatLinesNumber, isStreaming, autoscrollActive, height]); // Added autoscrollActive and height
+
+  // Re-enable autoscroll when a new stream begins
+  React.useEffect(() => {
+    if (isStreaming) {
+      setAutoscrollActive(true);
+    }
+  }, [isStreaming]);
+
   useInput((_input, key) => {
+    setAutoscrollActive(false);
     if (key.downArrow) {
       scrollDownBy(2);
       return;
@@ -173,6 +192,7 @@ export const Chat = (
       return;
     }
     if (matchKey(kb.goToEnd)) {
+      setAutoscrollActive(true);
       setCursorLineIndex(fullChatLinesNumber - 1);
       setChatRenderOffset(
         Math.max(0, fullChatLinesNumber - Math.round(height / 4)),
