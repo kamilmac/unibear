@@ -10,8 +10,9 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
       function: {
-        name: "git_auto_commit",
-        description: "Generate commit message from diff and commit all changes",
+        name: "git_commit",
+        description:
+          "Generate commit message from diff and commit all changes. No reviews - just straight commit",
       },
       type: "function",
     },
@@ -42,7 +43,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
 You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format.`,
         diff,
       );
-      return `Return directly to user with following review: ${response}`;
+      return `Return directly to user and show this review: ${response}`;
     },
     mode: ["git"],
   },
