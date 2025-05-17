@@ -9,6 +9,8 @@ import { LLM } from "./llm_providers/default.ts";
 
 LLM.init();
 
+let alternativeIdCounter = 0;
+
 const trimHistory = (
   history: OpenAI.ChatCompletionMessageParam[],
 ): OpenAI.ChatCompletionMessageParam[] => {
@@ -67,7 +69,7 @@ async function sendChat(
     }
     // Handle Gemini tool calls where id and content is empty
     if (state.fnName && !state.id) {
-      state.id = state.fnName;
+      state.id = state.fnName + alternativeIdCounter++;
       state.content = `Running tool: ${state.fnName}`;
     }
     // onChunk(JSON.stringify(state, null, 2));
