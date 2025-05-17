@@ -41,6 +41,7 @@ async function sendChat(
       for await (const chunk of _stream) {
         const delta = chunk.choices?.[0].delta;
         if (delta?.tool_calls) {
+          // onChunk(JSON.stringify(chunk));
           state.id = state.id || (delta?.tool_calls?.[0]?.id || "");
           state.fnName = state.fnName ||
             (delta?.tool_calls?.[0]?.function?.name || "");
@@ -64,6 +65,12 @@ async function sendChat(
     if (state.stop) {
       break;
     }
+    // Handle Gemini tool calls where id and content is empty
+    if (state.fnName && !state.id) {
+      state.id = "123";
+      state.content = `Run tool: ${state.fnName}`;
+    }
+    // onChunk(JSON.stringify(state, null, 2));
     if (state.id) {
       let args = {};
       try {
