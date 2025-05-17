@@ -6,6 +6,7 @@ import { Tool } from "../tools.ts";
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import * as os from "node:os";
 import { LLMAdapter } from "../llm_providers/default.ts";
+import { COLORS } from "../../utils/constants.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -58,7 +59,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     ) => {
       const results: Record<string, string> = {};
       for (const file_path of file_paths as string[]) {
-        log(`Reading from:\n${file_path}\n`);
+        log(COLORS.tool(`\nReading from:\n${file_path}\n`));
         results[file_path] = await Deno.readTextFile(file_path);
       }
       return JSON.stringify(results);
@@ -93,7 +94,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         log(`Invalid arguments for search_files: ${parsed.error}`);
         throw new Error(`Invalid arguments for search_files: ${parsed.error}`);
       }
-      log(`Searching for files:\n${parsed.data.pattern}\n`);
+      log(COLORS.tool(`\nSearching for files:\n${parsed.data.pattern}\n`));
       const results = await searchFiles(
         Deno.cwd(),
         parsed.data.pattern,
@@ -147,7 +148,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
       const validPath = await validatePath(parsed.data.file_path);
-      log(`Edit file - writing to:\n${validPath}\n`);
+      log(COLORS.tool(`\nEdit file - writing to:\n${validPath}\n`));
       return await applyFileEdits(validPath, parsed.data.edits);
     },
     mode: ["edit"],
@@ -174,7 +175,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         );
       }
       const validPath = await validatePath(parsed.data.path);
-      log(`Creating dir:\n${parsed.data.path}\n`);
+      log(COLORS.tool(`\nCreating dir:\n${parsed.data.path}\n`));
       await Deno.mkdir(validPath, { recursive: true });
       return `Successfully created directory ${parsed.data.path}`;
     },

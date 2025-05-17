@@ -116,6 +116,7 @@ const DARK_THEME = {
   banner: chalk.hex(HEX_COLORS.purple),
   border: HEX_COLORS.darkGrey,
   cursor: chalk.inverse,
+  tool: chalk.hex(HEX_COLORS.grey),
   selectedLineBg: chalk.inverse,
 };
 

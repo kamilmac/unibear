@@ -25,10 +25,10 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
     process: async (args, log) => {
       const parsed = WebSearchOperation.safeParse(args);
       if (!parsed.success) {
-        log(`Invalid arguments for web_search: ${parsed.error}`);
+        log(`\nInvalid arguments for web_search: ${parsed.error}`);
         throw new Error(`Invalid arguments for web_search: ${parsed.error}`);
       }
-      log(`Searching web for ${args.search_string}\n`);
+      log(`\nSearching web for ${args.search_string}...`);
       return await llm.webSearch(parsed.data.search_string);
     },
     mode: ["web"],
