@@ -5,7 +5,7 @@ import { config } from "../../utils/config.ts";
 
 const openai_config = {
   baseURL: Deno.env.get("OPENAI_API_URL") ?? "",
-  apiKey: Deno.env.get("OPENAI_API_KEY") ?? undefined,
+  apiKey: Deno.env.get("OPENAI_API_KEY") ?? "",
   model: config.model ?? "o4-mini",
   reasoning_effort: config.reasoning_effort ?? "medium",
   webSearchModel: config.web_search_model ?? "gpt-4.1-mini",
@@ -13,7 +13,7 @@ const openai_config = {
 
 const anthropic_config = {
   baseURL: "https://api.anthropic.com/v1/",
-  apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? undefined,
+  apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "",
   model: config.model ?? "claude-3-7-sonnet-20250219",
   reasoning_effort: config.reasoning_effort ?? "medium",
   webSearchModel: config.web_search_model ?? "claude-3-7-sonnet-20250219",
@@ -21,7 +21,7 @@ const anthropic_config = {
 
 const gemini_config = {
   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-  apiKey: Deno.env.get("GEMINI_API_KEY") ?? undefined,
+  apiKey: Deno.env.get("GEMINI_API_KEY") ?? "",
   model: config.model ?? "gemini-2.5-flash-preview-04-17",
   reasoning_effort: config.reasoning_effort ?? "medium",
   webSearchModel: config.web_search_model ?? "gemini-2.5-flash-preview-04-17",
