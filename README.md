@@ -97,8 +97,8 @@ Create `~/.config/unibear/config.json`:
 {
   "provider": "openai", // or "anthropic", "gemini", "ollama"
   "model": "o4-mini",
-  "reasoning_effort": "standard", // not used currently
-  "webSearchModel": "gpt-4.1-mini",
+  "reasoning_effort": "medium", // controls depth of reasoning: low, medium, or high
+  "web_search_model": "gpt-4.1-mini",
   "temperature": 0.7,
   "system": "Your custom system prompt",
   "port": 12496,

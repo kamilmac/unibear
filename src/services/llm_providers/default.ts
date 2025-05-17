@@ -90,6 +90,7 @@ const webSearch: LLMAdapter["webSearch"] = async (searchString) => {
 
 const send: LLMAdapter["send"] = async (system, content) => {
   const { choices } = await llm.chat.completions.create({
+    reasoning_effort: llmCfg.reasoning_effort as OpenAI.ReasoningEffort,
     model: llmCfg.model,
     messages: [
       {
