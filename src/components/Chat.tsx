@@ -133,9 +133,7 @@ export const Chat = (
 
   // Re-enable autoscroll when a new stream begins
   React.useEffect(() => {
-    if (isStreaming) {
-      setAutoscrollActive(true);
-    }
+    setAutoscrollActive(isStreaming);
   }, [isStreaming]);
 
   useInput((_input, key) => {
