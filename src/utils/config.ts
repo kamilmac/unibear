@@ -1,7 +1,11 @@
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 
 export interface Config {
+  provider?: "openai" | "anthropic" | "gemini" | "ollama";
   model?: string;
+  reasoning_effort?: string;
+  web_search_model?: string;
+  temperature?: number;
   system?: string;
   port?: number;
   theme?: "light" | "dark";
@@ -17,7 +21,6 @@ const xdg = Deno.env.get("XDG_CONFIG_HOME") ??
   `${Deno.env.get("HOME")}/.config`;
 export const APP_DIR = join(xdg, "unibear");
 const configPath = `${APP_DIR}/config.json`;
-export const kbPath = `${APP_DIR}/kb.json`;
 
 let file: Partial<Config> = {};
 

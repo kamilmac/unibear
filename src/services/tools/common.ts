@@ -4,13 +4,13 @@ import { KEY_BINDINGS } from "../../utils/constants.ts";
 import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
-import { openai } from "../openai.ts";
+import { LLMAdapter } from "../llm_providers/default.ts";
 
 const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
 }).strict();
 
-export const commonTools: Tool[] = [
+export const commonTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
       function: {
@@ -25,19 +25,11 @@ export const commonTools: Tool[] = [
     process: async (args, log) => {
       const parsed = WebSearchOperation.safeParse(args);
       if (!parsed.success) {
-        log(`Invalid arguments for web_search: ${parsed.error}`);
+        log(`\nInvalid arguments for web_search: ${parsed.error}`);
         throw new Error(`Invalid arguments for web_search: ${parsed.error}`);
       }
-      log(`Searching web for ${args.search_string}\n`);
-      const response = await openai.responses.create({
-        model: "gpt-4.1-mini",
-        tools: [{
-          type: "web_search_preview",
-          search_context_size: "low",
-        }],
-        input: args.search_string as string,
-      });
-      return response.output_text;
+      log(`\nSearching web for ${args.search_string}...`);
+      return await llm.webSearch(parsed.data.search_string);
     },
     mode: ["web"],
   },
@@ -46,18 +38,16 @@ export const commonTools: Tool[] = [
       function: {
         name: "help",
         description:
-          "If user ask for help -> use this tool to provide details about app usage",
-        strict: false,
-        parameters: {},
+          "Provide details about how to use this App. Always run this tool when users shouts for help.",
       },
       type: "function",
     },
     // deno-lint-ignore require-await
     process: async (_args, _log) => {
       const allTools = [
-        ...commonTools,
-        ...fsTools,
-        ...gitTools,
+        ...commonTools(llm),
+        ...fsTools(llm),
+        ...gitTools(llm),
       ];
       const toolDetails = JSON.stringify(allTools.map((t) => ({
         tool_name: t.definition.function.name,

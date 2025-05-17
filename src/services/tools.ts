@@ -2,6 +2,7 @@ import { OpenAI } from "npm:openai";
 import { gitTools } from "./tools/git.ts";
 import { fsTools } from "./tools/fs.ts";
 import { commonTools } from "./tools/common.ts";
+import { LLMAdapter } from "./llm_providers/default.ts";
 
 export interface Tool {
   definition: OpenAI.ChatCompletionTool;
@@ -12,16 +13,19 @@ export interface Tool {
   ) => Promise<string>;
 }
 
-export const getTools = (
-  mode: ToolMode = "normal",
-): {
+export interface PreparedTools {
   definitions: Array<OpenAI.ChatCompletionTool>;
   processes: Record<Tool["definition"]["function"]["name"], Tool["process"]>;
-} => {
+}
+
+export const getTools = (
+  mode: ToolMode = "normal",
+  llm: LLMAdapter,
+): PreparedTools => {
   const allTools = [
-    ...commonTools,
-    ...gitTools,
-    ...fsTools,
+    ...commonTools(llm),
+    ...gitTools(llm),
+    ...fsTools(llm),
   ];
   const filtered = allTools
     .filter((t) => t.mode.includes(mode));
