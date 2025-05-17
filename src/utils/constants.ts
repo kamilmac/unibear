@@ -5,10 +5,7 @@ import pkg from "../../deno.json" with { type: "json" };
 
 export const VERSION = pkg.version;
 
-export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
-
 export const TEMPERATURE = config.temperature ?? 1;
-export const PROVIDER = config.provider ?? "openai";
 export const WORKSPACE_NAME = basename(Deno.cwd());
 
 export const MAX_CHAT_HISTORY = 32; // trim history to last N messages

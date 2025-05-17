@@ -1,5 +1,5 @@
 import { OpenAI } from "npm:openai";
-import { PROVIDER, TEMPERATURE } from "../../utils/constants.ts";
+import { TEMPERATURE } from "../../utils/constants.ts";
 import { PreparedTools } from "../tools.ts";
 import { config } from "../../utils/config.ts";
 
@@ -24,11 +24,21 @@ const gemini_config = {
   webSearchModel: config.web_search_model ?? "gemini-2.5-flash-preview-04-17",
 };
 
-let cfg = openai_config;
-if (PROVIDER === "anthropic") {
-  cfg = anthropic_config;
-} else if (PROVIDER === "gemini") {
-  cfg = gemini_config;
+const ollama_config = {
+  baseURL: "http://localhost:11434/v1",
+  apiKey: "ollama",
+  model: "ollama",
+  webSearchModel: "ollama",
+};
+
+export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
+let llmCfg = openai_config;
+if (config.provider === "anthropic") {
+  llmCfg = anthropic_config;
+} else if (config.provider === "gemini") {
+  llmCfg = gemini_config;
+} else if (config.provider === "ollama") {
+  llmCfg = ollama_config;
 }
 
 export interface LLMAdapter {
@@ -45,15 +55,15 @@ let llm: OpenAI;
 
 const init: LLMAdapter["init"] = () => {
   llm = new OpenAI({
-    baseURL: cfg.baseURL,
-    apiKey: cfg.apiKey,
+    baseURL: llmCfg.baseURL,
+    apiKey: llmCfg.apiKey,
   });
   return llm;
 };
 
 const stream: LLMAdapter["stream"] = async (messages, tools) => {
   return await llm.chat.completions.create({
-    model: cfg.model,
+    model: llmCfg.model,
     messages,
     stream: true,
     temperature: TEMPERATURE,
@@ -63,7 +73,7 @@ const stream: LLMAdapter["stream"] = async (messages, tools) => {
 
 const webSearch: LLMAdapter["webSearch"] = async (searchString) => {
   const response = await llm.responses.create({
-    model: cfg.webSearchModel,
+    model: llmCfg.webSearchModel,
     tools: [{
       type: "web_search_preview",
       search_context_size: "medium",
@@ -75,7 +85,7 @@ const webSearch: LLMAdapter["webSearch"] = async (searchString) => {
 
 const send: LLMAdapter["send"] = async (system, content) => {
   const { choices } = await llm.chat.completions.create({
-    model: cfg.model,
+    model: llmCfg.model,
     messages: [
       {
         role: "system",
