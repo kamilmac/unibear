@@ -20,7 +20,7 @@ const anthropic_config = {
 };
 
 const gemini_config = {
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/models/",
   apiKey: Deno.env.get("GEMINI_API_KEY") ?? "",
   model: config.model ?? "gemini-2.5-flash-preview-04-17",
   reasoning_effort: config.reasoning_effort ?? "medium",
