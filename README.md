@@ -56,14 +56,14 @@ unibear
 
 Follow these steps to begin using Unibear:
 
-1. Launch Unibear  
-   Run the following command in your workspace root so that all files  
+1. Launch Unibear\
+   Run the following command in your workspace root so that all files\
    in this directory are accessible:
    ```bash
    unibear
    ```
 
-2. Configure your editor  
+2. Configure your editor\
    Map a key to send the current buffer or file to Unibear:
 
    - **Neovim**
@@ -77,23 +77,23 @@ Follow these steps to begin using Unibear:
      C-a = [":sh unibear add_file %{buffer_name}"]
      ```
 
-3. Brainstorm and iterate  
-   - Press `i` to enter **Prompt Mode**, type your prompt, and hit ↵ to  
+3. Brainstorm and iterate
+   - Press `i` to enter **Prompt Mode**, type your prompt, and hit ↵ to\
      get AI suggestions. Continue iterating until you're satisfied.
-   - Press `Esc` to switch to **Visual Mode**. Navigate with `j`/`k`,  
-     scroll fast with `J`/`K`, jump to top (`gg`) or bottom (`G`/`ge`),  
-     select (`v`), yank (`y`), paste (`p`), or delete chat items with (`d`).  
-   You probably noticed that these keybindings are inspired by Helix  
-   and Neovim.
+   - Press `Esc` to switch to **Visual Mode**. Navigate with `j`/`k`,\
+     scroll fast with `J`/`K`, jump to top (`gg`) or bottom (`G`/`ge`),\
+     select (`v`), yank (`y`), paste (`p`), or delete chat items with (`d`).\
+     You probably noticed that these keybindings are inspired by Helix\
+     and Neovim.
 
-4. Apply edits  
-   Press your `useEditTools` key (default `+`) to enable write tools,  
-   then instruct the AI to apply changes to your files.
-   (Read tools are vailable in default mode).
+4. Apply edits\
+   Press your `useEditTools` key (default `+`) to enable write tools,\
+   then instruct the AI to apply changes to your files. (Read tools are vailable
+   in default mode).
 
-5. Commit and review  
-   Press your `useGitTools` key (default `:`) and enter commands like  
-   `commit changes`. You can also request a review based on your diff  
+5. Commit and review\
+   Press your `useGitTools` key (default `:`) and enter commands like\
+   `commit changes`. You can also request a review based on your diff\
    or generate a PR description.
 
 <br>
