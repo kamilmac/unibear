@@ -76,6 +76,7 @@ Follow these steps to begin using Unibear:
      [keys.normal]
      C-a = [":sh unibear add_file %{buffer_name}"]
      ```
+   (Unibear can also search for files and list directories)
 
 3. Brainstorm and iterate
    - Press `i` to enter **Prompt Mode**, type your prompt, and hit ↵ to\
