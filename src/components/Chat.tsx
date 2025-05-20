@@ -139,11 +139,11 @@ export const Chat = (
   useInput((_input, key) => {
     setAutoscrollActive(false);
     if (key.downArrow) {
-      scrollDownBy(2);
+      scrollDownBy(1);
       return;
     }
     if (key.upArrow) {
-      scrollUpBy(2);
+      scrollUpBy(1);
       return;
     }
     if (opMode !== "visual") return;
