@@ -120,7 +120,7 @@ function buildHistoryMessages(
 ): OpenAI.ChatCompletionMessageParam[] {
   const msgs: OpenAI.ChatCompletionMessageParam[] = [];
   if (SYSTEM) msgs.push({ role: "system", content: SYSTEM });
-  chat.forEach(({ type, content }) => {
+  chat.filter((c) => !!c.content).forEach(({ type, content }) => {
     msgs.push({
       role: type === "user" ? "user" : "assistant",
       content,
