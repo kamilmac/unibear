@@ -6,7 +6,7 @@ import { Tool } from "../tools.ts";
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import * as os from "node:os";
 import { LLMAdapter } from "../llm_providers/default.ts";
-import { COLORS } from "../../utils/constants.ts";
+import { COLORS, MAX_SIZE } from "../../utils/constants.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -59,6 +59,16 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     ) => {
       let combined = "";
       for (const file_path of file_paths as string[]) {
+        try {
+          const stats = await Deno.stat(file_path);
+          if (stats.size > MAX_SIZE) {
+            log(`File too big: ${file_path}. content ignored`);
+            continue;
+          }
+        } catch {
+          log(`Cannot access file: ${file_path}`);
+          continue;
+        }
         log(COLORS.tool(`\nReading from:\n${file_path}\n`));
         const data = await Deno.readTextFile(file_path);
         combined += `\n=== ${file_path} ===\n${data}\n`;
