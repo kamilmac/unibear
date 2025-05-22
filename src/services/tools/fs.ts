@@ -59,17 +59,17 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     ) => {
       let combined = "";
       for (const file_path of file_paths as string[]) {
+        log(COLORS.tool(`\nReading from:\n${file_path}\n`));
         try {
           const stats = await Deno.stat(file_path);
           if (stats.size > MAX_SIZE) {
-            log(`File too big: ${file_path}. content ignored`);
+            log(COLORS.tool("\nFile too big. content ignored.\n"));
             continue;
           }
         } catch {
-          log(`Cannot access file: ${file_path}`);
+          log(COLORS.tool("\nCannot access file.\n"));
           continue;
         }
-        log(COLORS.tool(`\nReading from:\n${file_path}\n`));
         const data = await Deno.readTextFile(file_path);
         combined += `\n=== ${file_path} ===\n${data}\n`;
       }
