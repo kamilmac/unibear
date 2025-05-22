@@ -57,12 +57,13 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       { file_paths },
       log: (str: string) => void,
     ) => {
-      const results: Record<string, string> = {};
+      let combined = "";
       for (const file_path of file_paths as string[]) {
         log(COLORS.tool(`\nReading from:\n${file_path}\n`));
-        results[file_path] = await Deno.readTextFile(file_path);
+        const data = await Deno.readTextFile(file_path);
+        combined += `\n=== ${file_path} ===\n${data}\n`;
       }
-      return JSON.stringify(results);
+      return combined.trim();
     },
     mode: ["normal", "edit", "git"],
   },
