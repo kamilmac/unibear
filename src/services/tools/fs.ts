@@ -110,7 +110,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         Deno.cwd(),
         parsed.data.pattern,
       );
-      return JSON.stringify(results);
+      return results.join("\n");
     },
     mode: ["normal", "edit", "git"],
   },
