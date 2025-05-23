@@ -41,7 +41,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     definition: {
       function: {
         name: "read_multiple_files",
-        description: "Return the full contents of multiple text files",
+        description: "Retrieves and displays the complete contents of multiple text files. Ideal for examining code across related files. Limited to files under the size threshold of 2MB.",
         strict: true,
         parameters: zodToJsonSchema(
           z.object({
@@ -82,11 +82,10 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "search_files",
         description:
-          "Recursively search for files and directories matching a pattern. " +
-          "Searches through all subdirectories in the current workspace. The search " +
-          "is case-insensitive and matches partial names. Returns full paths to all " +
-          "matching items. Great for finding files when you don't know their exact location. " +
-          "Never read the given file, Just directly return to user with search results",
+          "Recursively locates files and directories containing the specified pattern in their names. " +
+          "Performs a case-insensitive search throughout the workspace (excluding node_modules). " +
+          "Returns full paths to all matches without reading file contents. Ideal for finding files " +
+          "when you know part of the name but not the exact location.",
         strict: true,
         parameters: zodToJsonSchema(
           z.object({
@@ -119,7 +118,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "search_content",
         description:
-          "Search for a substring in all files (excludes node_modules/.git)",
+          "Searches for specific text across all files in the workspace, showing matching lines with their file paths and line numbers. " +
+          "Excludes node_modules and .git directories. Use this when you need to find where particular code, variables, or text appears across the project.",
         strict: true,
         parameters: zodToJsonSchema(
           z.object({
@@ -151,9 +151,9 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "write_file",
         description:
-          "Create a new file or completely overwrite an existing file with new content. " +
-          "Use with caution as it will overwrite existing files without warning. " +
-          "Handles text content with proper encoding.",
+          "Creates a new file or replaces an existing file with specified content. " +
+          "⚠️ CAUTION: Overwrites existing files without confirmation. Maintains proper text encoding. " +
+          "Use when you need to create new files or completely replace existing ones.",
         strict: true,
         parameters: zodToJsonSchema(CreateFilesArgsSchema),
       },
@@ -176,8 +176,9 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "edit_file",
         description:
-          "Make line-based edits to a text file. Each edit replaces exact line sequences " +
-          "with new content. Returns a git-style diff showing the changes made. Does not attempt to commit any changes to git.",
+          "Performs precise text replacements in a file and shows a unified diff of the changes. " +
+          "Each edit requires an exact match of old text to be replaced with new text. " +
+          "Smart enough to handle whitespace variations between lines. Best for making focused changes to specific code blocks.",
         strict: true,
         parameters: zodToJsonSchema(EditFileArgsSchema),
       },
@@ -201,10 +202,9 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "create_directory",
         description:
-          "Create a new directory or ensure a directory exists. Can create multiple " +
-          "nested directories in one operation. If the directory already exists, " +
-          "this operation will succeed silently. Perfect for setting up directory " +
-          "structures for projects or ensuring required paths exist. Only works within allowed directories.",
+          "Creates a new directory or ensures a directory path exists, including any necessary parent directories. " +
+          "Safely handles existing directories without errors. Ideal for setting up project structures " +
+          "before creating files. Limited to operations within the current workspace.",
         parameters: zodToJsonSchema(CreateDirectoryArgsSchema),
       },
       type: "function",
@@ -229,10 +229,9 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "list_directory",
         description:
-          "Get a detailed listing of all files and directories in a specified path. " +
-          "Results clearly distinguish between files and directories with [FILE] and [DIR] " +
-          "prefixes. This tool is essential for understanding directory structure and " +
-          "finding specific files within a directory. Only works within allowed directories.",
+          "Displays all files and directories at the specified path with clear [FILE] and [DIR] indicators. " +
+          "Provides a clean overview of directory contents without recursive listing. Essential for exploring " +
+          "project structure and identifying available files in a specific location.",
         parameters: zodToJsonSchema(ListDirectoryArgsSchema),
       },
       type: "function",

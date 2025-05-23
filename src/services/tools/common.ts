@@ -16,7 +16,7 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "web_search",
         description:
-          "Does a web search for given string. Always use this tool when available.",
+          "Performs a web search for the specified query and returns relevant results. Use this tool when you need up-to-date information or external resources beyond the local workspace.",
         strict: true,
         parameters: zodToJsonSchema(WebSearchOperation),
       },
@@ -38,7 +38,7 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "help",
         description:
-          "Provide details about how to use this App. Always run this tool when users shouts for help.",
+          "Displays comprehensive documentation about Unibear's features, available tools, and key bindings. Use this tool when users need guidance on how to use the application or its capabilities.",
       },
       type: "function",
     },

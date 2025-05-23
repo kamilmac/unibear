@@ -14,7 +14,8 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "git_commit",
         description:
-          "Generate commit message from diff and commit all changes. No reviews - just straight commit",
+          "Automatically generates a concise, descriptive commit message based on your code changes and performs a git commit. " +
+          "Commits all modified files without review. Use when your changes are ready to be committed with an AI-generated message.",
       },
       type: "function",
     },
@@ -35,7 +36,9 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "git_review",
         description:
-          "Creates and returns a review of all changes to base git branch",
+          "Analyzes your code changes compared to the base branch (main/master) and provides a detailed code review. " +
+          "Highlights potential bugs, architectural issues, and suggests improvements. Useful before submitting PRs " +
+          "or when seeking feedback on implementation quality.",
       },
       type: "function",
     },
@@ -55,7 +58,9 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
     definition: {
       function: {
         name: "git_create_pr_description",
-        description: "Creates PR description based on diff to base branch",
+        description: "Generates a well-structured Pull Request description in Markdown format based on your code changes. " +
+          "Includes a summary of changes and technical details. Saves time when preparing PRs by automatically " +
+          "extracting the purpose and key modifications from your code.",
       },
       type: "function",
     },
@@ -81,7 +86,9 @@ Keep the tone clear and professional. If the purpose is unclear from the code, n
       function: {
         name: "git_list_local_modified_files",
         description:
-          "Lists locally modified (staged/unstaged) and untracked file paths",
+          "Displays all files that have been modified, staged, or newly created in your git repository. " +
+          "Shows the complete list of files with pending changes that would be included in a commit. " +
+          "Useful for reviewing what files have been changed before using other git tools.",
       },
       type: "function",
     },
