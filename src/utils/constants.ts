@@ -10,6 +10,7 @@ export const WORKSPACE_NAME = basename(Deno.cwd());
 
 export const MAX_CHAT_HISTORY = 32; // trim history to last N messages
 export const MAX_TOOL_ITERATIONS = 24;
+export const MAX_SIZE = 100_000; // max allowed file-size in bytes
 
 export const KEY_BINDINGS = {
   moveDown: ["j"],

@@ -6,7 +6,7 @@ import { Tool } from "../tools.ts";
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import * as os from "node:os";
 import { LLMAdapter } from "../llm_providers/default.ts";
-import { COLORS } from "../../utils/constants.ts";
+import { COLORS, MAX_SIZE } from "../../utils/constants.ts";
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -57,12 +57,23 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       { file_paths },
       log: (str: string) => void,
     ) => {
-      const results: Record<string, string> = {};
+      let combined = "";
       for (const file_path of file_paths as string[]) {
         log(COLORS.tool(`\nReading from:\n${file_path}\n`));
-        results[file_path] = await Deno.readTextFile(file_path);
+        try {
+          const stats = await Deno.stat(file_path);
+          if (stats.size > MAX_SIZE) {
+            log(COLORS.tool("\nFile too big. content ignored.\n"));
+            continue;
+          }
+        } catch {
+          log(COLORS.tool("\nCannot access file.\n"));
+          continue;
+        }
+        const data = await Deno.readTextFile(file_path);
+        combined += `\n=== ${file_path} ===\n${data}\n`;
       }
-      return JSON.stringify(results);
+      return combined.trim();
     },
     mode: ["normal", "edit", "git"],
   },
@@ -99,7 +110,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         Deno.cwd(),
         parsed.data.pattern,
       );
-      return JSON.stringify(results);
+      return results.join("\n");
     },
     mode: ["normal", "edit", "git"],
   },
