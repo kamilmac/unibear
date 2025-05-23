@@ -41,7 +41,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     definition: {
       function: {
         name: "read_multiple_files",
-        description: "Retrieves and displays the complete contents of multiple text files. Ideal for examining code across related files. Limited to files under the size threshold of 2MB.",
+        description:
+          "Retrieves and displays the complete contents of multiple text files. Ideal for examining code across related files. Limited to files under the size threshold of 2MB.",
         strict: true,
         parameters: zodToJsonSchema(
           z.object({
@@ -256,87 +257,164 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
   },
 ];
 
-// --- new create_files tool ---
+// --- Improved file editing functions ---
 
 async function applyFileEdits(
   filePath: string,
   edits: Array<{ old_text: string; new_text: string }>,
 ): Promise<string> {
-  // Read file content and normalize line endings
-
   const file = await Deno.readTextFile(filePath);
   const content = normalizeLineEndings(file);
 
-  // Apply edits sequentially
+  // Sort edits by position (reverse order to avoid offset issues)
+  const sortedEdits = await sortEditsByPosition(content, edits);
+
+  // Apply edits in reverse order
   let modifiedContent = content;
-  for (const edit of edits) {
-    const normalizedOld = normalizeLineEndings(edit.old_text);
-    const normalizedNew = normalizeLineEndings(edit.new_text);
-
-    // If exact match exists, use it
-    if (modifiedContent.includes(normalizedOld)) {
-      modifiedContent = modifiedContent.replace(normalizedOld, normalizedNew);
-      continue;
-    }
-
-    // Otherwise, try line-by-line matching with flexibility for whitespace
-    const oldLines = normalizedOld.split("\n");
-    const contentLines = modifiedContent.split("\n");
-    let matchFound = false;
-
-    for (let i = 0; i <= contentLines.length - oldLines.length; i++) {
-      const potentialMatch = contentLines.slice(i, i + oldLines.length);
-
-      // Compare lines with normalized whitespace
-      const isMatch = oldLines.every((oldLine, j) => {
-        const contentLine = potentialMatch[j];
-        return oldLine.trim() === contentLine.trim();
-      });
-
-      if (isMatch) {
-        // Preserve original indentation of first line
-        const originalIndent = contentLines[i].match(/^\s*/)?.[0] || "";
-        const newLines = normalizedNew.split("\n").map((line, j) => {
-          if (j === 0) return originalIndent + line.trimStart();
-          // For subsequent lines, try to preserve relative indentation
-          const oldIndent = oldLines[j]?.match(/^\s*/)?.[0] || "";
-          const newIndent = line.match(/^\s*/)?.[0] || "";
-          if (oldIndent && newIndent) {
-            const relativeIndent = newIndent.length - oldIndent.length;
-            return originalIndent + " ".repeat(Math.max(0, relativeIndent)) +
-              line.trimStart();
-          }
-          return line;
-        });
-
-        contentLines.splice(i, oldLines.length, ...newLines);
-        modifiedContent = contentLines.join("\n");
-        matchFound = true;
-        break;
-      }
-    }
-
-    if (!matchFound) {
-      throw new Error(`Could not find exact match for edit:\n${edit.old_text}`);
-    }
+  for (const edit of sortedEdits.reverse()) {
+    modifiedContent = await applyFuzzyEdit(modifiedContent, edit);
   }
-  // Create unified diff
+
   const diff = createUnifiedDiff(content, modifiedContent, filePath);
-
-  // Format diff with appropriate number of backticks
-  let numBackticks = 3;
-  while (diff.includes("`".repeat(numBackticks))) {
-    numBackticks++;
-  }
-  const formattedDiff = `${"`".repeat(numBackticks)}diff\n${diff}${
-    "`".repeat(numBackticks)
-  }\n\n`;
   await Deno.writeTextFile(filePath, modifiedContent);
-  return formattedDiff;
+
+  return formatDiffOutput(diff);
 }
 
 function normalizeLineEndings(text: string): string {
   return text.replace(/\r\n/g, "\n");
+}
+
+function normalizeForMatching(text: string): string {
+  return normalizeLineEndings(text.trim());
+}
+
+function formatDiffOutput(diff: string): string {
+  let numBackticks = 3;
+  while (diff.includes("`".repeat(numBackticks))) {
+    numBackticks++;
+  }
+  return `${"`".repeat(numBackticks)}diff\n${diff}${
+    "`".repeat(numBackticks)
+  }\n\n`;
+}
+
+async function sortEditsByPosition(
+  content: string,
+  edits: Array<{ old_text: string; new_text: string }>,
+): Promise<Array<{ old_text: string; new_text: string; position: number }>> {
+  const editsWithPositions = [];
+
+  for (const edit of edits) {
+    const normalizedOld = normalizeForMatching(edit.old_text);
+    let position = content.indexOf(normalizedOld);
+
+    if (position === -1) {
+      // Try fuzzy matching to find position
+      const match = findBestMatch(content, normalizedOld);
+      position = match ? match.start : -1;
+    }
+
+    editsWithPositions.push({ ...edit, position });
+  }
+
+  // Sort by position (later positions first for reverse application)
+  return editsWithPositions.sort((a, b) => b.position - a.position);
+}
+
+function findBestMatch(
+  content: string,
+  target: string,
+): { start: number; end: number; score: number } | null {
+  const contentLines = content.split("\n");
+  const targetLines = target.split("\n");
+
+  let bestMatch = null;
+  let bestScore = 0;
+
+  for (let i = 0; i <= contentLines.length - targetLines.length; i++) {
+    const candidateLines = contentLines.slice(i, i + targetLines.length);
+    const score = calculateSimilarity(candidateLines, targetLines);
+
+    if (score > bestScore && score > 0.8) { // 80% similarity threshold
+      const startPos = contentLines.slice(0, i).join("\n").length +
+        (i > 0 ? 1 : 0);
+      const endPos = startPos + candidateLines.join("\n").length;
+
+      bestMatch = { start: startPos, end: endPos, score };
+      bestScore = score;
+    }
+  }
+
+  return bestMatch;
+}
+
+function calculateSimilarity(lines1: string[], lines2: string[]): number {
+  if (lines1.length !== lines2.length) return 0;
+
+  let matches = 0;
+  for (let i = 0; i < lines1.length; i++) {
+    const line1 = lines1[i].trim();
+    const line2 = lines2[i].trim();
+
+    if (line1 === line2) {
+      matches++;
+    } else if (line1.replace(/\s+/g, " ") === line2.replace(/\s+/g, " ")) {
+      matches += 0.9; // Partial match for whitespace differences
+    }
+  }
+
+  return matches / lines1.length;
+}
+
+async function applyFuzzyEdit(
+  content: string,
+  edit: { old_text: string; new_text: string },
+): Promise<string> {
+  const normalizedOld = normalizeForMatching(edit.old_text);
+  const normalizedNew = edit.new_text;
+
+  // Try exact match first
+  if (content.includes(normalizedOld)) {
+    return content.replace(normalizedOld, normalizedNew);
+  }
+
+  // Try fuzzy matching with better similarity scoring
+  const match = findBestMatch(content, normalizedOld);
+  if (match) {
+    return content.substring(0, match.start) +
+      normalizedNew +
+      content.substring(match.end);
+  }
+
+  throw new Error(
+    `Could not find match for:\n${edit.old_text}\n\n` +
+      `Context: ${getSurroundingContext(content, normalizedOld)}`,
+  );
+}
+
+function getSurroundingContext(content: string, target: string): string {
+  const lines = content.split("\n");
+  const targetLines = target.split("\n");
+  const firstTargetLine = targetLines[0].trim();
+
+  // Find lines that partially match the first line of target
+  const matches = lines
+    .map((line, index) => ({ line: line.trim(), index }))
+    .filter(({ line }) =>
+      line.includes(
+        firstTargetLine.substring(0, Math.min(20, firstTargetLine.length)),
+      )
+    )
+    .slice(0, 3); // Show max 3 potential matches
+
+  if (matches.length === 0) {
+    return "No similar content found";
+  }
+
+  return matches
+    .map(({ line, index }) => `Line ${index + 1}: ${line}`)
+    .join("\n");
 }
 
 function createUnifiedDiff(
@@ -344,7 +422,6 @@ function createUnifiedDiff(
   newContent: string,
   filepath: string = "file",
 ): string {
-  // Ensure consistent line endings for diff
   const normalizedOriginal = normalizeLineEndings(originalContent);
   const normalizedNew = normalizeLineEndings(newContent);
 
