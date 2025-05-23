@@ -1,40 +1,63 @@
 export const getGitDiffToBaseBranch = async (): Promise<string> => {
-  const checkBranchExists = async (branch: string) => {
-    const command = new Deno.Command("git", {
-      args: ["show-ref", "--quiet", `refs/heads/${branch}`],
+  const run = async (args: string[]) => {
+    const cmd = new Deno.Command("git", {
+      args,
+      stdout: "piped",
+      stderr: "piped",
     });
-    const { code } = await command.output();
-    return code === 0; // 0 means the branch exists
+    const { code, stdout, stderr } = await cmd.output();
+    if (code !== 0) {
+      throw new Error(new TextDecoder().decode(stderr));
+    }
+    return new TextDecoder().decode(stdout).trim();
   };
 
+  // fetch remote
+  await run(["fetch", "--quiet", "origin"]);
+
   // Determine which branch exists
-  let baseBranch = "master";
-  if (await checkBranchExists("main")) {
-    baseBranch = "main";
-  } else if (await checkBranchExists("master")) {
-    baseBranch = "master";
-  } else {
-    console.error("Neither 'main' nor 'master' branch exists.");
-    return "";
+  let base = "master";
+  try {
+    const exists = !!(await run(["ls-remote", "--heads", "origin", "main"]));
+    if (exists) {
+      base = "main";
+    }
+  } catch {
+    // keep master
   }
-  const command = new Deno.Command("git", {
-    args: ["diff", baseBranch],
-    stdout: "piped",
-    stderr: "piped",
-  });
 
-  const { code, stdout, stderr } = await command.output();
+  // 3) diff HEAD against origin/<base>
+  return run(["diff", `origin/${base}...HEAD`]);
+};
 
-  if (code === 0) {
-    // If the command was successful, stdout will be the output of the command
-    const output = new TextDecoder().decode(stdout);
-    return output;
-  } else {
-    // If there was an error, stderr will contain the error message
-    const error = new TextDecoder().decode(stderr);
-    console.error("Error:", error);
+export const getGitPrStyleDiff = async (): Promise<string> => {
+  const run = async (args: string[]) => {
+    const cmd = new Deno.Command("git", {
+      args,
+      stdout: "piped",
+      stderr: "piped",
+    });
+    const { code, stdout, stderr } = await cmd.output();
+    if (code !== 0) {
+      throw new Error(new TextDecoder().decode(stderr));
+    }
+    return new TextDecoder().decode(stdout).trim();
+  };
+
+  // 1) fetch remote
+  await run(["fetch", "--quiet", "origin"]);
+
+  // 2) find remote base branch
+  let base = "master";
+  try {
+    await run(["ls-remote", "--heads", "origin", "main"]);
+    base = "main";
+  } catch {
+    // keep master
   }
-  return "";
+
+  // 3) diff HEAD against origin/<base>
+  return run(["diff", `origin/${base}...HEAD`]);
 };
 
 export const commitAllChanges = async (message: string): Promise<string> => {
