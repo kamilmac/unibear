@@ -108,3 +108,31 @@ export const getGitDiffToLatestCommit = async (): Promise<string> => {
   }
   return new TextDecoder().decode(stdout);
 };
+
+export const getLocalModifiedFilePaths = async (): Promise<string[]> => {
+  const runCmd = async (args: string[]): Promise<string> => {
+    const cmd = new Deno.Command("git", {
+      args,
+      stdout: "piped",
+      stderr: "piped",
+    });
+    const { code, stdout, stderr } = await cmd.output();
+    if (code !== 0) {
+      throw new Error(new TextDecoder().decode(stderr));
+    }
+    return new TextDecoder().decode(stdout).trim();
+  };
+
+  const changed = (await runCmd([
+    "diff",
+    "--name-only",
+    "HEAD",
+  ])).split("\n").filter(Boolean);
+  const untracked = (await runCmd([
+    "ls-files",
+    "--others",
+    "--exclude-standard",
+  ])).split("\n").filter(Boolean);
+
+  return Array.from(new Set([...changed, ...untracked]));
+};

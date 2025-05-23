@@ -1,4 +1,5 @@
 import { COLORS } from "../../utils/constants.ts";
+import { getLocalModifiedFilePaths } from "../../utils/git.ts";
 import {
   commitAllChanges,
   getGitDiffToBaseBranch,
@@ -74,5 +75,21 @@ Keep the tone clear and professional. If the purpose is unclear from the code, n
       return `PR description: ${response}\nShow it to the user!`;
     },
     mode: ["git"],
+  },
+  {
+    definition: {
+      function: {
+        name: "git_list_local_modified_files",
+        description:
+          "Lists locally modified (staged/unstaged) and untracked file paths",
+      },
+      type: "function",
+    },
+    process: async (_args, log) => {
+      log(COLORS.tool("\nListing locally modified files...\n"));
+      const files = await getLocalModifiedFilePaths();
+      return files.join("\n");
+    },
+    mode: ["git", "normal", "edit"],
   },
 ];
