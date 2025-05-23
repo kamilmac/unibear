@@ -117,6 +117,38 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
       function: {
+        name: "search_content",
+        description:
+          "Search for a substring in all files (excludes node_modules/.git)",
+        strict: true,
+        parameters: zodToJsonSchema(
+          z.object({
+            query: z.string().describe("Text to search for"),
+          }).strict(),
+        ),
+      },
+      type: "function",
+    },
+    process: async (args, log) => {
+      const schema = z.object({
+        query: z.string(),
+      });
+      const parsed = schema.safeParse(args);
+      if (!parsed.success) throw new Error(parsed.error.message);
+      const cwd = Deno.cwd();
+      log(
+        COLORS.tool(
+          `\nSearching content for "${parsed.data.query}" in ${cwd}\n`,
+        ),
+      );
+      const hits = await searchContent(cwd, parsed.data.query);
+      return hits.map((h) => `${h.file}:${h.line}: ${h.text}`).join("\n");
+    },
+    mode: ["normal", "edit"],
+  },
+  {
+    definition: {
+      function: {
         name: "write_file",
         description:
           "Create a new file or completely overwrite an existing file with new content. " +
@@ -326,6 +358,36 @@ function createUnifiedDiff(
     "modified",
   );
 }
+
+const searchContent = async (
+  rootPath: string,
+  query: string,
+): Promise<{ file: string; line: number; text: string }[]> => {
+  const results: { file: string; line: number; text: string }[] = [];
+  const skipDirs = ["node_modules", ".git"];
+  async function recurse(dir: string) {
+    for await (const ent of Deno.readDir(dir)) {
+      if (skipDirs.includes(ent.name)) continue;
+      const full = join(dir, ent.name);
+      if (ent.isDirectory) {
+        await recurse(full);
+      } else {
+        try {
+          const stat = await Deno.stat(full);
+          if (stat.size > MAX_SIZE) return;
+          const text = await Deno.readTextFile(full);
+          text.split("\n").forEach((line, i) => {
+            if (line.includes(query)) {
+              results.push({ file: full, line: i + 1, text: line });
+            }
+          });
+        } catch {}
+      }
+    }
+  }
+  await recurse(rootPath);
+  return results;
+};
 
 const searchFiles = async (
   rootPath: string,
