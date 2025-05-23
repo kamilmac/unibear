@@ -1,3 +1,4 @@
+import { COLORS } from "../../utils/constants.ts";
 import {
   commitAllChanges,
   getGitDiffToBaseBranch,
@@ -16,15 +17,15 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async () => {
+    process: async (_args: unknown, log) => {
+      log(COLORS.tool("\nCreating commit...\n"));
       const diff = await getGitDiffToLatestCommit();
       const response = await llm.send(
         "You are an expert senior engineer. Generate a concise git commit message for the following diff.",
         diff,
       );
       await commitAllChanges(response);
-      return `Return directly to user and informa about successfull commit with following message:
-      ${response}`;
+      return `Commit message: ${response}\nShow it to the user!`;
     },
     mode: ["git"],
   },
@@ -32,18 +33,20 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
     definition: {
       function: {
         name: "git_review",
-        description: "Creates a review of all changes to base git branch",
+        description:
+          "Creates and returns a review of all changes to base git branch",
       },
       type: "function",
     },
-    process: async (_args: unknown) => {
+    process: async (_args: unknown, log) => {
+      log(COLORS.tool("\nPreparing review...\n"));
       const diff = await getGitDiffToBaseBranch();
       const response = await llm.send(
         `
 You are an expert senior engineer. Given a unified diff to base branch (master or main), produce a concise, well‑formatted review of all the changes. Focus on code that can result in bugs and untested cases. Review the architecture and structure of the code. Look for potential logic and performance improvements. Provide compact summary in markdown format.`,
         diff,
       );
-      return `Return directly to user and show this review: ${response}`;
+      return `This is the review: ${response}\nShow it to the user!`;
     },
     mode: ["git"],
   },
@@ -55,7 +58,8 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
       },
       type: "function",
     },
-    process: async (_args, _log) => {
+    process: async (_args, log) => {
+      log(COLORS.tool("\nPreparing description for diff to base branch...\n"));
       const diff = await getGitDiffToBaseBranch();
       const response = await llm.send(
         `
@@ -63,10 +67,11 @@ You are an AI assistant creating Pull Request (PR) descriptions. Analyze the pro
 Generate a PR description in Markdown with the following sections:
 1.  **# Summary:** Briefly state the PR's goal (problem solved or feature added). Infer this from the changes.
 2.  **# Changes:** Describe the main technical modifications (key files, components, implementation approach). Be concise.
-Keep the tone clear and professional. If the purpose is unclear from the code, note that the summary is an inference. Do not invent information not present in the diff.`,
+Keep the tone clear and professional. If the purpose is unclear from the code, note that the summary is an inference. Do not invent information not present in the diff.
+3. Remove unnecessary whitespaces|indentation and empty lines.`,
         diff,
       );
-      return `Return directly to user with following PR description: ${response}`;
+      return `PR description: ${response}\nShow it to the user!`;
     },
     mode: ["git"],
   },
