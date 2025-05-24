@@ -594,7 +594,6 @@ const searchFiles = async (
         if (entry.isDirectory) {
           await search(fullPath);
         }
-        // deno-lint-ignore no-unused-vars
       } catch (error: any) {
         Logger.warning("Error processing entry during file search", {
           path: fullPath,
