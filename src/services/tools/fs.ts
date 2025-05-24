@@ -337,7 +337,7 @@ async function applyFileEdits(
   // Apply edits in reverse order
   let modifiedContent = content;
   for (const edit of sortedEdits.reverse()) {
-    modifiedContent = await applyFuzzyEdit(modifiedContent, edit);
+    modifiedContent = applyFuzzyEdit(modifiedContent, edit);
   }
 
   const diff = createUnifiedDiff(content, modifiedContent, filePath);
@@ -443,10 +443,10 @@ function calculateSimilarity(lines1: string[], lines2: string[]): number {
   return matches / lines1.length;
 }
 
-async function applyFuzzyEdit(
+function applyFuzzyEdit(
   content: string,
   edit: { old_text: string; new_text: string },
-): Promise<string> {
+): string {
   const normalizedOld = normalizeForMatching(edit.old_text);
   const normalizedNew = edit.new_text;
 
