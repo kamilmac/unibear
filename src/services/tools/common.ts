@@ -22,13 +22,13 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async (args, log) => {
+    process: async (args, print) => {
       const parsed = WebSearchOperation.safeParse(args);
       if (!parsed.success) {
-        log(`\nInvalid arguments for web_search: ${parsed.error}`);
+        print(`\nInvalid arguments for web_search: ${parsed.error}`);
         throw new Error(`Invalid arguments for web_search: ${parsed.error}`);
       }
-      log(`\nSearching web for ${args.search_string}...`);
+      print(`\nSearching web for ${args.search_string}...`);
       return await llm.webSearch(parsed.data.search_string);
     },
     mode: ["web"],
@@ -43,7 +43,7 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore require-await
-    process: async (_args, _log) => {
+    process: async (_args, _print) => {
       const allTools = [
         ...commonTools(llm),
         ...fsTools(llm),

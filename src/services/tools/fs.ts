@@ -56,19 +56,19 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     },
     process: async (
       { file_paths },
-      log: (str: string) => void,
+      print: (str: string) => void,
     ) => {
       let combined = "";
       for (const file_path of file_paths as string[]) {
-        log(COLORS.tool(`\nReading from:\n${file_path}\n`));
+        print(COLORS.tool(`\nReading from:\n${file_path}\n`));
         try {
           const stats = await Deno.stat(file_path);
           if (stats.size > MAX_SIZE) {
-            log(COLORS.tool("\nFile too big. content ignored.\n"));
+            print(COLORS.tool("\nFile too big. content ignored.\n"));
             continue;
           }
         } catch {
-          log(COLORS.tool("\nCannot access file.\n"));
+          print(COLORS.tool("\nCannot access file.\n"));
           continue;
         }
         const data = await Deno.readTextFile(file_path);
@@ -98,14 +98,14 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     },
     process: async (
       args,
-      log: (str: string) => void,
+      print: (str: string) => void,
     ) => {
       const parsed = SearchOperation.safeParse(args);
       if (!parsed.success) {
-        log(`Invalid arguments for search_files: ${parsed.error}`);
+        print(`Invalid arguments for search_files: ${parsed.error}`);
         throw new Error(`Invalid arguments for search_files: ${parsed.error}`);
       }
-      log(COLORS.tool(`\nSearching for files:\n${parsed.data.pattern}\n`));
+      print(COLORS.tool(`\nSearching for files:\n${parsed.data.pattern}\n`));
       const results = await searchFiles(
         Deno.cwd(),
         parsed.data.pattern,
@@ -130,14 +130,14 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async (args, log) => {
+    process: async (args, print) => {
       const schema = z.object({
         query: z.string(),
       });
       const parsed = schema.safeParse(args);
       if (!parsed.success) throw new Error(parsed.error.message);
       const cwd = Deno.cwd();
-      log(
+      print(
         COLORS.tool(
           `\nSearching content for "${parsed.data.query}" in ${cwd}\n`,
         ),
@@ -160,7 +160,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async (args, _log) => {
+    process: async (args, _print) => {
       const parsed = CreateFilesArgsSchema.safeParse(args);
       if (!parsed.success) {
         throw new Error(`Invalid arguments for write_file: ${parsed.error}`);
@@ -186,14 +186,14 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore no-explicit-any
-    process: async (args: any, log: any) => {
+    process: async (args: any, print: any) => {
       const parsed = EditFileArgsSchema.safeParse(args);
       if (!parsed.success) {
-        log(`Edit file - failed parsing changes:\n${args.file_path}\n`);
+        print(`Edit file - failed parsing changes:\n${args.file_path}\n`);
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
       const validPath = await validatePath(parsed.data.file_path);
-      log(COLORS.tool(`\nEdit file - writing to:\n${validPath}\n`));
+      print(COLORS.tool(`\nEdit file - writing to:\n${validPath}\n`));
       return await applyFileEdits(validPath, parsed.data.edits);
     },
     mode: ["edit"],
@@ -219,7 +219,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         );
       }
       const validPath = await validatePath(parsed.data.path);
-      log(COLORS.tool(`\nCreating dir:\n${parsed.data.path}\n`));
+      print(COLORS.tool(`\nCreating dir:\n${parsed.data.path}\n`));
       await Deno.mkdir(validPath, { recursive: true });
       return `Successfully created directory ${parsed.data.path}`;
     },
@@ -238,7 +238,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore no-explicit-any
-    process: async (args: any, _log: any) => {
+    process: async (args: any, _print: any) => {
       const parsed = ListDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
         throw new Error(

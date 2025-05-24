@@ -19,8 +19,8 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async (_args: unknown, log) => {
-      log(COLORS.tool("\nCreating commit...\n"));
+    process: async (_args: unknown, print) => {
+      print(COLORS.tool("\nCreating commit...\n"));
       const diff = await getGitDiffToLatestCommit();
       const response = await llm.send(
         "You are an expert senior engineer. Generate a concise git commit message for the following diff.",
@@ -42,8 +42,8 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async (_args: unknown, log) => {
-      log(COLORS.tool("\nPreparing review...\n"));
+    process: async (_args: unknown, print) => {
+      print(COLORS.tool("\nPreparing review...\n"));
       const diff = await getGitDiffToBaseBranch();
       const response = await llm.send(
         `
@@ -64,8 +64,8 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
       },
       type: "function",
     },
-    process: async (_args, log) => {
-      log(COLORS.tool("\nPreparing description for diff to base branch...\n"));
+    process: async (_args, print) => {
+      print(COLORS.tool("\nPreparing description for diff to base branch...\n"));
       const diff = await getGitDiffToBaseBranch();
       const response = await llm.send(
         `
@@ -92,8 +92,8 @@ Keep the tone clear and professional. If the purpose is unclear from the code, n
       },
       type: "function",
     },
-    process: async (_args, log) => {
-      log(COLORS.tool("\nListing locally modified files...\n"));
+    process: async (_args, print) => {
+      print(COLORS.tool("\nListing locally modified files...\n"));
       const files = await getLocalModifiedFilePaths();
       return files.join("\n");
     },
