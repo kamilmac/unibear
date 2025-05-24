@@ -1,5 +1,5 @@
 import { OpenAI } from "npm:openai";
-import { TEMPERATURE } from "../../utils/constants.ts";
+import { PROVIDER, TEMPERATURE } from "../../utils/constants.ts";
 import { PreparedTools } from "../tools.ts";
 import { config } from "../../utils/config.ts";
 
@@ -35,13 +35,12 @@ const ollama_config = {
   webSearchModel: config.model ?? "qwen3:30b-a3b",
 };
 
-export const OLLAMA_BASE_URL = "http://localhost:11434/v1";
 let llmCfg = openai_config;
-if (config.provider === "anthropic") {
+if (PROVIDER === "anthropic") {
   llmCfg = anthropic_config;
-} else if (config.provider === "gemini") {
+} else if (PROVIDER === "gemini") {
   llmCfg = gemini_config;
-} else if (config.provider === "ollama") {
+} else if (PROVIDER === "ollama") {
   llmCfg = ollama_config;
 }
 
