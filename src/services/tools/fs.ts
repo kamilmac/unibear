@@ -192,7 +192,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async (args, _print) => {
+    process: async (args, print) => {
       const parsed = CreateFilesArgsSchema.safeParse(args);
       if (!parsed.success) {
         Logger.error("Invalid arguments for write_file", {
@@ -204,6 +204,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("Writing file", { path: parsed.data.path }); // Added
       const validPath = await validatePath(parsed.data.path);
       const data = new TextEncoder().encode(parsed.data.content);
+      print(`\nWrite file - ${parsed.data.path}\n`);
       await Deno.writeFile(validPath, data);
       Logger.info("Successfully wrote to file", { path: validPath }); // Added
       return `Successfully wrote to ${parsed.data.path}`;
