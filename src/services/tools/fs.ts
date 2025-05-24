@@ -7,6 +7,7 @@ import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import * as os from "node:os";
 import { LLMAdapter } from "../llm_providers/default.ts";
 import { COLORS, MAX_SIZE } from "../../utils/constants.ts";
+import { Logger } from "../logging.ts"; // Added
 
 const EditOperation = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
@@ -61,18 +62,29 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       let combined = "";
       for (const file_path of file_paths as string[]) {
         print(COLORS.tool(`\nReading from:\n${file_path}\n`));
+        Logger.debug("Attempting to read file", { file_path }); // Added
         try {
           const stats = await Deno.stat(file_path);
           if (stats.size > MAX_SIZE) {
             print(COLORS.tool("\nFile too big. content ignored.\n"));
+            Logger.warning("File too big, content ignored", {
+              file_path,
+              size: stats.size,
+              maxSize: MAX_SIZE,
+            }); // Added
             continue;
           }
-        } catch {
+        } catch (err: any) {
           print(COLORS.tool("\nCannot access file.\n"));
+          Logger.error("Cannot access file during read", {
+            file_path,
+            error: err.message,
+          }); // Added
           continue;
         }
         const data = await Deno.readTextFile(file_path);
         combined += `\n=== ${file_path} ===\n${data}\n`;
+        Logger.debug("Successfully read file", { file_path }); // Added
       }
       return combined.trim();
     },
@@ -102,14 +114,23 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     ) => {
       const parsed = SearchOperation.safeParse(args);
       if (!parsed.success) {
+        Logger.error("Invalid arguments for search_files", {
+          args,
+          error: parsed.error.toString(),
+        }); // Added
         print(`Invalid arguments for search_files: ${parsed.error}`);
         throw new Error(`Invalid arguments for search_files: ${parsed.error}`);
       }
+      Logger.info("Searching for files", { pattern: parsed.data.pattern }); // Added
       print(COLORS.tool(`\nSearching for files:\n${parsed.data.pattern}\n`));
       const results = await searchFiles(
         Deno.cwd(),
         parsed.data.pattern,
       );
+      Logger.info("File search complete", {
+        pattern: parsed.data.pattern,
+        count: results.length,
+      }); // Added
       return results.join("\n");
     },
     mode: ["normal", "edit", "git"],
@@ -135,14 +156,25 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         query: z.string(),
       });
       const parsed = schema.safeParse(args);
-      if (!parsed.success) throw new Error(parsed.error.message);
+      if (!parsed.success) {
+        Logger.error("Invalid arguments for search_content", {
+          args,
+          error: parsed.error.message,
+        }); // Added
+        throw new Error(parsed.error.message);
+      }
       const cwd = Deno.cwd();
+      Logger.info("Searching content", { query: parsed.data.query, cwd }); // Added
       print(
         COLORS.tool(
           `\nSearching content for "${parsed.data.query}" in ${cwd}\n`,
         ),
       );
       const hits = await searchContent(cwd, parsed.data.query);
+      Logger.info("Content search complete", {
+        query: parsed.data.query,
+        count: hits.length,
+      }); // Added
       return hits.map((h) => `${h.file}:${h.line}: ${h.text}`).join("\n");
     },
     mode: ["normal", "edit"],
@@ -163,11 +195,17 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     process: async (args, _print) => {
       const parsed = CreateFilesArgsSchema.safeParse(args);
       if (!parsed.success) {
+        Logger.error("Invalid arguments for write_file", {
+          args,
+          error: parsed.error.toString(),
+        }); // Added
         throw new Error(`Invalid arguments for write_file: ${parsed.error}`);
       }
+      Logger.info("Writing file", { path: parsed.data.path }); // Added
       const validPath = await validatePath(parsed.data.path);
       const data = new TextEncoder().encode(parsed.data.content);
       await Deno.writeFile(validPath, data);
+      Logger.info("Successfully wrote to file", { path: validPath }); // Added
       return `Successfully wrote to ${parsed.data.path}`;
     },
     mode: ["edit"],
@@ -189,12 +227,22 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     process: async (args: any, print: any) => {
       const parsed = EditFileArgsSchema.safeParse(args);
       if (!parsed.success) {
+        Logger.error("Invalid arguments for edit_file", {
+          args,
+          error: parsed.error.toString(),
+        }); // Added
         print(`Edit file - failed parsing changes:\n${args.file_path}\n`);
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
+      Logger.info("Editing file", {
+        path: parsed.data.file_path,
+        editCount: parsed.data.edits.length,
+      }); // Added
       const validPath = await validatePath(parsed.data.file_path);
       print(COLORS.tool(`\nEdit file - writing to:\n${validPath}\n`));
-      return await applyFileEdits(validPath, parsed.data.edits);
+      const result = await applyFileEdits(validPath, parsed.data.edits);
+      Logger.info("File edit complete", { path: validPath }); // Added
+      return result;
     },
     mode: ["edit"],
   },
@@ -214,13 +262,19 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     process: async (args: any, print: any) => {
       const parsed = CreateDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
+        Logger.error("Invalid arguments for create_directory", {
+          args,
+          error: parsed.error.toString(),
+        }); // Added
         throw new Error(
           `Invalid arguments for create_directory: ${parsed.error}`,
         );
       }
+      Logger.info("Creating directory", { path: parsed.data.path }); // Added
       const validPath = await validatePath(parsed.data.path);
       print(COLORS.tool(`\nCreating dir:\n${parsed.data.path}\n`));
       await Deno.mkdir(validPath, { recursive: true });
+      Logger.info("Successfully created directory", { path: validPath }); // Added
       return `Successfully created directory ${parsed.data.path}`;
     },
     mode: ["edit"],
@@ -241,16 +295,25 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     process: async (args: any, _print: any) => {
       const parsed = ListDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
+        Logger.error("Invalid arguments for list_directory", {
+          args,
+          error: parsed.error.toString(),
+        }); // Added
         throw new Error(
           `Invalid arguments for list_directory: ${parsed.error}`,
         );
       }
+      Logger.info("Listing directory", { path: parsed.data.path }); // Added
       const validPath = await validatePath(parsed.data.path);
       const entries = Deno.readDir(validPath);
       const formatted = [];
       for await (const item of entries) {
         formatted.push(`${item.isDirectory ? "[DIR]" : "[FILE]"} ${item.name}`);
       }
+      Logger.info("Directory listing complete", {
+        path: validPath,
+        count: formatted.length,
+      }); // Added
       return formatted.join("\n");
     },
     mode: ["normal", "edit"],
@@ -263,6 +326,7 @@ async function applyFileEdits(
   filePath: string,
   edits: Array<{ old_text: string; new_text: string }>,
 ): Promise<string> {
+  Logger.debug("Applying file edits", { filePath, editCount: edits.length }); // Added
   const file = await Deno.readTextFile(filePath);
   const content = normalizeLineEndings(file);
 
@@ -277,6 +341,7 @@ async function applyFileEdits(
 
   const diff = createUnifiedDiff(content, modifiedContent, filePath);
   await Deno.writeTextFile(filePath, modifiedContent);
+  Logger.debug("File edits applied and written", { filePath }); // Added
 
   return formatDiffOutput(diff);
 }
@@ -313,6 +378,12 @@ async function sortEditsByPosition(
       // Try fuzzy matching to find position
       const match = findBestMatch(content, normalizedOld);
       position = match ? match.start : -1;
+      if (position === -1) {
+        Logger.warning(
+          "Could not find exact or fuzzy match for edit text during sort",
+          { old_text: edit.old_text },
+        ); // Added
+      }
     }
 
     editsWithPositions.push({ ...edit, position });
@@ -345,7 +416,9 @@ function findBestMatch(
       bestScore = score;
     }
   }
-
+  if (!bestMatch) {
+    // Logger.debug("No suitable fuzzy match found", { target }); // Potential log, can be noisy
+  }
   return bestMatch;
 }
 
@@ -382,11 +455,18 @@ async function applyFuzzyEdit(
   // Try fuzzy matching with better similarity scoring
   const match = findBestMatch(content, normalizedOld);
   if (match) {
+    Logger.debug("Applying fuzzy edit", {
+      old_text: edit.old_text,
+      new_text: edit.new_text,
+      match_score: match.score,
+    }); // Added
     return content.substring(0, match.start) +
       normalizedNew +
       content.substring(match.end);
   }
-
+  Logger.error("Failed to apply fuzzy edit, no match found", {
+    old_text: edit.old_text,
+  }); // Added
   throw new Error(
     `Could not find match for:\n${edit.old_text}\n\n` +
       `Context: ${getSurroundingContext(content, normalizedOld)}`,
@@ -439,6 +519,10 @@ const searchContent = async (
   rootPath: string,
   query: string,
 ): Promise<{ file: string; line: number; text: string }[]> => {
+  Logger.debug("Starting content search recursive function", {
+    rootPath,
+    query,
+  }); // Added
   const results: { file: string; line: number; text: string }[] = [];
   const skipDirs = ["node_modules", ".git"];
   async function recurse(dir: string) {
@@ -450,18 +534,33 @@ const searchContent = async (
       } else {
         try {
           const stat = await Deno.stat(full);
-          if (stat.size > MAX_SIZE) return;
+          if (stat.size > MAX_SIZE) {
+            Logger.debug("Skipping large file in content search", {
+              file: full,
+              size: stat.size,
+            }); // Added
+            return;
+          }
           const text = await Deno.readTextFile(full);
           text.split("\n").forEach((line, i) => {
             if (line.includes(query)) {
               results.push({ file: full, line: i + 1, text: line });
             }
           });
-        } catch {}
+        } catch (err: any) {
+          Logger.warning("Error processing file during content search", {
+            file: full,
+            error: err.message,
+          }); // Added
+        }
       }
     }
   }
   await recurse(rootPath);
+  Logger.debug("Content search recursive function finished", {
+    rootPath,
+    resultsCount: results.length,
+  }); // Added
   return results;
 };
 
@@ -469,6 +568,10 @@ const searchFiles = async (
   rootPath: string,
   pattern: string,
 ): Promise<string[]> => {
+  Logger.debug("Starting file search recursive function", {
+    rootPath,
+    pattern,
+  }); // Added
   const results: string[] = [];
   const skipDirectories = ["node_modules"];
 
@@ -489,13 +592,21 @@ const searchFiles = async (
           await search(fullPath);
         }
         // deno-lint-ignore no-unused-vars
-      } catch (error) {
+      } catch (error: any) {
+        Logger.warning("Error processing entry during file search", {
+          path: fullPath,
+          error: error.message,
+        }); // Added
         continue;
       }
     }
   }
 
   await search(rootPath);
+  Logger.debug("File search recursive function finished", {
+    rootPath,
+    resultsCount: results.length,
+  }); // Added
   return results;
 };
 
@@ -508,6 +619,7 @@ const expandHome = (filepath: string): string => {
 
 // Security utilities
 const validatePath = async (requestedPath: string): Promise<string> => {
+  Logger.debug("Validating path", { requestedPath }); // Added
   const expandedPath = expandHome(requestedPath);
   const absolute = path.isAbsolute(expandedPath)
     ? path.resolve(expandedPath)
@@ -518,6 +630,10 @@ const validatePath = async (requestedPath: string): Promise<string> => {
   // Check if path is within allowed directories
   const isAllowed = normalizedRequested.startsWith(Deno.cwd());
   if (!isAllowed) {
+    Logger.error(
+      "Path validation failed: Access denied - path outside allowed directories",
+      { absolute, cwd: Deno.cwd() },
+    ); // Added
     throw new Error(
       `Access denied - path outside allowed directories: ${absolute} not in ${Deno.cwd()}`,
     );
@@ -529,12 +645,19 @@ const validatePath = async (requestedPath: string): Promise<string> => {
     const normalizedReal = path.normalize(realPath);
     const isRealPathAllowed = normalizedReal.startsWith(Deno.cwd());
     if (!isRealPathAllowed) {
+      Logger.error(
+        "Path validation failed: Access denied - symlink target outside allowed directories",
+        { realPath, cwd: Deno.cwd() },
+      ); // Added
       throw new Error(
         "Access denied - symlink target outside allowed directories",
       );
     }
+    Logger.debug("Path validated successfully (symlink or existing file)", {
+      realPath,
+    }); // Added
     return realPath;
-  } catch (_error) {
+  } catch (_error: any) {
     // For new files that don't exist yet, verify parent directory
     const parentDir = path.dirname(absolute);
     try {
@@ -542,12 +665,24 @@ const validatePath = async (requestedPath: string): Promise<string> => {
       const normalizedParent = path.normalize(realParentPath);
       const isParentAllowed = normalizedParent.startsWith(Deno.cwd());
       if (!isParentAllowed) {
+        Logger.error(
+          "Path validation failed: Access denied - parent directory outside allowed directories",
+          { parentDir, cwd: Deno.cwd() },
+        ); // Added
         throw new Error(
           "Access denied - parent directory outside allowed directories",
         );
       }
+      Logger.debug(
+        "Path validated successfully (new file in allowed parent directory)",
+        { path: absolute },
+      ); // Added
       return absolute;
-    } catch {
+    } catch (err: any) {
+      Logger.error("Path validation failed: Parent directory does not exist", {
+        parentDir,
+        error: err.message,
+      }); // Added
       throw new Error(`Parent directory does not exist: ${parentDir}`);
     }
   }
