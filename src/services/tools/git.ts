@@ -231,12 +231,24 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("Starting git_create_pr_description process");
       try {
         const response = await llm.send(
-          `You are an AI assistant creating Pull Request (PR) descriptions. Analyze the provided code to understand the changes and their purpose.
+          `You are an AI assistant creating Pull Request (PR) descriptions. 
+Analyze the provided code to understand the changes and their purpose.
+
 Generate a PR description in Markdown with the following sections:
-1.  **# Summary:** Briefly state the PR's goal (problem solved or feature added). Infer this from the changes.
-2.  **# Changes:** Describe the main technical modifications (key files, components, implementation approach). Be concise.
-Keep the tone clear and professional. If the purpose is unclear from the code, note that the summary is an inference. Do not invent information not present in the diff.
-3. Remove unnecessary whitespaces|indentation and empty lines.`,
+1. **# Summary:** Briefly state the PR's goal (problem solved or 
+   feature added). Infer this from the changes.
+2. **# Changes:** Describe the main technical modifications (key 
+   files, components, implementation approach). Be concise.
+
+IMPORTANT FORMATTING RULES:
+- Keep ALL lines under 70 characters maximum
+- Break long sentences across multiple lines
+- Use proper line wrapping for readability
+- Remove unnecessary whitespaces and empty lines
+- Maintain clear, professional tone
+
+If the purpose is unclear from the code, note that the summary is 
+an inference. Do not invent information not present in the diff.`,
           diff,
         );
         Logger.info("Generated PR description");
