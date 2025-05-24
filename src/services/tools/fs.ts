@@ -211,7 +211,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore no-explicit-any
-    process: async (args: any, log: any) => {
+    process: async (args: any, print: any) => {
       const parsed = CreateDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
         throw new Error(

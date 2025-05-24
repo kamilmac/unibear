@@ -1,4 +1,5 @@
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
+import { getAppConfigDir } from "./helpers.ts";
 
 export interface Config {
   provider?: "openai" | "anthropic" | "gemini" | "ollama";
@@ -17,10 +18,8 @@ export interface Config {
   };
 }
 
-const xdg = Deno.env.get("XDG_CONFIG_HOME") ??
-  `${Deno.env.get("HOME")}/.config`;
-export const APP_DIR = join(xdg, "unibear");
-const configPath = `${APP_DIR}/config.json`;
+export const APP_DIR = getAppConfigDir();
+const configPath = join(APP_DIR, "config.json");
 
 let file: Partial<Config> = {};
 

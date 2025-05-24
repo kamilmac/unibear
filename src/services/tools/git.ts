@@ -58,14 +58,17 @@ You are an expert senior engineer. Given a unified diff to base branch (master o
     definition: {
       function: {
         name: "git_create_pr_description",
-        description: "Generates a well-structured Pull Request description in Markdown format based on your code changes. " +
+        description:
+          "Generates a well-structured Pull Request description in Markdown format based on your code changes. " +
           "Includes a summary of changes and technical details. Saves time when preparing PRs by automatically " +
           "extracting the purpose and key modifications from your code.",
       },
       type: "function",
     },
     process: async (_args, print) => {
-      print(COLORS.tool("\nPreparing description for diff to base branch...\n"));
+      print(
+        COLORS.tool("\nPreparing description for diff to base branch...\n"),
+      );
       const diff = await getGitDiffToBaseBranch();
       const response = await llm.send(
         `
