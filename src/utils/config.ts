@@ -13,9 +13,7 @@ export interface Config {
   theme?: "light" | "dark";
   user_name?: string;
   key_bindings?: {
-    useGitTools?: string;
-    useEditTools?: string;
-    useWebTools?: string;
+            useModifyTools?: string;
   };
 }
 

@@ -26,15 +26,11 @@ export const KEY_BINDINGS = {
   goToTop: ["gg"],
   paste: ["p"],
   del: ["d"],
-  useGitTools: [config.key_bindings?.useGitTools ?? ":"],
-  useEditTools: [config.key_bindings?.useEditTools ?? "+"],
-  useWebTools: [config.key_bindings?.useWebTools ?? "?"],
+      useModifyTools: [config.key_bindings?.useModifyTools ?? "+"],
 } as const;
 export type KeyBindings = typeof KEY_BINDINGS;
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
-  [KEY_BINDINGS.useGitTools[0]]: "git",
-  [KEY_BINDINGS.useEditTools[0]]: "edit",
-  [KEY_BINDINGS.useWebTools[0]]: "web",
+  [KEY_BINDINGS.useModifyTools[0]]: "modify",
   default: "normal",
 };
 export const USER_LABEL = config.user_name ?? "USER";

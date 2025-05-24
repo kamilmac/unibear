@@ -87,8 +87,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         Logger.debug("Successfully read file", { file_path }); // Added
       }
       return combined.trim();
-    },
-    mode: ["normal", "edit", "git"],
+        },
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -133,7 +133,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       }); // Added
       return results.join("\n");
     },
-    mode: ["normal", "edit", "git"],
+        mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -177,7 +177,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       }); // Added
       return hits.map((h) => `${h.file}:${h.line}: ${h.text}`).join("\n");
     },
-    mode: ["normal", "edit"],
+        mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -208,8 +208,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       await Deno.writeFile(validPath, data);
       Logger.info("Successfully wrote to file", { path: validPath }); // Added
       return `Successfully wrote to ${parsed.data.path}`;
-    },
-    mode: ["edit"],
+        },
+    mode: ["modify"],
   },
   {
     definition: {
@@ -245,7 +245,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("File edit complete", { path: validPath }); // Added
       return result;
     },
-    mode: ["edit"],
+        mode: ["modify"],
   },
   {
     definition: {
@@ -278,7 +278,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("Successfully created directory", { path: validPath }); // Added
       return `Successfully created directory ${parsed.data.path}`;
     },
-    mode: ["edit"],
+        mode: ["modify"],
   },
   {
     definition: {
@@ -317,7 +317,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       }); // Added
       return formatted.join("\n");
     },
-    mode: ["normal", "edit"],
+        mode: ["normal", "modify"],
   },
 ];
 

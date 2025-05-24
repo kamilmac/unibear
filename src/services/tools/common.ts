@@ -51,8 +51,8 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
         }); // Added
         throw error; // Re-throw the error to be handled by the caller
       }
-    },
-    mode: ["web"],
+        },
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -87,6 +87,6 @@ ${toolDetails}`;
       }); // Added
       return response;
     },
-    mode: ["normal"],
+        mode: ["normal", "modify"],
   },
 ];
