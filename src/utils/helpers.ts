@@ -1,4 +1,4 @@
-import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
+import { basename, join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import { PORT, VERSION } from "./constants.ts";
 
 export async function handleCliArgs(): Promise<boolean> {
@@ -55,3 +55,9 @@ export const fileExists = async (
     return false;
   }
 };
+
+export function getAppConfigDir(): string {
+  const xdgConfigHome = Deno.env.get("XDG_CONFIG_HOME") ??
+    join(Deno.env.get("HOME") || "", ".config");
+  return join(xdgConfigHome, "unibear");
+}

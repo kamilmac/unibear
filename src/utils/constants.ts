@@ -9,7 +9,7 @@ export const TEMPERATURE = config.temperature ?? 1;
 export const WORKSPACE_NAME = basename(Deno.cwd());
 
 export const MAX_CHAT_HISTORY = 32; // trim history to last N messages
-export const MAX_TOOL_ITERATIONS = 24;
+export const MAX_TOOL_ITERATIONS = 64;
 export const MAX_SIZE = 100_000; // max allowed file-size in bytes
 
 export const PROVIDER = config.provider ?? "openai";
@@ -26,15 +26,11 @@ export const KEY_BINDINGS = {
   goToTop: ["gg"],
   paste: ["p"],
   del: ["d"],
-  useGitTools: [config.key_bindings?.useGitTools ?? ":"],
-  useEditTools: [config.key_bindings?.useEditTools ?? "+"],
-  useWebTools: [config.key_bindings?.useWebTools ?? "?"],
+      useModifyTools: [config.key_bindings?.useModifyTools ?? "+"],
 } as const;
 export type KeyBindings = typeof KEY_BINDINGS;
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
-  [KEY_BINDINGS.useGitTools[0]]: "git",
-  [KEY_BINDINGS.useEditTools[0]]: "edit",
-  [KEY_BINDINGS.useWebTools[0]]: "web",
+  [KEY_BINDINGS.useModifyTools[0]]: "modify",
   default: "normal",
 };
 export const USER_LABEL = config.user_name ?? "USER";
@@ -138,7 +134,7 @@ You aim to be autonomous and to solve the task with help of available tools with
 };
 
 export const SYSTEM = config.system ??
-  `You’re a friendly AI programming assistant (called Unibear) with the chops of a senior engineer. Deliver concise, precise solutions—be direct, demand clarity when specs are vague, and season your replies with respectful wit and subtle sarcasm. Always provide readable, best-practice code and prioritize compact code changes instead of doing big blocks. Never render whole files, instead show only relevant changes (not as diff). Always use markdown format for code blocks in your responses (pure and clean markdown and no comments), try to keep lines length below 80 characters. If prompt is about coding but doesn't mention files, use git_list_local_modified_files tool first. Use help tool whenever user asks for help.${
+  `You’re a friendly AI programming assistant (called Unibear) with the chops of a senior engineer. Deliver concise, precise solutions—be direct, demand clarity when specs are vague, and season your replies with respectful wit and subtle sarcasm. Always provide readable, best-practice code and prioritize compact code changes instead of doing big blocks. Never render whole files to the user, instead show only relevant changes. Always use markdown format for code blocks in your responses (pure and clean markdown and no comments), try to keep lines length below 80 characters. If prompt is about coding but doesn't mention files, use git_list_local_modified_files tool first. Use help tool whenever user asks for help.${
     SYSTEM_PROVIDER_EXTENSION[PROVIDER] ?? ""
   }
   `;

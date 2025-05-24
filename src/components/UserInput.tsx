@@ -74,11 +74,7 @@ export const UserInput = () => {
   const currentChar = after.charAt(0) || " ";
   const rest = after.slice(1);
 
-  const placeholder = [
-    `Press '${KEY_BINDINGS.useGitTools[0]}' for git`,
-    ` '${KEY_BINDINGS.useEditTools[0]}' for edit`,
-    ` '${KEY_BINDINGS.useWebTools[0]}' for web`,
-  ].join(",");
+      const placeholder = `Press '${KEY_BINDINGS.useModifyTools[0]}' for modify mode`;
 
   return (
     <Box
