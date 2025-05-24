@@ -99,7 +99,7 @@ const stream: LLMAdapter["stream"] = async (messages, tools) => {
     });
     Logger.debug("LLM stream creation successful"); // Added
     return streamResult;
-  } catch (error) {
+  } catch (error: any) {
     Logger.error("LLM stream creation failed", {
       model: llmCfg.model,
       error: error.message,
@@ -127,7 +127,7 @@ const webSearch: LLMAdapter["webSearch"] = async (searchString) => {
       output_length: response.output_text?.length,
     }); // Added
     return response.output_text;
-  } catch (error) {
+  } catch (error: any) {
     Logger.error("LLM web search failed", {
       model: llmCfg.webSearchModel,
       searchString,
@@ -159,7 +159,7 @@ const send: LLMAdapter["send"] = async (system, content) => {
     const message = choices[0].message?.content?.trim() || "";
     Logger.info("LLM send successful", { response_length: message.length }); // Added
     return message;
-  } catch (error) {
+  } catch (error: any) {
     Logger.error("LLM send failed", {
       model: llmCfg.model,
       error: error.message,

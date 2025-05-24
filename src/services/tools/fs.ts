@@ -332,7 +332,7 @@ async function applyFileEdits(
   const content = normalizeLineEndings(file);
 
   // Sort edits by position (reverse order to avoid offset issues)
-  const sortedEdits = await sortEditsByPosition(content, edits);
+  const sortedEdits = sortEditsByPosition(content, edits);
 
   // Apply edits in reverse order
   let modifiedContent = content;
@@ -365,10 +365,10 @@ function formatDiffOutput(diff: string): string {
   }\n\n`;
 }
 
-async function sortEditsByPosition(
+function sortEditsByPosition(
   content: string,
   edits: Array<{ old_text: string; new_text: string }>,
-): Promise<Array<{ old_text: string; new_text: string; position: number }>> {
+): Array<{ old_text: string; new_text: string; position: number }> {
   const editsWithPositions = [];
 
   for (const edit of edits) {
