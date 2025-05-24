@@ -398,6 +398,8 @@ function findBestMatch(
   content: string,
   target: string,
 ): { start: number; end: number; score: number } | null {
+  const FUZZY_MATCH_SIMILARITY_THRESHOLD = 0.90;
+
   const contentLines = content.split("\n");
   const targetLines = target.split("\n");
 
@@ -408,7 +410,7 @@ function findBestMatch(
     const candidateLines = contentLines.slice(i, i + targetLines.length);
     const score = calculateSimilarity(candidateLines, targetLines);
 
-    if (score > bestScore && score > 0.8) { // 80% similarity threshold
+    if (score > bestScore && score > FUZZY_MATCH_SIMILARITY_THRESHOLD) {
       const startPos = contentLines.slice(0, i).join("\n").length +
         (i > 0 ? 1 : 0);
       const endPos = startPos + candidateLines.join("\n").length;
