@@ -88,14 +88,9 @@ Follow these steps to begin using Unibear:
      and Neovim.
 
 4. Apply edits\
-   Press your `useEditTools` key (default `+`) to enable write tools,\
-   then instruct the AI to apply changes to your files. (Read tools are vailable
-   in default mode).
-
-5. Commit and review\
-   Press your `useGitTools` key (default `:`) and enter commands like\
-   `commit changes`. You can also request a review based on your diff\
-   or generate a PR description.
+   Press your `useModifyTools` key (default `+`) to enable write tools,\
+   then instruct the AI to apply changes to your files and commit them.\
+   (Read-only tools are available in default mode).
 
 <br>
 
@@ -103,7 +98,7 @@ Follow these steps to begin using Unibear:
 
 - 🚀 Work in **Prompt** or **Visual** (Vim/Helix-like) modes
 - 🔍 Inject arbitrary file context
-- 🔧 Built-in Git, filesystem and web-search tools
+- 🔧 Built-in Git, filesystem, and web-search tools
 - 🤝 Plan & pair-program with your AI buddy before applying edits
 - 🖥️ Responsive TUI
 - 📁 Ability to use a local LLM server that supports the OpenAI chat completions
@@ -170,10 +165,8 @@ Create `~/.config/unibear/config.json`:
   "port": 12496,
   "theme": "dark",
   "user_name": "Alice",
-  "key_bindings": {
-    "useGitTools": ":",
-    "useEditTools": "+",
-    "useWebTools": "?"
+    "key_bindings": {
+    "useModifyTools": "+"
   }
 }
 ```
@@ -196,7 +189,7 @@ OPENAI_API_URL=http://localhost:11434/v1 unibear
 
 - Press `i`
 - Type your prompt and hit ↵
-- Invoke tools like `edit`, `git`, or `web_search`
+- Invoke tools like file operations, git commands, or web search
 
 ### Visual Mode
 
@@ -209,12 +202,10 @@ OPENAI_API_URL=http://localhost:11434/v1 unibear
 
 ## Tools
 
-| Tool Group | Key | Commands                                                                          |
-| ---------- | --- | --------------------------------------------------------------------------------- |
-| Default    | –   | read_multiple_files, search_files, app_control_reset_chat, app_control_quit, help |
-| Git        | `:` | git_auto_commit, git_review, git_create_pr_description                            |
-| Edit       | `+` | edit_file, write_file, create_directory, list_directory                           |
-| Web        | `?` | web_search                                                                        |
+| Tool Mode | Key | Commands                                                                          |
+| --------- | --- | --------------------------------------------------------------------------------- |
+| Normal    | –   | read_multiple_files, search_files, search_content, list_directory, git_get_diff_to_base, git_get_working_diff, git_generate_commit_message, git_review, git_create_pr_description, web_search, help |
+| Modify    | `+` | edit_file, write_file, create_directory, git_commit                               |
 
 <br>
 
@@ -237,10 +228,8 @@ OPENAI_API_URL=http://localhost:11434/v1 unibear
     "goToTop": ["gg"],
     "goToEnd": ["G", "ge"]
   },
-  "tools": {
-    "git": [":"],
-    "edit": ["+"],
-    "web": ["?"]
+    "tools": {
+    "modify": ["+"]
   }
 }
 ```
