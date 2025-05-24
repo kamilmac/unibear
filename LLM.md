@@ -105,3 +105,9 @@ Key Features:
 ---
 
 _Summary generated automatically._
+
+USER SECTION:
+TODO:
+[ ] Root file for context about repo
+[ ] Cleanup git tools
+[ ] create 'write' state instead of many tools
