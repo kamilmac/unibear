@@ -3,7 +3,11 @@ import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import { getAppConfigDir } from "../utils/helpers.ts";
 
 const APP_CONFIG_DIR = getAppConfigDir();
-const LOG_FILE_PATH = join(APP_CONFIG_DIR, "logs", "app.log");
+
+function getLogFilePath(): string {
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  return join(APP_CONFIG_DIR, "logs", `app-${today}.log`);
+}
 
 interface LogEntry {
   timestamp: string;
@@ -14,9 +18,10 @@ interface LogEntry {
 
 async function writeLog(entry: LogEntry): Promise<void> {
   try {
-    await ensureFile(LOG_FILE_PATH);
+    const logFilePath = getLogFilePath();
+    await ensureFile(logFilePath);
     const logLine = JSON.stringify(entry) + "\n";
-    await Deno.writeTextFile(LOG_FILE_PATH, logLine, { append: true });
+    await Deno.writeTextFile(logFilePath, logLine, { append: true });
   } catch (_error) {
     // swallow
   }
@@ -51,7 +56,3 @@ export class Logger {
     // }
   }
 }
-
-// Example usage:
-// Logger.info("Application started");
-// Logger.error("Something went wrong", { error: new Error("Example error") });
