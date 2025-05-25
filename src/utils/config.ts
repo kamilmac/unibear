@@ -13,7 +13,7 @@ export interface Config {
   theme?: "light" | "dark";
   user_name?: string;
   key_bindings?: {
-            useModifyTools?: string;
+    useModifyTools?: string;
   };
 }
 

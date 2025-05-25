@@ -74,7 +74,9 @@ export const UserInput = () => {
   const currentChar = after.charAt(0) || " ";
   const rest = after.slice(1);
 
-      const placeholder = `Press '${KEY_BINDINGS.useModifyTools[0]}' for modify mode`;
+  const placeholder = `Press '${
+    KEY_BINDINGS.useModifyTools[0]
+  }' for modify mode`;
 
   return (
     <Box

@@ -165,7 +165,7 @@ Create `~/.config/unibear/config.json`:
   "port": 12496,
   "theme": "dark",
   "user_name": "Alice",
-    "key_bindings": {
+  "key_bindings": {
     "useModifyTools": "+"
   }
 }
@@ -202,10 +202,10 @@ OPENAI_API_URL=http://localhost:11434/v1 unibear
 
 ## Tools
 
-| Tool Mode | Key | Commands                                                                          |
-| --------- | --- | --------------------------------------------------------------------------------- |
+| Tool Mode | Key | Commands                                                                                                                                                                                            |
+| --------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Normal    | –   | read_multiple_files, search_files, search_content, list_directory, git_get_diff_to_base, git_get_working_diff, git_generate_commit_message, git_review, git_create_pr_description, web_search, help |
-| Modify    | `+` | edit_file, write_file, create_directory, git_commit                               |
+| Modify    | `+` | edit_file, write_file, create_directory, git_commit                                                                                                                                                 |
 
 <br>
 
@@ -228,7 +228,7 @@ OPENAI_API_URL=http://localhost:11434/v1 unibear
     "goToTop": ["gg"],
     "goToEnd": ["G", "ge"]
   },
-    "tools": {
+  "tools": {
     "modify": ["+"]
   }
 }
