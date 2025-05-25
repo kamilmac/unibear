@@ -37,7 +37,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
         });
         return `Error getting diff: ${error.message}`;
       }
-        },
+    },
     mode: ["normal", "modify"],
   },
   {
@@ -67,7 +67,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
         return `Error getting diff: ${error.message}`;
       }
     },
-        mode: ["normal", "modify"],
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -108,8 +108,8 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
         });
         return `Error during commit: ${error.message}`;
       }
-        },
-    mode: ["modify"],
+    },
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -154,7 +154,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
         return `Error generating commit message: ${error.message}`;
       }
     },
-        mode: ["normal", "modify"],
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -199,7 +199,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
         return `Error during review generation: ${error.message}`;
       }
     },
-        mode: ["normal", "modify"],
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -261,7 +261,7 @@ an inference. Do not invent information not present in the diff.`,
         return `Error during PR description generation: ${error.message}`;
       }
     },
-        mode: ["normal", "modify"],
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -289,6 +289,6 @@ an inference. Do not invent information not present in the diff.`,
         return `Error listing files: ${error.message}`;
       }
     },
-        mode: ["normal", "modify"],
+    mode: ["normal", "modify"],
   },
 ];
