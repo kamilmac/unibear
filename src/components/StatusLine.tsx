@@ -20,7 +20,7 @@ export const StatusLine = () => {
     >
       <Text inverse>{modes[opMode]}</Text>
       <Text>{COLORS.statusLineInactive(WORKSPACE_NAME)}</Text>
-            <Box justifyContent="flex-end">
+      <Box justifyContent="flex-end">
         <Text>
           {modifyMode
             ? COLORS.statusLineActive(" + ")
