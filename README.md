@@ -162,6 +162,7 @@ Create `~/.config/unibear/config.json`:
   "web_search_model": "gpt-4.1-mini",
   "temperature": 0.7,
   "port": 12496,
+  "system": <SYSTEM_MESSAGE> // It will replace the Unibear default message
   "theme": "dark",
   "user_name": "Alice",
   "key_bindings": {

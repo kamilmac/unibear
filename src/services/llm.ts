@@ -24,6 +24,7 @@ async function sendChat(
   messages: OpenAI.ChatCompletionMessageParam[],
   toolMode: ToolMode,
   onChunk: (chunk: string) => void,
+  isCancelled: () => boolean,
 ) {
   let history = messages;
   const tools = getTools(toolMode, LLM);
@@ -41,6 +42,9 @@ async function sendChat(
       history = trimHistory(history);
       const _stream = await LLM.stream(history, tools);
       for await (const chunk of _stream) {
+        if (isCancelled()) {
+          return; // Exit early if cancellation is requested
+        }
         const delta = chunk.choices?.[0].delta;
         if (delta?.tool_calls) {
           // onChunk(JSON.stringify(chunk));
@@ -135,10 +139,11 @@ export const streamLLMResponse = async (
   chat: ChatItem[],
   toolMode: ToolMode,
   cb: (chunk: string) => void,
+  isCancelled: () => boolean,
 ) => {
   const messages = buildHistoryMessages(context, chat);
   try {
-    await sendChat(messages, toolMode, cb);
+    await sendChat(messages, toolMode, cb, isCancelled);
   } catch (err) {
     console.error("streamOpenAIResponse error:", err);
   }

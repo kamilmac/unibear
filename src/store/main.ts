@@ -89,6 +89,11 @@ export const useStore = create<Store>((set, get) => ({
     });
   },
   isStreamingResponse: false,
+  isCancellationRequested: false,
+  cancelStream: () => {
+    Logger.info("Stream cancellation requested by user");
+    set({ isCancellationRequested: true });
+  },
   operationMode: "prompt" as OperationMode,
   setOperationMode: (mode) => {
     Logger.debug("Operation mode changed", {
@@ -96,6 +101,14 @@ export const useStore = create<Store>((set, get) => ({
       oldMode: get().operationMode,
     }); // Added
     set({ operationMode: mode });
+  },
+  modifyMode: false,
+  setModifyMode: (enabled) => {
+    Logger.debug("Modify mode changed", {
+      newMode: enabled,
+      oldMode: get().modifyMode,
+    });
+    set({ modifyMode: enabled });
   },
   dimensions: { cols: 0, rows: 0 },
   chat: [],
@@ -205,6 +218,7 @@ export const useStore = create<Store>((set, get) => ({
     Logger.info("Starting LLM response stream", { toolMode }); // Added
     set({
       isStreamingResponse: true,
+      isCancellationRequested: false,
       chat: [...chat, aiChatitem],
     });
     await streamLLMResponse(
@@ -223,15 +237,36 @@ export const useStore = create<Store>((set, get) => ({
         ) as string).split(
           "\n",
         );
-        // Logger.debug("LLM stream chunk received", { chunk_length: chunk.length, current_content_length: aiChatitem.content.length }); // Potentially very noisy
         set({
           chat: [...chat, aiChatitem],
         });
       },
+      () => get().isCancellationRequested,
     );
-    Logger.info("LLM response stream finished"); // Added
+    if (get().isCancellationRequested) {
+      Logger.info("LLM response stream cancelled by user"); // Added
+      aiChatitem.content += `\n\n*${
+        COLORS.statusLineInactive("[Stream cancelled by user]")
+      }*`;
+      aiChatitem.visibleContent = (marked.parse(
+        COLORS.ai(AI_LABEL) +
+          (toolMode !== "normal"
+            ? COLORS.statusLineInactive(" (" + toolMode + ")")
+            : "") +
+          ":\n" +
+          aiChatitem.content,
+      ) as string).split(
+        "\n",
+      );
+      set({
+        chat: [...chat, aiChatitem],
+      });
+    } else {
+      Logger.info("LLM response stream finished"); // Added
+    }
     set({
       isStreamingResponse: false,
+      isCancellationRequested: false,
     });
   },
 }));

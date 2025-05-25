@@ -6,6 +6,7 @@ import { COLORS, WORKSPACE_NAME } from "../utils/constants.ts";
 export const StatusLine = () => {
   const opMode = useStore((store) => store.operationMode);
   const files = useStore((store) => store.filesInContext);
+  const modifyMode = useStore((store) => store.modifyMode);
 
   const modes = {
     prompt: COLORS.prompt(" PROMPT "),
@@ -21,6 +22,9 @@ export const StatusLine = () => {
       <Text>{COLORS.statusLineInactive(WORKSPACE_NAME)}</Text>
       <Box justifyContent="flex-end">
         <Text>
+          {modifyMode
+            ? COLORS.statusLineActive(" + ")
+            : COLORS.statusLineInactive(" + ")}
           {files.length > 0
             ? COLORS.statusLineActive(`${files.length}F`)
             : COLORS.statusLineInactive(`${files.length}F`)}
