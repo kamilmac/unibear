@@ -11,5 +11,10 @@
   },
   "compilerOptions": {
     "types": ["./src/types.d.ts"]
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
   }
 }

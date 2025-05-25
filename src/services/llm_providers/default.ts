@@ -2,6 +2,7 @@ import { OpenAI } from "npm:openai";
 import { PROVIDER, TEMPERATURE } from "../../utils/constants.ts";
 import { PreparedTools } from "../tools.ts";
 import { config } from "../../utils/config.ts";
+import { Logger } from "../logging.ts"; // Added
 
 const openai_config = {
   baseURL: Deno.env.get("OPENAI_API_URL") ?? "",
@@ -44,6 +45,8 @@ if (PROVIDER === "anthropic") {
   llmCfg = ollama_config;
 }
 
+Logger.info(`LLM Provider configured: ${PROVIDER}`, { config: llmCfg }); // Added
+
 export interface LLMAdapter {
   init: () => void;
   stream: (
@@ -57,53 +60,113 @@ export interface LLMAdapter {
 let llm: OpenAI;
 
 const init: LLMAdapter["init"] = () => {
-  llm = new OpenAI({
+  Logger.info("Initializing LLM Adapter", {
+    provider: PROVIDER,
     baseURL: llmCfg.baseURL,
-    apiKey: llmCfg.apiKey,
-  });
+    model: llmCfg.model,
+  }); // Added
+  try {
+    llm = new OpenAI({
+      baseURL: llmCfg.baseURL,
+      apiKey: llmCfg.apiKey,
+    });
+    Logger.info("LLM Adapter initialized successfully."); // Added
+  } catch (error: any) {
+    Logger.error("Failed to initialize LLM Adapter", {
+      provider: PROVIDER,
+      error: error.message,
+      stack: error.stack,
+    }); // Added
+    throw error; // Re-throw after logging
+  }
   return llm;
 };
 
 const stream: LLMAdapter["stream"] = async (messages, tools) => {
-  return await llm.chat.completions.create({
+  Logger.debug("Starting LLM stream", {
     model: llmCfg.model,
-    messages,
-    reasoning_effort: llmCfg.reasoning_effort as OpenAI.ReasoningEffort,
-    stream: true,
-    temperature: TEMPERATURE,
-    tools: tools.definitions,
-  });
+    messageCount: messages.length,
+    toolCount: tools.definitions.length,
+  }); // Added
+  try {
+    const streamResult = await llm.chat.completions.create({
+      model: llmCfg.model,
+      messages,
+      reasoning_effort: llmCfg.reasoning_effort as OpenAI.ReasoningEffort,
+      stream: true,
+      temperature: TEMPERATURE,
+      tools: tools.definitions,
+    });
+    Logger.debug("LLM stream creation successful"); // Added
+    return streamResult;
+  } catch (error: any) {
+    Logger.error("LLM stream creation failed", {
+      model: llmCfg.model,
+      error: error.message,
+      stack: error.stack,
+    }); // Added
+    throw error; // Re-throw after logging
+  }
 };
 
 const webSearch: LLMAdapter["webSearch"] = async (searchString) => {
-  const response = await llm.responses.create({
+  Logger.info("Performing LLM web search", {
     model: llmCfg.webSearchModel,
-    tools: [{
-      type: "web_search_preview",
-      search_context_size: "medium",
-    }],
-    input: searchString as string,
-  });
-  return response.output_text;
+    searchString,
+  }); // Added
+  try {
+    const response = await llm.responses.create({
+      model: llmCfg.webSearchModel,
+      tools: [{
+        type: "web_search_preview",
+        search_context_size: "medium",
+      }],
+      input: searchString as string,
+    });
+    Logger.info("LLM web search successful", {
+      output_length: response.output_text?.length,
+    }); // Added
+    return response.output_text;
+  } catch (error: any) {
+    Logger.error("LLM web search failed", {
+      model: llmCfg.webSearchModel,
+      searchString,
+      error: error.message,
+      stack: error.stack,
+    }); // Added
+    throw error; // Re-throw after logging
+  }
 };
 
 const send: LLMAdapter["send"] = async (system, content) => {
-  const { choices } = await llm.chat.completions.create({
-    reasoning_effort: llmCfg.reasoning_effort as OpenAI.ReasoningEffort,
-    model: llmCfg.model,
-    messages: [
-      {
-        role: "system",
-        content: system,
-      },
-      {
-        role: "user",
-        content,
-      },
-    ],
-  });
-  const message = choices[0].message?.content?.trim() || "";
-  return message;
+  Logger.info("Sending single message to LLM", { model: llmCfg.model }); // Added
+  Logger.debug("LLM send details", { system, content_length: content.length }); // Added
+  try {
+    const { choices } = await llm.chat.completions.create({
+      reasoning_effort: llmCfg.reasoning_effort as OpenAI.ReasoningEffort,
+      model: llmCfg.model,
+      messages: [
+        {
+          role: "system",
+          content: system,
+        },
+        {
+          role: "user",
+          content,
+        },
+      ],
+    });
+    const message = choices[0].message?.content?.trim() || "";
+    Logger.info("LLM send successful", { response_length: message.length }); // Added
+    return message;
+  } catch (error: any) {
+    Logger.error("LLM send failed", {
+      model: llmCfg.model,
+      error: error.message,
+      stack: error.stack,
+    }); // Added
+    throw error; // Re-throw after logging
+  }
 };
 
 export const LLM: LLMAdapter = {

@@ -5,6 +5,7 @@ import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
 import { LLMAdapter } from "../llm_providers/default.ts";
+import { Logger } from "../logging.ts"; // Added
 
 const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
@@ -22,16 +23,36 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       },
       type: "function",
     },
-    process: async (args, log) => {
+    process: async (args, print) => {
       const parsed = WebSearchOperation.safeParse(args);
       if (!parsed.success) {
-        log(`\nInvalid arguments for web_search: ${parsed.error}`);
+        Logger.error("Invalid arguments for web_search", {
+          args,
+          error: parsed.error.toString(),
+        }); // Added
+        print(`\nInvalid arguments for web_search: ${parsed.error}`);
         throw new Error(`Invalid arguments for web_search: ${parsed.error}`);
       }
-      log(`\nSearching web for ${args.search_string}...`);
-      return await llm.webSearch(parsed.data.search_string);
+      Logger.info("Performing web search", {
+        search_string: parsed.data.search_string,
+      }); // Added
+      print(`\nSearching web for ${args.search_string}...`);
+      try {
+        const results = await llm.webSearch(parsed.data.search_string);
+        Logger.info("Web search successful", {
+          search_string: parsed.data.search_string,
+          result_length: results.length,
+        }); // Added
+        return results;
+      } catch (error: any) {
+        Logger.error("Web search failed", {
+          search_string: parsed.data.search_string,
+          error: error.message,
+        }); // Added
+        throw error; // Re-throw the error to be handled by the caller
+      }
     },
-    mode: ["web"],
+    mode: ["normal", "modify"],
   },
   {
     definition: {
@@ -43,7 +64,8 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore require-await
-    process: async (_args, _log) => {
+    process: async (_args, _print) => {
+      Logger.info("Help tool invoked"); // Added
       const allTools = [
         ...commonTools(llm),
         ...fsTools(llm),
@@ -60,8 +82,11 @@ Unibear navigation is loosely based on Vim and Helix editors.
 Key bindings: ${JSON.stringify(KEY_BINDINGS)}
 Tools that can be enabled in prompt mode:
 ${toolDetails}`;
+      Logger.debug("Help information compiled", {
+        response_length: response.length,
+      }); // Added
       return response;
     },
-    mode: ["normal"],
+    mode: ["normal", "modify"],
   },
 ];
