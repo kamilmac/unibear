@@ -23,7 +23,9 @@ export const useStore = create<Store>((set, get) => ({
       set({ dimensions: { cols: columns, rows } });
       Logger.debug("Console dimensions updated", { columns, rows }); // Added
     };
-    Deno.addSignalListener("SIGWINCH", setDimensions);
+    if (Deno.build.os !== "windows") {
+      Deno.addSignalListener("SIGWINCH", setDimensions);
+    }
     setDimensions();
   },
   injectClipboard: () => {
