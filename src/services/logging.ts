@@ -17,9 +17,8 @@ async function writeLog(entry: LogEntry): Promise<void> {
     await ensureFile(LOG_FILE_PATH);
     const logLine = JSON.stringify(entry) + "\n";
     await Deno.writeTextFile(LOG_FILE_PATH, logLine, { append: true });
-  } catch (error) {
-    console.error("Failed to write to log file:", error);
-    // Fallback or re-throw, depending on desired robustness
+  } catch (_error) {
+    // swallow
   }
 }
 
