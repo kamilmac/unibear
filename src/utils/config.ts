@@ -12,9 +12,6 @@ export interface Config {
   port?: number;
   theme?: "light" | "dark";
   user_name?: string;
-  key_bindings?: {
-    useModifyTools?: string;
-  };
 }
 
 export const APP_DIR = getAppConfigDir();

@@ -3,9 +3,8 @@ import { Box, Text, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
 import {
   COLORS,
-  KEY_BINDINGS,
+  PROMPT_PLACEHOLDER,
   TEXT_AREA_HEIGHT,
-  TOOL_MODE_KEY_MAP,
 } from "../utils/constants.ts";
 
 export const UserInput = () => {
@@ -16,8 +15,6 @@ export const UserInput = () => {
   const { enableFocus } = useFocusManager();
   const isStreaming = useStore((s) => s.isStreamingResponse);
   const opMode = useStore((s) => s.operationMode);
-  const modifyMode = useStore((s) => s.modifyMode);
-  const setModifyMode = useStore((s) => s.setModifyMode);
 
   React.useEffect(() => {
     setTimeout(enableFocus, 30);
@@ -25,12 +22,6 @@ export const UserInput = () => {
 
   useInput((ch, key) => {
     if (opMode === "visual") return;
-
-    if (input === "" && TOOL_MODE_KEY_MAP[ch]) {
-      const newToolMode = TOOL_MODE_KEY_MAP[ch];
-      setModifyMode(newToolMode === "modify");
-      return;
-    }
 
     if (key.leftArrow) {
       setCursor((c: number) => Math.max(0, c - 1));
@@ -45,18 +36,15 @@ export const UserInput = () => {
       if (cursor > 0) {
         setInput((s: string) => s.slice(0, cursor - 1) + s.slice(cursor));
         setCursor((c: number) => c - 1);
-      } else if (input === "") {
-        setModifyMode(false);
       }
       return;
     }
 
     if (key.return) {
       if (isStreaming) return;
-      submit(input, modifyMode ? "modify" : "normal");
+      submit(input);
       setInput("");
       setCursor(0);
-      setModifyMode(false);
       return;
     }
 
@@ -66,19 +54,10 @@ export const UserInput = () => {
 
   if (opMode === "visual") return null;
 
-  let prefix = "";
-  if (modifyMode) {
-    prefix = COLORS.statusLineInactive(`(modify) `);
-  }
-
   const before = input.slice(0, cursor);
   const after = input.slice(cursor);
   const currentChar = after.charAt(0) || " ";
   const rest = after.slice(1);
-
-  const placeholder = modifyMode
-    ? "Modify mode: file-editing tools enabled"
-    : `Press '${KEY_BINDINGS.useModifyTools[0]}' for modify mode`;
 
   return (
     <Box
@@ -95,11 +74,15 @@ export const UserInput = () => {
         height={TEXT_AREA_HEIGHT - 2}
         overflow="hidden"
       >
-        {(input === "" && prefix === "")
-          ? <Text dimColor>{COLORS.statusLineInactive(placeholder)}</Text>
+        {(input === "")
+          ? (
+            <Text dimColor>
+              {COLORS.statusLineInactive(PROMPT_PLACEHOLDER)}
+            </Text>
+          )
           : (
             <Text dimColor={isStreaming}>
-              {prefix + before + COLORS.cursor(currentChar) + rest}
+              {before + COLORS.cursor(currentChar) + rest}
             </Text>
           )}
       </Box>

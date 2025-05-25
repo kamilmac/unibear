@@ -22,7 +22,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     process: async (_args: unknown, print) => {
-      print(COLORS.tool("\nGetting diff to base branch...\n"));
+      print(COLORS.tool("\n🔄 Getting diff to base branch...\n"));
       Logger.info("Starting git_get_diff_to_base process");
       try {
         const diff = await getGitDiffToBaseBranch();
@@ -51,7 +51,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     process: async (_args: unknown, print) => {
-      print(COLORS.tool("\nGetting working directory diff...\n"));
+      print(COLORS.tool("\n🔄 Getting working directory diff...\n"));
       Logger.info("Starting git_get_working_diff process");
       try {
         const diff = await getGitDiffToLatestCommit();
@@ -95,7 +95,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       if (!message) {
         return "Error: commit message is required";
       }
-      print(COLORS.tool("\nCommitting changes...\n"));
+      print(COLORS.tool("\n💾 Committing changes...\n"));
       Logger.info("Starting git_commit process", { message });
       try {
         await commitAllChanges(message);
@@ -137,7 +137,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       if (!diff) {
         return "Error: diff is required";
       }
-      print(COLORS.tool("\nGenerating commit message...\n"));
+      print(COLORS.tool("\n📝 Generating commit message...\n"));
       Logger.info("Starting git_generate_commit_message process");
       try {
         const response = await llm.send(
@@ -182,7 +182,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       if (!diff) {
         return "Error: diff is required";
       }
-      print(COLORS.tool("\nPreparing review...\n"));
+      print(COLORS.tool("\n🔍 Preparing review...\n"));
       Logger.info("Starting git_review process");
       try {
         const response = await llm.send(
@@ -227,7 +227,7 @@ export const gitTools = (llm: LLMAdapter): Tool[] => [
       if (!diff) {
         return "Error: diff is required";
       }
-      print(COLORS.tool("\nGenerating PR description...\n"));
+      print(COLORS.tool("\n📋 Generating PR description...\n"));
       Logger.info("Starting git_create_pr_description process");
       try {
         const response = await llm.send(
@@ -275,7 +275,7 @@ an inference. Do not invent information not present in the diff.`,
       type: "function",
     },
     process: async (_args, print) => {
-      print(COLORS.tool("\nListing locally modified files...\n"));
+      print(COLORS.tool("\n📊 Listing locally modified files...\n"));
       Logger.info("Starting git_list_local_modified_files process"); // Added
       try {
         const files = await getLocalModifiedFilePaths();

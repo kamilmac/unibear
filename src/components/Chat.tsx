@@ -28,6 +28,7 @@ export const Chat = (
   const isStreaming = useStore((store) => store.isStreamingResponse);
   const cancelStream = useStore((store) => store.cancelStream);
   const removeChatItem = useStore((store) => store.removeChatItem);
+  const setModifyMode = useStore((store) => store.setModifyMode);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
   const [autoscrollActive, setAutoscrollActive] = React.useState(false);
   const [cursorLineIndex, setCursorLineIndex] = React.useState<number>(0);
@@ -174,6 +175,10 @@ export const Chat = (
       setSelectionOriginLineIndex(null);
       return;
     }
+    if (matchKey(kb.useModifyTools)) {
+      setModifyMode(!useStore.getState().modifyMode);
+      return;
+    }
     if (matchKey(kb.select)) {
       setSelectionOriginLineIndex(
         selectionOriginLineIndex === null ? cursorLineIndex : null,
@@ -281,19 +286,20 @@ export const Chat = (
         {!isStreaming && opMode === "visual" &&
           (
             <Text dimColor>
-              (Press 'i' to prompt, 'Ctrl-q' to exit, 'Ctrl-d' to clear chat)
+              📝 Press 'i' to prompt │ ⚡ '+' modify mode │ 🗑️ 'd' remove chat
+              item │ 🚪 'Ctrl-q' exit │ 🧹 'Ctrl-d' clear chat and context.
+            </Text>
+          )}
+        {!isStreaming && opMode === "prompt" &&
+          (
+            <Text dimColor>
+              ⬅️ 'ESC' exit prompt │ ⏎ 'Enter' submit
             </Text>
           )}
         {isStreaming && opMode === "visual" &&
           (
             <Text dimColor>
-              (Press 'ESC' to cancel)
-            </Text>
-          )}
-        {chat.length === 0 &&
-          (
-            <Text dimColor>
-              (Write 'help!' if you're lost)
+              ⏹️ Press 'ESC' to cancel streaming
             </Text>
           )}
       </Box>

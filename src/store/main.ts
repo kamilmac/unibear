@@ -169,7 +169,8 @@ export const useStore = create<Store>((set, get) => ({
       chat: state.chat.filter((c) => c.id !== id),
     }));
   },
-  onSubmitUserPrompt: async (prompt, toolMode) => {
+  onSubmitUserPrompt: async (prompt) => {
+    const toolMode = get().modifyMode ? "modify" : "normal";
     Logger.info("Submitting user prompt", {
       prompt_length: prompt.length,
       toolMode,
@@ -229,9 +230,6 @@ export const useStore = create<Store>((set, get) => ({
         aiChatitem.content += chunk;
         aiChatitem.visibleContent = (marked.parse(
           COLORS.ai(AI_LABEL) +
-            (toolMode !== "normal"
-              ? COLORS.statusLineInactive(" (" + toolMode + ")")
-              : "") +
             ":\n" +
             aiChatitem.content,
         ) as string).split(
@@ -250,9 +248,6 @@ export const useStore = create<Store>((set, get) => ({
       }*`;
       aiChatitem.visibleContent = (marked.parse(
         COLORS.ai(AI_LABEL) +
-          (toolMode !== "normal"
-            ? COLORS.statusLineInactive(" (" + toolMode + ")")
-            : "") +
           ":\n" +
           aiChatitem.content,
       ) as string).split(

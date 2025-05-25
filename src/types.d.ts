@@ -26,7 +26,7 @@ type Store = {
   modifyMode: boolean;
   setModifyMode: (enabled: boolean) => void;
   chat: ChatItem[];
-  onSubmitUserPrompt: (prompt: string, toolMode: ToolMode) => void;
+  onSubmitUserPrompt: (prompt: string) => void;
   appendChatItem: (
     content: string,
     visibleContent: string,
