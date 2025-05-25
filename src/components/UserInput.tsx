@@ -16,7 +16,8 @@ export const UserInput = () => {
   const { enableFocus } = useFocusManager();
   const isStreaming = useStore((s) => s.isStreamingResponse);
   const opMode = useStore((s) => s.operationMode);
-  const [toolMode, setToolMode] = React.useState<ToolMode>("normal");
+  const modifyMode = useStore((s) => s.modifyMode);
+  const setModifyMode = useStore((s) => s.setModifyMode);
 
   React.useEffect(() => {
     setTimeout(enableFocus, 30);
@@ -26,7 +27,8 @@ export const UserInput = () => {
     if (opMode === "visual") return;
 
     if (input === "" && TOOL_MODE_KEY_MAP[ch]) {
-      setToolMode(TOOL_MODE_KEY_MAP[ch]);
+      const newToolMode = TOOL_MODE_KEY_MAP[ch];
+      setModifyMode(newToolMode === "modify");
       return;
     }
 
@@ -44,17 +46,17 @@ export const UserInput = () => {
         setInput((s: string) => s.slice(0, cursor - 1) + s.slice(cursor));
         setCursor((c: number) => c - 1);
       } else if (input === "") {
-        setToolMode("normal");
+        setModifyMode(false);
       }
       return;
     }
 
     if (key.return) {
       if (isStreaming) return;
-      submit(input, toolMode);
+      submit(input, modifyMode ? "modify" : "normal");
       setInput("");
       setCursor(0);
-      setToolMode("normal");
+      setModifyMode(false);
       return;
     }
 
@@ -65,8 +67,8 @@ export const UserInput = () => {
   if (opMode === "visual") return null;
 
   let prefix = "";
-  if (toolMode !== "normal") {
-    prefix = COLORS.statusLineInactive(`(${toolMode}) `);
+  if (modifyMode) {
+    prefix = COLORS.statusLineInactive(`(modify) `);
   }
 
   const before = input.slice(0, cursor);
@@ -74,9 +76,9 @@ export const UserInput = () => {
   const currentChar = after.charAt(0) || " ";
   const rest = after.slice(1);
 
-  const placeholder = `Press '${
-    KEY_BINDINGS.useModifyTools[0]
-  }' for modify mode`;
+  const placeholder = modifyMode
+    ? "Modify mode: file-editing tools enabled"
+    : `Press '${KEY_BINDINGS.useModifyTools[0]}' for modify mode`;
 
   return (
     <Box

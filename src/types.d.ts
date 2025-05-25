@@ -23,6 +23,8 @@ type Store = {
   removeFileFromContext: (filePath: string) => void;
   operationMode: OperationMode;
   setOperationMode: (mode: OperationMode) => void;
+  modifyMode: boolean;
+  setModifyMode: (enabled: boolean) => void;
   chat: ChatItem[];
   onSubmitUserPrompt: (prompt: string, toolMode: ToolMode) => void;
   appendChatItem: (

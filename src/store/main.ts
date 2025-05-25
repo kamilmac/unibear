@@ -102,6 +102,14 @@ export const useStore = create<Store>((set, get) => ({
     }); // Added
     set({ operationMode: mode });
   },
+  modifyMode: false,
+  setModifyMode: (enabled) => {
+    Logger.debug("Modify mode changed", {
+      newMode: enabled,
+      oldMode: get().modifyMode,
+    });
+    set({ modifyMode: enabled });
+  },
   dimensions: { cols: 0, rows: 0 },
   chat: [],
   appendChatItem: (content, visibleContent, type) => {
