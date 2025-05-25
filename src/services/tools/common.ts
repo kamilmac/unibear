@@ -30,13 +30,13 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
           args,
           error: parsed.error.toString(),
         }); // Added
-        print(`\nInvalid arguments for web_search: ${parsed.error}`);
+        print(`\n❌ Invalid arguments for web_search: ${parsed.error}`);
         throw new Error(`Invalid arguments for web_search: ${parsed.error}`);
       }
       Logger.info("Performing web search", {
         search_string: parsed.data.search_string,
       }); // Added
-      print(`\nSearching web for ${args.search_string}...`);
+      print(`\n🌐 Searching web for ${args.search_string}...`);
       try {
         const results = await llm.webSearch(parsed.data.search_string);
         Logger.info("Web search successful", {
@@ -64,7 +64,8 @@ export const commonTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore require-await
-    process: async (_args, _print) => {
+    process: async (_args, print) => {
+      print("\n❓ Gathering help information...");
       Logger.info("Help tool invoked"); // Added
       const allTools = [
         ...commonTools(llm),

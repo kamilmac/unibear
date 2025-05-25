@@ -61,12 +61,12 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
     ) => {
       let combined = "";
       for (const file_path of file_paths as string[]) {
-        print(COLORS.tool(`\nReading from:\n${file_path}\n`));
+        print(COLORS.tool(`\n📄 Reading from:\n${file_path}\n`));
         Logger.debug("Attempting to read file", { file_path }); // Added
         try {
           const stats = await Deno.stat(file_path);
           if (stats.size > MAX_SIZE) {
-            print(COLORS.tool("\nFile too big. content ignored.\n"));
+            print(COLORS.tool("\n⚠️ File too big. content ignored.\n"));
             Logger.warning("File too big, content ignored", {
               file_path,
               size: stats.size,
@@ -75,7 +75,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
             continue;
           }
         } catch (err: any) {
-          print(COLORS.tool("\nCannot access file.\n"));
+          print(COLORS.tool("\n❌ Cannot access file.\n"));
           Logger.error("Cannot access file during read", {
             file_path,
             error: err.message,
@@ -118,11 +118,11 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
           args,
           error: parsed.error.toString(),
         }); // Added
-        print(`Invalid arguments for search_files: ${parsed.error}`);
+        print(`\n❌ Invalid arguments for search_files: ${parsed.error}`);
         throw new Error(`Invalid arguments for search_files: ${parsed.error}`);
       }
       Logger.info("Searching for files", { pattern: parsed.data.pattern }); // Added
-      print(COLORS.tool(`\nSearching for files:\n${parsed.data.pattern}\n`));
+      print(COLORS.tool(`\n🔍 Searching for files:\n${parsed.data.pattern}\n`));
       const results = await searchFiles(
         Deno.cwd(),
         parsed.data.pattern,
@@ -167,7 +167,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("Searching content", { query: parsed.data.query, cwd }); // Added
       print(
         COLORS.tool(
-          `\nSearching content for "${parsed.data.query}" in ${cwd}\n`,
+          `\n🔍 Searching content for "${parsed.data.query}" in ${cwd}\n`,
         ),
       );
       const hits = await searchContent(cwd, parsed.data.query);
@@ -204,7 +204,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("Writing file", { path: parsed.data.path }); // Added
       const validPath = await validatePath(parsed.data.path);
       const data = new TextEncoder().encode(parsed.data.content);
-      print(`\nWrite file - ${parsed.data.path}\n`);
+      print(`\n📝 Write file - ${parsed.data.path}\n`);
       await Deno.writeFile(validPath, data);
       Logger.info("Successfully wrote to file", { path: validPath }); // Added
       return `Successfully wrote to ${parsed.data.path}`;
@@ -232,7 +232,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
           args,
           error: parsed.error.toString(),
         }); // Added
-        print(`Edit file - failed parsing changes:\n${args.file_path}\n`);
+        print(`\n❌ Edit file - failed parsing changes:\n${args.file_path}\n`);
         throw new Error(`Invalid arguments for edit_file: ${parsed.error}`);
       }
       Logger.info("Editing file", {
@@ -240,7 +240,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         editCount: parsed.data.edits.length,
       }); // Added
       const validPath = await validatePath(parsed.data.file_path);
-      print(COLORS.tool(`\nEdit file - writing to:\n${validPath}\n`));
+      print(COLORS.tool(`\n✏️ Edit file - writing to:\n${validPath}\n`));
       const result = await applyFileEdits(validPath, parsed.data.edits);
       Logger.info("File edit complete", { path: validPath }); // Added
       return result;
@@ -273,7 +273,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       }
       Logger.info("Creating directory", { path: parsed.data.path }); // Added
       const validPath = await validatePath(parsed.data.path);
-      print(COLORS.tool(`\nCreating dir:\n${parsed.data.path}\n`));
+      print(COLORS.tool(`\n📁 Creating dir:\n${parsed.data.path}\n`));
       await Deno.mkdir(validPath, { recursive: true });
       Logger.info("Successfully created directory", { path: validPath }); // Added
       return `Successfully created directory ${parsed.data.path}`;

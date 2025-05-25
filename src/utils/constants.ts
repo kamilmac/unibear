@@ -14,6 +14,8 @@ export const MAX_SIZE = 100_000; // max allowed file-size in bytes
 
 export const PROVIDER = config.provider ?? "openai";
 
+export const PROMPT_PLACEHOLDER = "help!";
+
 export const KEY_BINDINGS = {
   moveDown: ["j"],
   moveUp: ["k"],
@@ -26,7 +28,7 @@ export const KEY_BINDINGS = {
   goToTop: ["gg"],
   paste: ["p"],
   del: ["d"],
-  useModifyTools: [config.key_bindings?.useModifyTools ?? "+"],
+  useModifyTools: ["+"],
 } as const;
 export type KeyBindings = typeof KEY_BINDINGS;
 export const TOOL_MODE_KEY_MAP: Record<string, ToolMode> = {
