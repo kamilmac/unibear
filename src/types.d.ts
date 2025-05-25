@@ -32,5 +32,7 @@ type Store = {
   ) => ChatItem[];
   removeChatItem: (id: number) => void;
   isStreamingResponse: boolean;
+  cancelStream: () => void;
+  isCancellationRequested: boolean;
   injectClipboard: () => void;
 };

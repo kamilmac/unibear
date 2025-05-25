@@ -26,6 +26,7 @@ export const Chat = (
   const dims = useStore((store) => store.dimensions);
   const injectClipboard = useStore((store) => store.injectClipboard);
   const isStreaming = useStore((store) => store.isStreamingResponse);
+  const cancelStream = useStore((store) => store.cancelStream);
   const removeChatItem = useStore((store) => store.removeChatItem);
   const [chatRenderOffset, setChatRenderOffset] = React.useState(0);
   const [autoscrollActive, setAutoscrollActive] = React.useState(false);
@@ -166,6 +167,10 @@ export const Chat = (
       return;
     }
     if (key.escape) {
+      if (isStreaming) {
+        cancelStream();
+        return;
+      }
       setSelectionOriginLineIndex(null);
       return;
     }
@@ -277,6 +282,12 @@ export const Chat = (
           (
             <Text dimColor>
               (Press 'i' to prompt, 'Ctrl-q' to exit, 'Ctrl-d' to clear chat)
+            </Text>
+          )}
+        {isStreaming && opMode === "visual" &&
+          (
+            <Text dimColor>
+              (Press 'ESC' to cancel, 'Ctrl-q' to exit)
             </Text>
           )}
         {chat.length === 0 &&
