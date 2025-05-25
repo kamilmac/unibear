@@ -40,8 +40,14 @@ export const framesSets: Record<string, string[]> = {
 };
 
 export const Thinking: React.FC = () => {
+  const bearAnimations = ["bearThinking", "moon"];
+
   const frames = React.useMemo(
-    () => framesSets.bearThinking,
+    () => {
+      const randomAnimation =
+        bearAnimations[Math.floor(Math.random() * bearAnimations.length)];
+      return framesSets[randomAnimation];
+    },
     [],
   );
   const [i, setI] = React.useState(0);
