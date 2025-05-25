@@ -287,7 +287,7 @@ export const Chat = (
         {isStreaming && opMode === "visual" &&
           (
             <Text dimColor>
-              (Press 'ESC' to cancel, 'Ctrl-q' to exit)
+              (Press 'ESC' to cancel)
             </Text>
           )}
         {chat.length === 0 &&
