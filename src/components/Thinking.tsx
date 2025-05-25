@@ -19,18 +19,36 @@ export const framesSets: Record<string, string[]> = {
   times: ["✶", "✸", "✹", "✺", "✹", "✷"],
   waves: ["🌊", "💧", "🌊", "💧"],
   eyes: ["◡◡", "⊙⊙", "◠◠"],
+  // Bear-themed animations! 🐻
+  bear: ["🐻", "🐻‍❄️", "🧸", "🐻"],
+  bearFaces: ["🐻", "🐻‍😊", "🐻‍🤔", "🐻‍😴"],
+  bearThinking: [
+    "🐻💭",
+    "🐻 💭",
+    "🐻  💭",
+    "🐻  💭",
+    "🐻   💭",
+    "🐻    💭",
+    "🐻   💭",
+    "🐻  💭",
+    "🐻 💭",
+  ],
+  bearHoney: ["🐻", "🐻🍯", "🐻", "🐻🍯"],
+  bearSleep: ["🐻😴", "🐻💤", "🧸💤", "🐻😴"],
+  bearDance: ["🐻💃", "🧸🕺", "🐻‍❄️💃", "🐻🕺"],
+  cubs: ["🐻", "🧸", "🐻‍❄️", "🧸"],
 };
 
 export const Thinking: React.FC = () => {
   const frames = React.useMemo(
-    () => framesSets.times,
+    () => framesSets.bearThinking,
     [],
   );
   const [i, setI] = React.useState(0);
   React.useEffect(() => {
     const id = setInterval(
       () => setI((j: number) => (j + 1) % frames.length),
-      100,
+      64,
     );
     return () => clearInterval(id);
   }, [frames.length]);
