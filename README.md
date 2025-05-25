@@ -161,7 +161,6 @@ Create `~/.config/unibear/config.json`:
   "reasoning_effort": "medium", // controls depth of reasoning: low, medium, or high
   "web_search_model": "gpt-4.1-mini",
   "temperature": 0.7,
-  "system": "Your custom system prompt",
   "port": 12496,
   "theme": "dark",
   "user_name": "Alice",
@@ -170,6 +169,12 @@ Create `~/.config/unibear/config.json`:
   }
 }
 ```
+
+**Note on Gemini Accounts:** Free Gemini accounts are often subject to strict
+rate limiting by Google, which can lead to frequent `400` errors. This is due to
+Google\'s policies on LLM requests for free tier users. If you encounter
+persistent `400` errors, consider upgrading your Gemini account or exploring
+alternative API access methods.
 
 <br>
 
