@@ -57,7 +57,12 @@ export const fileExists = async (
 };
 
 export function getAppConfigDir(): string {
-  const xdgConfigHome = Deno.env.get("XDG_CONFIG_HOME") ??
+  if (Deno.build.os === "windows") {
+    const appData = Deno.env.get("APPDATA") ??
+      join(Deno.env.get("HOME") || "", "AppData", "Roaming");
+    return join(appData, "unibear");
+  }
+  const xdg = Deno.env.get("XDG_CONFIG_HOME") ??
     join(Deno.env.get("HOME") || "", ".config");
-  return join(xdgConfigHome, "unibear");
+  return join(xdg, "unibear");
 }
