@@ -35,7 +35,11 @@ export const initServer = async () => {
       const headers = ctx.request.headers;
       const callersWorkspace = headers.get("workspace");
       const arg = await ctx.request.body.text(); // Reading body again, consider optimizing
-      if (callersWorkspace === WORKSPACE_NAME) {
+      // allow the exact workspace or any nested child of it
+      if (
+        callersWorkspace === WORKSPACE_NAME ||
+        callersWorkspace.startsWith(WORKSPACE_NAME + "/")
+      ) {
         useStore.getState().addFileToContext(arg || "");
         ctx.response.status = 200;
         ctx.response.body = {
