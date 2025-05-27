@@ -59,10 +59,11 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       { file_paths },
       print: (str: string) => void,
     ) => {
+      // TODO: Check if files are text vs binary
       let combined = "";
       for (const file_path of file_paths as string[]) {
         print(COLORS.tool(`\n📄 Reading from:\n${file_path}\n`));
-        Logger.debug("Attempting to read file", { file_path }); // Added
+        Logger.debug("Attempting to read file", { file_path });
         try {
           const stats = await Deno.stat(file_path);
           if (stats.size > MAX_SIZE) {
@@ -95,16 +96,12 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "search_files",
         description:
-          "Recursively locates files and directories containing the specified pattern in their names. " +
+          "Recursively locates files and directories containing the specified pattern in their filenames. " +
           "Performs a case-insensitive search throughout the workspace (excluding node_modules). " +
           "Returns full paths to all matches without reading file contents. Ideal for finding files " +
           "when you know part of the name but not the exact location.",
         strict: true,
-        parameters: zodToJsonSchema(
-          z.object({
-            pattern: z.string().describe("pattern to match"),
-          }).strict(),
-        ),
+        parameters: zodToJsonSchema(SearchOperation),
       },
       type: "function",
     },
@@ -174,7 +171,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("Content search complete", {
         query: parsed.data.query,
         count: hits.length,
-      }); // Added
+      });
       return hits.map((h) => `${h.file}:${h.line}: ${h.text}`).join("\n");
     },
     mode: ["normal", "modify"],
@@ -293,7 +290,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore no-explicit-any
-    process: async (args: any, _print: any) => {
+    process: async (args: any, print: any) => {
       const parsed = ListDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
         Logger.error("Invalid arguments for list_directory", {
@@ -304,7 +301,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
           `Invalid arguments for list_directory: ${parsed.error}`,
         );
       }
-      Logger.info("Listing directory", { path: parsed.data.path }); // Added
+      Logger.info("Listing directory", { path: parsed.data.path });
+      print(COLORS.tool(`\n📁 Listing dir:\n${parsed.data.path}\n`));
       const validPath = await validatePath(parsed.data.path);
       const entries = Deno.readDir(validPath);
       const formatted = [];
@@ -538,12 +536,14 @@ const searchContent = async (
         try {
           const stat = await Deno.stat(full);
           if (stat.size > MAX_SIZE) {
+            // TODO: Check if text vs binary
             Logger.debug("Skipping large file in content search", {
               file: full,
               size: stat.size,
-            }); // Added
+            });
             return;
           }
+          // TODO: find cli alternative for efficient search
           const text = await Deno.readTextFile(full);
           text.split("\n").forEach((line, i) => {
             if (line.includes(query)) {
