@@ -8,6 +8,7 @@ import { KEY_BINDINGS, TEXT_AREA_HEIGHT } from "../utils/constants.ts";
 import { quit } from "../utils/helpers.ts";
 
 export const App = () => {
+  const [inputHeight, setInputHeight] = React.useState(TEXT_AREA_HEIGHT);
   const init = useStore((store) => store.init);
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
@@ -37,9 +38,9 @@ export const App = () => {
     }
   });
 
-  const chatHeight = opMode === "visual"
+    const chatHeight = opMode === "visual"
     ? dims.rows
-    : dims.rows - TEXT_AREA_HEIGHT;
+    : dims.rows - inputHeight;
 
   return (
     <Box
@@ -55,7 +56,7 @@ export const App = () => {
           height={chatHeight}
         />
       </Box>
-      <UserInput />
+      <UserInput onHeightChange={setInputHeight} />
       <StatusLine />
     </Box>
   );
