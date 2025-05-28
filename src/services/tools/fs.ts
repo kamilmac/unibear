@@ -215,7 +215,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         description:
           "Performs precise text replacements in a file and shows a unified diff of the changes. " +
           "Each edit requires an exact match of old text to be replaced with new text. " +
-          "Smart enough to handle whitespace variations between lines. Best for making focused changes to specific code blocks.",
+          "When possible, group nearby changes into larger unified-diff hunks with surrounding context rather than many tiny diffs. " +
+          "This reduces offset shifts and makes edits more robust to minor whitespace or comment tweaks.",
         strict: true,
         parameters: zodToJsonSchema(EditFileArgsSchema),
       },
