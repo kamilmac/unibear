@@ -516,54 +516,65 @@ function createUnifiedDiff(
   );
 }
 
+async function getIgnoredDirs(): Promise<string[]> {
+  try {
+    const data = await Deno.readTextFile(".gitignore");
+    return data
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith("#") && !l.startsWith("!"))
+      .map((l) =>
+        l.replace(/\/\*\*.*$/, "").replace(/\*.*$/, "").replace(/\/$/, "")
+      )
+      .filter((p) => p && p === p.replace(/\./g, ""));
+  } catch {
+    return [];
+  }
+}
+
 const searchContent = async (
   rootPath: string,
   query: string,
 ): Promise<{ file: string; line: number; text: string }[]> => {
-  Logger.debug("Starting content search recursive function", {
-    rootPath,
-    query,
-  }); // Added
+  Logger.info("Delegating search_content to ripgrep", { query, rootPath });
   const results: { file: string; line: number; text: string }[] = [];
-  const skipDirs = ["node_modules", ".git"];
-  async function recurse(dir: string) {
-    for await (const ent of Deno.readDir(dir)) {
-      if (skipDirs.includes(ent.name)) continue;
-      const full = join(dir, ent.name);
-      if (ent.isDirectory) {
-        await recurse(full);
-      } else {
-        try {
-          const stat = await Deno.stat(full);
-          if (stat.size > MAX_SIZE) {
-            // TODO: Check if text vs binary
-            Logger.debug("Skipping large file in content search", {
-              file: full,
-              size: stat.size,
-            });
-            return;
-          }
-          // TODO: find cli alternative for efficient search
-          const text = await Deno.readTextFile(full);
-          text.split("\n").forEach((line, i) => {
-            if (line.includes(query)) {
-              results.push({ file: full, line: i + 1, text: line });
-            }
-          });
-        } catch (err: any) {
-          Logger.warning("Error processing file during content search", {
-            file: full,
-            error: err.message,
-          }); // Added
-        }
+  const ignoreDirs = await getIgnoredDirs();
+  const ignoreGlobs = ignoreDirs.flatMap((d) => [
+    "--glob",
+    `!${d}/**`,
+  ]);
+  const cmd = new Deno.Command("rg", {
+    args: [
+      "--json",
+      ...ignoreGlobs,
+      "--glob",
+      "!.git",
+      "--glob",
+      "!node_modules",
+      query,
+      ".",
+    ],
+    cwd: rootPath,
+    stdout: "piped",
+    stderr: "null",
+  });
+  const { stdout } = await cmd.output();
+  const lines = new TextDecoder().decode(stdout).split("\n");
+  for (const line of lines) {
+    if (!line) continue;
+    try {
+      const obj = JSON.parse(line);
+      if (obj.type === "match") {
+        const path = obj.data.path.text;
+        const text = obj.data.lines.text.trimEnd();
+        const lineNo = obj.data.line_number;
+        results.push({ file: path, line: lineNo, text });
       }
+    } catch {
+      // skip invalid JSON
     }
   }
-  await recurse(rootPath);
-  Logger.debug("Content search recursive function finished", {
-    rootPath,
-    resultsCount: results.length,
-  }); // Added
+  Logger.info("ripgrep search complete", { count: results.length });
   return results;
 };
 
