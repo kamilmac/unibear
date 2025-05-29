@@ -39,7 +39,7 @@ export const USER_LABEL = config.user_name ?? "USER";
 export const AI_LABEL = "Bear";
 export const PORT = config.port ?? 12496;
 export const IS_DEV = Deno.env.get("DEV") === "true";
-export const TEXT_AREA_HEIGHT = 7;
+export const TEXT_AREA_HEIGHT = 2;
 export const CURSOR_SCROLL_PADDING = 5;
 export const BANNER_LONG = `
 ██╗   ██╗███╗  ██╗██╗██████╗░███████╗░█████╗░██████╗ 

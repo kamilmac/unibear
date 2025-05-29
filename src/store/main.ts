@@ -104,7 +104,7 @@ export const useStore = create<Store>((set, get) => ({
     }); // Added
     set({ operationMode: mode });
   },
-  modifyMode: false,
+  modifyMode: true,
   setModifyMode: (enabled) => {
     Logger.debug("Modify mode changed", {
       newMode: enabled,

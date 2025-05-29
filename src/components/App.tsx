@@ -15,6 +15,8 @@ export const App = () => {
   const setOpMode = useStore((store) => store.setOperationMode);
   const resetChat = useStore((store) => store.clearChatHistory);
 
+  const statusLineHeight = 1;
+
   React.useEffect(() => {
     init();
   }, []);
@@ -38,7 +40,9 @@ export const App = () => {
     }
   });
 
-  const chatHeight = opMode === "visual" ? dims.rows : dims.rows - inputHeight;
+  const chatHeight =
+    (opMode === "visual" ? dims.rows : dims.rows - inputHeight) -
+    statusLineHeight;
 
   return (
     <Box

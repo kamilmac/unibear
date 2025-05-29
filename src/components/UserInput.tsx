@@ -1,16 +1,22 @@
 import React from "npm:react";
 import { Box, Text, Transform, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
-import { COLORS, PROMPT_PLACEHOLDER } from "../utils/constants.ts";
+import {
+  COLORS,
+  PROMPT_PLACEHOLDER,
+  TEXT_AREA_HEIGHT,
+} from "../utils/constants.ts";
 
 interface UserInputProps {
   onHeightChange?: (h: number) => void;
 }
 
-let boxHeight = 3;
-export const UserInput: React.FC<UserInputProps> = ({ onHeightChange }: UserInputProps) => {
+export const UserInput: React.FC<UserInputProps> = (
+  { onHeightChange }: UserInputProps,
+) => {
   const [input, setInput] = React.useState<string>("");
   const [cursor, setCursor] = React.useState<number>(0);
+  const boxHeightRef = React.useRef<number>(TEXT_AREA_HEIGHT + 2);
   const submit = useStore((s) => s.onSubmitUserPrompt);
   const dims = useStore((s) => s.dimensions);
   const { enableFocus } = useFocusManager();
@@ -56,8 +62,8 @@ export const UserInput: React.FC<UserInputProps> = ({ onHeightChange }: UserInpu
   const innerWidth = dims.cols - 6;
 
   React.useEffect(() => {
-    onHeightChange?.(boxHeight);
-  }, [boxHeight, onHeightChange]);
+    onHeightChange?.(boxHeightRef.current);
+  }, [input, onHeightChange]);
 
   if (opMode === "visual") return null;
 
@@ -70,7 +76,7 @@ export const UserInput: React.FC<UserInputProps> = ({ onHeightChange }: UserInpu
     <Box
       borderStyle="round"
       borderColor={COLORS.border}
-      height={boxHeight}
+      height={boxHeightRef.current}
       flexDirection="row"
     >
       <Box width={3}>
@@ -78,7 +84,7 @@ export const UserInput: React.FC<UserInputProps> = ({ onHeightChange }: UserInpu
       </Box>
       <Box
         width={innerWidth}
-        height={boxHeight - 2}
+        height={boxHeightRef.current - 2}
         overflow="hidden"
       >
         {(input === "")
@@ -90,7 +96,7 @@ export const UserInput: React.FC<UserInputProps> = ({ onHeightChange }: UserInpu
           : (
             <Transform
               transform={(line, idx) => {
-                boxHeight = idx + 4;
+                boxHeightRef.current = idx + 4;
                 return line;
               }}
             >
