@@ -38,9 +38,7 @@ export const App = () => {
     }
   });
 
-    const chatHeight = opMode === "visual"
-    ? dims.rows
-    : dims.rows - inputHeight;
+  const chatHeight = opMode === "visual" ? dims.rows : dims.rows - inputHeight;
 
   return (
     <Box
