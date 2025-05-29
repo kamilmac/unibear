@@ -8,7 +8,7 @@ interface UserInputProps {
 }
 
 let boxHeight = 3;
-export const UserInput: React.FC<UserInputProps> = ({ onHeightChange }) => {
+export const UserInput: React.FC<UserInputProps> = ({ onHeightChange }: UserInputProps) => {
   const [input, setInput] = React.useState<string>("");
   const [cursor, setCursor] = React.useState<number>(0);
   const submit = useStore((s) => s.onSubmitUserPrompt);
