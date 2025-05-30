@@ -26,8 +26,9 @@ export async function handleCliArgs(): Promise<boolean> {
       throw new Error(errorData.error || response.statusText);
     }
     console.log(`Command ${args[0]} successfull`);
-  } catch (error) {
-    console.error(`Command ${args[0]} failed: `, error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Command ${args[0]} failed: `, errorMessage);
   }
 
   return true;
