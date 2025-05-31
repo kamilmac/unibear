@@ -257,11 +257,8 @@ export function findBestMatch(
   ];
 
   for (const strategy of strategies) {
-    let normalizedContent: string;
-    let normalizedTarget: string;
-
-    normalizedContent = normalizeForMatching(content, strategy.level);
-    normalizedTarget = normalizeForMatching(target, strategy.level);
+    const normalizedContent = normalizeForMatching(content, strategy.level);
+    const normalizedTarget = normalizeForMatching(target, strategy.level);
 
     const match = findMatchWithStrategy(
       normalizedContent,
@@ -280,7 +277,7 @@ export function findBestMatch(
 
 // Edit conflict detection
 export function detectEditConflicts(
-  content: string,
+  _content: string,
   edits: EditOperationWithPosition[],
 ): EditConflict[] {
   const conflicts = [];
@@ -577,7 +574,9 @@ export async function applyFileEdits(
         throw new Error("Content dramatically reduced - likely corruption");
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
       Logger.error("Failed to apply edit, reverting changes", {
         filePath,
         edit: edit.old_text.substring(0, 100),

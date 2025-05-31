@@ -1,5 +1,4 @@
 import { COLORS } from "../../utils/constants.ts";
-import { getLocalModifiedFilePaths } from "../../utils/git.ts";
 import {
   commitAllChanges,
   getGitDiffToBaseBranch,

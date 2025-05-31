@@ -23,7 +23,9 @@ try {
   file = JSON.parse(raw);
 } catch (error: any) {
   // Config file doesn't exist or is invalid, use defaults
-  console.warn(`Failed to load config from ${configPath}: ${error.message}. Using default config.`);
+  console.warn(
+    `Failed to load config from ${configPath}: ${error.message}. Using default config.`,
+  );
 }
 
 export const config: Config = { ...file };

@@ -1,4 +1,8 @@
-import { assertEquals, assertRejects, assertStringIncludes } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertRejects,
+  assertStringIncludes,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { applyFileEdits, EditOperation } from "../src/services/file-editor.ts";
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
 
@@ -17,7 +21,7 @@ async function readTempFile(filePath: string): Promise<string> {
 async function cleanupTempFile(filePath: string): Promise<void> {
   try {
     await Deno.remove(filePath);
-    await Deno.remove(filePath.substring(0, filePath.lastIndexOf("/"))); 
+    await Deno.remove(filePath.substring(0, filePath.lastIndexOf("/")));
   } catch {
     // Ignore cleanup errors
   }
@@ -30,11 +34,11 @@ Deno.test("applyFileEdits - Basic exact match replacement", async () => {
 }`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [{
       old_text: 'console.log("Hello, World!");',
-      new_text: 'console.log("Hello, Universe!");'
+      new_text: 'console.log("Hello, Universe!");',
     }];
 
     const diff = await applyFileEdits(filePath, edits);
@@ -59,24 +63,24 @@ Deno.test("applyFileEdits - Multiple edits in correct order", async () => {
 }`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [
       {
         old_text: "add(a: number, b: number): number",
-        new_text: "add(a: number, b: number, c: number = 0): number"
+        new_text: "add(a: number, b: number, c: number = 0): number",
       },
       {
         old_text: "return a + b;",
-        new_text: "return a + b + c;"
+        new_text: "return a + b + c;",
       },
       {
         old_text: "export class Calculator",
-        new_text: "export class AdvancedCalculator"
-      }
+        new_text: "export class AdvancedCalculator",
+      },
     ];
 
-    const diff = await applyFileEdits(filePath, edits);
+    await applyFileEdits(filePath, edits);
     const modifiedContent = await readTempFile(filePath);
 
     assertStringIncludes(modifiedContent, "AdvancedCalculator");
@@ -93,20 +97,20 @@ const emoji = "👋 Wave";
 const text = "Simple text";`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [
       {
         old_text: "Héllo Wörld! 🌍",
-        new_text: "Bonjour Monde! 🌎"
+        new_text: "Bonjour Monde! 🌎",
       },
       {
         old_text: "👋 Wave",
-        new_text: "🤝 Handshake"
-      }
+        new_text: "🤝 Handshake",
+      },
     ];
 
-    const diff = await applyFileEdits(filePath, edits);
+    await applyFileEdits(filePath, edits);
     const modifiedContent = await readTempFile(filePath);
 
     assertStringIncludes(modifiedContent, "Bonjour Monde! 🌎");
@@ -135,7 +139,7 @@ Deno.test("applyFileEdits - Large multiline replacement", async () => {
 }`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [{
       old_text: `  processItems(items) {
@@ -155,14 +159,17 @@ Deno.test("applyFileEdits - Large multiline replacement", async () => {
   
   private async saveData(): Promise<void> {
     // Save implementation
-  }`
+  }`,
     }];
 
-    const diff = await applyFileEdits(filePath, edits);
+    await applyFileEdits(filePath, edits);
     const modifiedContent = await readTempFile(filePath);
 
     assertStringIncludes(modifiedContent, "async processItems(items: Item[])");
-    assertStringIncludes(modifiedContent, "filter(item => item.valid && item.id)");
+    assertStringIncludes(
+      modifiedContent,
+      "filter(item => item.valid && item.id)",
+    );
     assertStringIncludes(modifiedContent, "private async saveData()");
     assertEquals(modifiedContent.includes("for (let item of items)"), false);
   } finally {
@@ -178,14 +185,14 @@ Deno.test("applyFileEdits - Whitespace normalization", async () => {
 }`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [{
       old_text: 'console.log( "Processing..."  );',
-      new_text: 'console.log("Processing data...");'
+      new_text: 'console.log("Processing data...");',
     }];
 
-    const diff = await applyFileEdits(filePath, edits);
+    await applyFileEdits(filePath, edits);
     const modifiedContent = await readTempFile(filePath);
 
     assertStringIncludes(modifiedContent, 'console.log("Processing data...");');
@@ -204,19 +211,22 @@ Deno.test("applyFileEdits - Empty replacement (deletion)", async () => {
 }`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [{
       old_text: `  // TODO: Remove this debug log
   console.log("Debug: calculating total");
   `,
-      new_text: ""
+      new_text: "",
     }];
 
-    const diff = await applyFileEdits(filePath, edits);
+    await applyFileEdits(filePath, edits);
     const modifiedContent = await readTempFile(filePath);
 
-    assertEquals(modifiedContent.includes("TODO: Remove this debug log"), false);
+    assertEquals(
+      modifiedContent.includes("TODO: Remove this debug log"),
+      false,
+    );
     assertEquals(modifiedContent.includes('console.log("Debug:'), false);
     assertStringIncludes(modifiedContent, "const total = items.reduce");
   } finally {
@@ -240,7 +250,7 @@ export function createUser(userData: Partial<User>): User {
 }`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [
       {
@@ -255,15 +265,15 @@ export function createUser(userData: Partial<User>): User {
   email: string;
   isActive: boolean;
   roles: string[];
-}`
+}`,
       },
       {
         old_text: "Math.random()",
-        new_text: "Date.now()"
-      }
+        new_text: "Date.now()",
+      },
     ];
 
-    const diff = await applyFileEdits(filePath, edits);
+    await applyFileEdits(filePath, edits);
     const modifiedContent = await readTempFile(filePath);
 
     assertStringIncludes(modifiedContent, "isActive: boolean;");
@@ -280,16 +290,16 @@ Deno.test("applyFileEdits - Error case: Non-existent text", async () => {
 }`;
 
   const filePath = await createTempFile(originalContent);
-  
+
   try {
     const edits: EditOperation[] = [{
       old_text: "this text does not exist in the file",
-      new_text: "replacement text"
+      new_text: "replacement text",
     }];
 
     await assertRejects(
       () => applyFileEdits(filePath, edits),
-      Error
+      Error,
     );
   } finally {
     await cleanupTempFile(filePath);

@@ -1,6 +1,7 @@
 # Unibear Tests
 
-This directory contains unit tests for the Unibear application, focusing on the file editing functionality.
+This directory contains unit tests for the Unibear application, focusing on the
+file editing functionality.
 
 ## Running Tests
 
@@ -18,12 +19,15 @@ deno test --allow-read --allow-write --allow-net tests/file-editor.test.ts
 ## Test Coverage
 
 ### `file-editor.test.ts`
+
 Core functionality tests for the `applyFileEdits` function:
 
 1. **Basic exact match replacement** - Simple string replacement
-2. **Multiple edits in correct order** - Multiple changes applied in correct sequence
+2. **Multiple edits in correct order** - Multiple changes applied in correct
+   sequence
 3. **Whitespace normalization** - Handling of tabs, spaces, and formatting
-4. **Unicode and special characters** - International characters, emojis, smart quotes
+4. **Unicode and special characters** - International characters, emojis, smart
+   quotes
 5. **Large multiline replacement** - Complex multiline code changes
 6. **Edge case: Empty replacement** - Removing code sections
 7. **Line ending normalization** - Mixed `\r\n` and `\n` handling
@@ -33,6 +37,7 @@ Core functionality tests for the `applyFileEdits` function:
 11. **Fuzzy matching with whitespace differences** - Tolerant matching
 
 ### `file-editor-advanced.test.ts`
+
 Advanced functionality and edge cases:
 
 1. **sortEditsByPosition** - Edit ordering logic
@@ -66,4 +71,6 @@ Advanced functionality and edge cases:
 
 ## Notes
 
-Tests use Deno's built-in testing framework with assertions from the standard library. All tests create temporary files and clean up after themselves to ensure test isolation.
+Tests use Deno's built-in testing framework with assertions from the standard
+library. All tests create temporary files and clean up after themselves to
+ensure test isolation.
