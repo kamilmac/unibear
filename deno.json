@@ -2,7 +2,9 @@
   "tasks": {
     "dev": "DEV=true deno run --watch -A src/main.ts",
     "compile": "deno compile -A -o bin/unibear src/main.ts",
-    "compile-no-check": "deno compile -A --no-check -o bin/unibear src/main.ts"
+    "compile-no-check": "deno compile -A --no-check -o bin/unibear src/main.ts",
+    "test": "deno test --allow-read --allow-write --allow-net tests/",
+    "test:watch": "deno test --watch --allow-read --allow-write --allow-net tests/"
   },
   "version": "0.4.1",
   "imports": {
