@@ -263,32 +263,4 @@ an inference. Do not invent information not present in the diff.`,
     },
     mode: ["normal", "modify"],
   },
-  {
-    definition: {
-      function: {
-        name: "git_list_local_modified_files",
-        description:
-          "Displays all files that have been modified, staged, or newly created in your git repository. " +
-          "Shows the complete list of files with pending changes that would be included in a commit. " +
-          "Useful for reviewing what files have been changed before using other git tools.",
-      },
-      type: "function",
-    },
-    process: async (_args, print) => {
-      print(COLORS.tool("\n📊 Listing locally modified files...\n"));
-      Logger.info("Starting git_list_local_modified_files process"); // Added
-      try {
-        const files = await getLocalModifiedFilePaths();
-        Logger.info("Listed locally modified files", { count: files.length }); // Added
-        return files.join("\n");
-      } catch (error: any) {
-        Logger.error("Error listing local modified files", {
-          error: error.message,
-          stack: error.stack,
-        }); // Added
-        return `Error listing files: ${error.message}`;
-      }
-    },
-    mode: ["normal", "modify"],
-  },
 ];

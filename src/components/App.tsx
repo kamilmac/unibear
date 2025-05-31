@@ -8,11 +8,14 @@ import { KEY_BINDINGS, TEXT_AREA_HEIGHT } from "../utils/constants.ts";
 import { quit } from "../utils/helpers.ts";
 
 export const App = () => {
+  const [inputHeight, setInputHeight] = React.useState(TEXT_AREA_HEIGHT);
   const init = useStore((store) => store.init);
   const dims = useStore((store) => store.dimensions);
   const opMode = useStore((store) => store.operationMode);
   const setOpMode = useStore((store) => store.setOperationMode);
   const resetChat = useStore((store) => store.clearChatHistory);
+
+  const statusLineHeight = 1;
 
   React.useEffect(() => {
     init();
@@ -37,9 +40,9 @@ export const App = () => {
     }
   });
 
-  const chatHeight = opMode === "visual"
-    ? dims.rows
-    : dims.rows - TEXT_AREA_HEIGHT;
+  const chatHeight =
+    (opMode === "visual" ? dims.rows : dims.rows - inputHeight) -
+    statusLineHeight;
 
   return (
     <Box
@@ -55,7 +58,7 @@ export const App = () => {
           height={chatHeight}
         />
       </Box>
-      <UserInput />
+      <UserInput onHeightChange={setInputHeight} />
       <StatusLine />
     </Box>
   );

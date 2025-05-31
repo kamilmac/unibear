@@ -1,5 +1,5 @@
 import React from "npm:react";
-import { Box, Text, useFocusManager, useInput } from "npm:ink";
+import { Box, Text, Transform, useFocusManager, useInput } from "npm:ink";
 import { useStore } from "../store/main.ts";
 import {
   COLORS,
@@ -7,9 +7,16 @@ import {
   TEXT_AREA_HEIGHT,
 } from "../utils/constants.ts";
 
-export const UserInput = () => {
+interface UserInputProps {
+  onHeightChange?: (h: number) => void;
+}
+
+export const UserInput: React.FC<UserInputProps> = (
+  { onHeightChange }: UserInputProps,
+) => {
   const [input, setInput] = React.useState<string>("");
   const [cursor, setCursor] = React.useState<number>(0);
+  const boxHeightRef = React.useRef<number>(TEXT_AREA_HEIGHT + 2);
   const submit = useStore((s) => s.onSubmitUserPrompt);
   const dims = useStore((s) => s.dimensions);
   const { enableFocus } = useFocusManager();
@@ -52,6 +59,12 @@ export const UserInput = () => {
     setCursor((c: number) => c + ch.length);
   });
 
+  const innerWidth = dims.cols - 6;
+
+  React.useEffect(() => {
+    onHeightChange?.(boxHeightRef.current);
+  }, [input, onHeightChange]);
+
   if (opMode === "visual") return null;
 
   const before = input.slice(0, cursor);
@@ -63,15 +76,15 @@ export const UserInput = () => {
     <Box
       borderStyle="round"
       borderColor={COLORS.border}
-      height={TEXT_AREA_HEIGHT}
+      height={boxHeightRef.current}
       flexDirection="row"
     >
       <Box width={3}>
-        {opMode === "prompt" && <Text>{COLORS.prompt(" > ")}</Text>}
+        <Text>{COLORS.prompt(" > ")}</Text>
       </Box>
       <Box
-        width={dims.cols - 6}
-        height={TEXT_AREA_HEIGHT - 2}
+        width={innerWidth}
+        height={boxHeightRef.current - 2}
         overflow="hidden"
       >
         {(input === "")
@@ -81,9 +94,16 @@ export const UserInput = () => {
             </Text>
           )
           : (
-            <Text dimColor={isStreaming}>
-              {before + COLORS.cursor(currentChar) + rest}
-            </Text>
+            <Transform
+              transform={(line, idx) => {
+                boxHeightRef.current = idx + 4;
+                return line;
+              }}
+            >
+              <Text dimColor={isStreaming}>
+                {before + COLORS.cursor(currentChar) + rest}
+              </Text>
+            </Transform>
           )}
       </Box>
     </Box>

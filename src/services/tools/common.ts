@@ -11,6 +11,15 @@ const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
 }).strict();
 
+const CLICommandOperation = z.object({
+  command: z.string().describe(
+    "The CLI command to execute (e.g., 'npm run dev', 'deno task build')",
+  ),
+  confirmed: z.boolean().default(false).describe(
+    "Set to true only after user has explicitly confirmed execution. Defaults to false for security.",
+  ),
+}).strict();
+
 export const commonTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
@@ -89,5 +98,114 @@ ${toolDetails}`;
       return response;
     },
     mode: ["normal", "modify"],
+  },
+  {
+    definition: {
+      function: {
+        name: "execute_cli_command",
+        description:
+          "Executes a CLI command in the current working directory. Requires user confirmation before execution. " +
+          "Use this for running scripts like 'npm run dev', 'deno task build', 'cargo run', etc. " +
+          "The command will be displayed to the user for approval before execution.",
+        strict: true,
+        parameters: {
+          type: "object",
+          properties: {
+            command: {
+              type: "string",
+              description:
+                "The CLI command to execute (e.g., 'npm run dev', 'deno task build')",
+            },
+            confirmed: {
+              type: "boolean",
+              description:
+                "Set to true only after user has explicitly confirmed execution. Defaults to false for security.",
+            },
+          },
+          required: ["command", "confirmed"],
+          additionalProperties: false,
+        },
+      },
+      type: "function",
+    },
+    process: async (args, print) => {
+      const parsed = CLICommandOperation.safeParse(args);
+      if (!parsed.success) {
+        Logger.error("Invalid arguments for execute_cli_command", {
+          args,
+          error: parsed.error.toString(),
+        });
+        print(
+          `\n❌ Invalid arguments for execute_cli_command: ${parsed.error}`,
+        );
+        throw new Error(
+          `Invalid arguments for execute_cli_command: ${parsed.error}`,
+        );
+      }
+
+      const { command, confirmed = false } = parsed.data;
+      Logger.info("CLI command execution requested", { command, confirmed });
+
+      // If not confirmed, ask for user confirmation
+      if (!confirmed) {
+        print(`\n⚠️  Command execution requested: ${command}\n`);
+        return `Command "${command}" requires explicit user confirmation for security. ` +
+          `To proceed, use the tool again with confirmed=true parameter. ` +
+          `Directory: ${Deno.cwd()}`;
+      }
+
+      // Execute the command after confirmation
+      print(`\n✅ User confirmed. Executing: ${command}`);
+      print(`\n🚀 Running command in: ${Deno.cwd()}`);
+
+      try {
+        const commandParts = command.split(" ");
+        const cmd = new Deno.Command(commandParts[0], {
+          args: commandParts.slice(1),
+          stdout: "piped",
+          stderr: "piped",
+          cwd: Deno.cwd(),
+        });
+
+        const process = cmd.spawn();
+        const { code, stdout, stderr } = await process.output();
+
+        const stdoutText = new TextDecoder().decode(stdout);
+        const stderrText = new TextDecoder().decode(stderr);
+
+        Logger.info("CLI command executed", {
+          command,
+          exitCode: code,
+          stdoutLength: stdoutText.length,
+          stderrLength: stderrText.length,
+        });
+
+        let result =
+          `Command "${command}" completed with exit code: ${code}\n\n`;
+
+        if (stdoutText.trim()) {
+          result += `STDOUT:\n${stdoutText}\n\n`;
+        }
+
+        if (stderrText.trim()) {
+          result += `STDERR:\n${stderrText}\n`;
+        }
+
+        if (code !== 0) {
+          result += `\n⚠️  Command failed with non-zero exit code: ${code}`;
+        } else {
+          result += `\n✅ Command completed successfully`;
+        }
+
+        return result;
+      } catch (error: any) {
+        Logger.error("CLI command execution failed", {
+          command,
+          error: error.message,
+        });
+        return `❌ Failed to execute command "${command}": ${error.message}`;
+      }
+    },
+    mode: ["modify"],
   },
 ];

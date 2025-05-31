@@ -1,4 +1,3 @@
-import { createTwoFilesPatch } from "npm:diff";
 import * as path from "jsr:@std/path";
 import { zodToJsonSchema } from "npm:zod-to-json-schema";
 import { z } from "npm:zod";
@@ -7,16 +6,17 @@ import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
 import * as os from "node:os";
 import { LLMAdapter } from "../llm_providers/default.ts";
 import { COLORS, MAX_SIZE } from "../../utils/constants.ts";
-import { Logger } from "../logging.ts"; // Added
+import { Logger } from "../logging.ts";
+import { applyFileEdits } from "../file-editor.ts";
 
-const EditOperation = z.object({
+const EditOperationSchema = z.object({
   old_text: z.string().describe("Text to search for - must match exactly"),
   new_text: z.string().describe("Text to replace with"),
 }).strict();
 
 const EditFileArgsSchema = z.object({
   file_path: z.string().describe("Absolute path pointing to file to edit"),
-  edits: z.array(EditOperation),
+  edits: z.array(EditOperationSchema),
 }).strict();
 
 const SearchOperation = z.object({
@@ -59,10 +59,11 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       { file_paths },
       print: (str: string) => void,
     ) => {
+      // TODO: Check if files are text vs binary
       let combined = "";
       for (const file_path of file_paths as string[]) {
         print(COLORS.tool(`\n📄 Reading from:\n${file_path}\n`));
-        Logger.debug("Attempting to read file", { file_path }); // Added
+        Logger.debug("Attempting to read file", { file_path });
         try {
           const stats = await Deno.stat(file_path);
           if (stats.size > MAX_SIZE) {
@@ -95,16 +96,12 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       function: {
         name: "search_files",
         description:
-          "Recursively locates files and directories containing the specified pattern in their names. " +
+          "Recursively locates files and directories containing the specified pattern in their filenames. " +
           "Performs a case-insensitive search throughout the workspace (excluding node_modules). " +
           "Returns full paths to all matches without reading file contents. Ideal for finding files " +
           "when you know part of the name but not the exact location.",
         strict: true,
-        parameters: zodToJsonSchema(
-          z.object({
-            pattern: z.string().describe("pattern to match"),
-          }).strict(),
-        ),
+        parameters: zodToJsonSchema(SearchOperation),
       },
       type: "function",
     },
@@ -174,7 +171,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       Logger.info("Content search complete", {
         query: parsed.data.query,
         count: hits.length,
-      }); // Added
+      });
       return hits.map((h) => `${h.file}:${h.line}: ${h.text}`).join("\n");
     },
     mode: ["normal", "modify"],
@@ -218,7 +215,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
         description:
           "Performs precise text replacements in a file and shows a unified diff of the changes. " +
           "Each edit requires an exact match of old text to be replaced with new text. " +
-          "Smart enough to handle whitespace variations between lines. Best for making focused changes to specific code blocks.",
+          "When possible, group nearby changes into larger unified-diff hunks with surrounding context rather than many tiny diffs. " +
+          "This reduces offset shifts and makes edits more robust to minor whitespace or comment tweaks.",
         strict: true,
         parameters: zodToJsonSchema(EditFileArgsSchema),
       },
@@ -293,7 +291,7 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
       type: "function",
     },
     // deno-lint-ignore no-explicit-any
-    process: async (args: any, _print: any) => {
+    process: async (args: any, print: any) => {
       const parsed = ListDirectoryArgsSchema.safeParse(args);
       if (!parsed.success) {
         Logger.error("Invalid arguments for list_directory", {
@@ -304,7 +302,8 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
           `Invalid arguments for list_directory: ${parsed.error}`,
         );
       }
-      Logger.info("Listing directory", { path: parsed.data.path }); // Added
+      Logger.info("Listing directory", { path: parsed.data.path });
+      print(COLORS.tool(`\n📁 Listing dir:\n${parsed.data.path}\n`));
       const validPath = await validatePath(parsed.data.path);
       const entries = Deno.readDir(validPath);
       const formatted = [];
@@ -321,249 +320,65 @@ export const fsTools = (llm: LLMAdapter): Tool[] => [
   },
 ];
 
-// --- Improved file editing functions ---
-
-async function applyFileEdits(
-  filePath: string,
-  edits: Array<{ old_text: string; new_text: string }>,
-): Promise<string> {
-  Logger.debug("Applying file edits", { filePath, editCount: edits.length }); // Added
-  const file = await Deno.readTextFile(filePath);
-  const content = normalizeLineEndings(file);
-
-  // Sort edits by position (reverse order to avoid offset issues)
-  const sortedEdits = sortEditsByPosition(content, edits);
-
-  // Apply edits in reverse order
-  let modifiedContent = content;
-  for (const edit of sortedEdits.reverse()) {
-    modifiedContent = applyFuzzyEdit(modifiedContent, edit);
-  }
-
-  const diff = createUnifiedDiff(content, modifiedContent, filePath);
-  await Deno.writeTextFile(filePath, modifiedContent);
-  Logger.debug("File edits applied and written", { filePath }); // Added
-
-  return formatDiffOutput(diff);
-}
-
-function normalizeLineEndings(text: string): string {
-  return text.replace(/\r\n/g, "\n");
-}
-
-function normalizeForMatching(text: string): string {
-  return normalizeLineEndings(text.trim());
-}
-
-function formatDiffOutput(diff: string): string {
-  let numBackticks = 3;
-  while (diff.includes("`".repeat(numBackticks))) {
-    numBackticks++;
-  }
-  return `${"`".repeat(numBackticks)}diff\n${diff}${
-    "`".repeat(numBackticks)
-  }\n\n`;
-}
-
-function sortEditsByPosition(
-  content: string,
-  edits: Array<{ old_text: string; new_text: string }>,
-): Array<{ old_text: string; new_text: string; position: number }> {
-  const editsWithPositions = [];
-
-  for (const edit of edits) {
-    const normalizedOld = normalizeForMatching(edit.old_text);
-    let position = content.indexOf(normalizedOld);
-
-    if (position === -1) {
-      // Try fuzzy matching to find position
-      const match = findBestMatch(content, normalizedOld);
-      position = match ? match.start : -1;
-      if (position === -1) {
-        Logger.warning(
-          "Could not find exact or fuzzy match for edit text during sort",
-          { old_text: edit.old_text },
-        ); // Added
-      }
-    }
-
-    editsWithPositions.push({ ...edit, position });
-  }
-
-  // Sort by position (later positions first for reverse application)
-  return editsWithPositions.sort((a, b) => b.position - a.position);
-}
-
-function findBestMatch(
-  content: string,
-  target: string,
-): { start: number; end: number; score: number } | null {
-  const FUZZY_MATCH_SIMILARITY_THRESHOLD = 0.90;
-
-  const contentLines = content.split("\n");
-  const targetLines = target.split("\n");
-
-  let bestMatch = null;
-  let bestScore = 0;
-
-  for (let i = 0; i <= contentLines.length - targetLines.length; i++) {
-    const candidateLines = contentLines.slice(i, i + targetLines.length);
-    const score = calculateSimilarity(candidateLines, targetLines);
-
-    if (score > bestScore && score > FUZZY_MATCH_SIMILARITY_THRESHOLD) {
-      const startPos = contentLines.slice(0, i).join("\n").length +
-        (i > 0 ? 1 : 0);
-      const endPos = startPos + candidateLines.join("\n").length;
-
-      bestMatch = { start: startPos, end: endPos, score };
-      bestScore = score;
-    }
-  }
-  if (!bestMatch) {
-    // Logger.debug("No suitable fuzzy match found", { target }); // Potential log, can be noisy
-  }
-  return bestMatch;
-}
-
-function calculateSimilarity(lines1: string[], lines2: string[]): number {
-  if (lines1.length !== lines2.length) return 0;
-
-  let matches = 0;
-  for (let i = 0; i < lines1.length; i++) {
-    const line1 = lines1[i].trim();
-    const line2 = lines2[i].trim();
-
-    if (line1 === line2) {
-      matches++;
-    } else if (line1.replace(/\s+/g, " ") === line2.replace(/\s+/g, " ")) {
-      matches += 0.9; // Partial match for whitespace differences
-    }
-  }
-
-  return matches / lines1.length;
-}
-
-function applyFuzzyEdit(
-  content: string,
-  edit: { old_text: string; new_text: string },
-): string {
-  const normalizedOld = normalizeForMatching(edit.old_text);
-  const normalizedNew = edit.new_text;
-
-  // Try exact match first
-  if (content.includes(normalizedOld)) {
-    return content.replace(normalizedOld, normalizedNew);
-  }
-
-  // Try fuzzy matching with better similarity scoring
-  const match = findBestMatch(content, normalizedOld);
-  if (match) {
-    Logger.debug("Applying fuzzy edit", {
-      old_text: edit.old_text,
-      new_text: edit.new_text,
-      match_score: match.score,
-    }); // Added
-    return content.substring(0, match.start) +
-      normalizedNew +
-      content.substring(match.end);
-  }
-  Logger.error("Failed to apply fuzzy edit, no match found", {
-    old_text: edit.old_text,
-  }); // Added
-  throw new Error(
-    `Could not find match for:\n${edit.old_text}\n\n` +
-      `Context: ${getSurroundingContext(content, normalizedOld)}`,
-  );
-}
-
-function getSurroundingContext(content: string, target: string): string {
-  const lines = content.split("\n");
-  const targetLines = target.split("\n");
-  const firstTargetLine = targetLines[0].trim();
-
-  // Find lines that partially match the first line of target
-  const matches = lines
-    .map((line, index) => ({ line: line.trim(), index }))
-    .filter(({ line }) =>
-      line.includes(
-        firstTargetLine.substring(0, Math.min(20, firstTargetLine.length)),
+async function getIgnoredDirs(): Promise<string[]> {
+  try {
+    const data = await Deno.readTextFile(".gitignore");
+    return data
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith("#") && !l.startsWith("!"))
+      .map((l) =>
+        l.replace(/\/\*\*.*$/, "").replace(/\*.*$/, "").replace(/\/$/, "")
       )
-    )
-    .slice(0, 3); // Show max 3 potential matches
-
-  if (matches.length === 0) {
-    return "No similar content found";
+      .filter((p) => p && p === p.replace(/\./g, ""));
+  } catch {
+    return [];
   }
-
-  return matches
-    .map(({ line, index }) => `Line ${index + 1}: ${line}`)
-    .join("\n");
-}
-
-function createUnifiedDiff(
-  originalContent: string,
-  newContent: string,
-  filepath: string = "file",
-): string {
-  const normalizedOriginal = normalizeLineEndings(originalContent);
-  const normalizedNew = normalizeLineEndings(newContent);
-
-  return createTwoFilesPatch(
-    filepath,
-    filepath,
-    normalizedOriginal,
-    normalizedNew,
-    "original",
-    "modified",
-  );
 }
 
 const searchContent = async (
   rootPath: string,
   query: string,
 ): Promise<{ file: string; line: number; text: string }[]> => {
-  Logger.debug("Starting content search recursive function", {
-    rootPath,
-    query,
-  }); // Added
+  Logger.info("Delegating search_content to ripgrep", { query, rootPath });
   const results: { file: string; line: number; text: string }[] = [];
-  const skipDirs = ["node_modules", ".git"];
-  async function recurse(dir: string) {
-    for await (const ent of Deno.readDir(dir)) {
-      if (skipDirs.includes(ent.name)) continue;
-      const full = join(dir, ent.name);
-      if (ent.isDirectory) {
-        await recurse(full);
-      } else {
-        try {
-          const stat = await Deno.stat(full);
-          if (stat.size > MAX_SIZE) {
-            Logger.debug("Skipping large file in content search", {
-              file: full,
-              size: stat.size,
-            }); // Added
-            return;
-          }
-          const text = await Deno.readTextFile(full);
-          text.split("\n").forEach((line, i) => {
-            if (line.includes(query)) {
-              results.push({ file: full, line: i + 1, text: line });
-            }
-          });
-        } catch (err: any) {
-          Logger.warning("Error processing file during content search", {
-            file: full,
-            error: err.message,
-          }); // Added
-        }
+  const ignoreDirs = await getIgnoredDirs();
+  const ignoreGlobs = ignoreDirs.flatMap((d) => [
+    "--glob",
+    `!${d}/**`,
+  ]);
+  const cmd = new Deno.Command("rg", {
+    args: [
+      "--json",
+      ...ignoreGlobs,
+      "--glob",
+      "!.git",
+      "--glob",
+      "!node_modules",
+      query,
+      ".",
+    ],
+    cwd: rootPath,
+    stdout: "piped",
+    stderr: "null",
+  });
+  const { stdout } = await cmd.output();
+  const lines = new TextDecoder().decode(stdout).split("\n");
+  for (const line of lines) {
+    if (!line) continue;
+    try {
+      const obj = JSON.parse(line);
+      if (obj.type === "match") {
+        const path = obj.data.path.text;
+        const text = obj.data.lines.text.trimEnd();
+        const lineNo = obj.data.line_number;
+        results.push({ file: path, line: lineNo, text });
       }
+    } catch {
+      // skip invalid JSON
     }
   }
-  await recurse(rootPath);
-  Logger.debug("Content search recursive function finished", {
-    rootPath,
-    resultsCount: results.length,
-  }); // Added
+  Logger.info("ripgrep search complete", { count: results.length });
   return results;
 };
 
