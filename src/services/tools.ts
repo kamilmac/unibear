@@ -24,7 +24,7 @@ export const getTools = (
 ): PreparedTools => {
   const allTools = [
     ...commonTools(llm),
-    ...gitTools(llm),
+    // ...gitTools(llm),
     ...fsTools(llm),
   ];
   const filtered = allTools
