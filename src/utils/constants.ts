@@ -1,6 +1,7 @@
 import chalk from "npm:chalk";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
-import { config, getResolvedTheme } from "./config.ts";
+import { config } from "./config.ts";
+import { detectSystemTheme } from "./helpers.ts";
 import pkg from "../../deno.json" with { type: "json" };
 
 export const VERSION = pkg.version;
@@ -127,20 +128,25 @@ const LIGHT_THEME = {
   prompt: chalk.bold.hex(HEX_COLORS.navy),
 };
 
-// Theme colors will be resolved asynchronously
+// Theme colors - will be initialized during app bootstrap
 let resolvedColors = DARK_THEME;
 
-// Initialize theme colors asynchronously
-getResolvedTheme().then(theme => {
+// Initialize theme colors synchronously during app startup
+export async function initializeTheme(): Promise<void> {
+  let theme: "light" | "dark";
+  if (config.theme === "light" || config.theme === "dark") {
+    theme = config.theme;
+  } else {
+    // Default to auto-detection when theme is missing or set to "auto"
+    theme = await detectSystemTheme();
+  }
   resolvedColors = theme === "light" ? LIGHT_THEME : DARK_THEME;
-}).catch(() => {
-  resolvedColors = DARK_THEME;
-});
+}
 
 export const COLORS = new Proxy({} as typeof DARK_THEME, {
   get(_, prop) {
     return resolvedColors[prop as keyof typeof DARK_THEME];
-  }
+  },
 });
 
 export const SYSTEM = config.system ??

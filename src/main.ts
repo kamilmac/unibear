@@ -3,7 +3,7 @@ import { render } from "npm:ink";
 import { App } from "./components/App.tsx";
 import { initServer } from "./api/server.ts";
 import { handleCliArgs } from "./utils/helpers.ts";
-import { AI_LABEL, PORT } from "./utils/constants.ts";
+import { AI_LABEL, initializeTheme, PORT } from "./utils/constants.ts";
 
 if (await handleCliArgs()) {
   Deno.exit(0);
@@ -23,6 +23,9 @@ ${err}
   `);
   Deno.exit(1);
 });
+
+// Initialize theme before rendering the app
+await initializeTheme();
 
 const { unmount } = render(React.createElement(App));
 Deno.addSignalListener("SIGINT", () => {

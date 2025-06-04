@@ -66,34 +66,39 @@ export function getAppConfigDir(): string {
 export async function detectSystemTheme(): Promise<"light" | "dark"> {
   try {
     const os = Deno.build.os;
-    
+
     if (os === "darwin") {
       const cmd = new Deno.Command("defaults", {
         args: ["read", "-g", "AppleInterfaceStyle"],
         stdout: "piped",
-        stderr: "piped"
+        stderr: "piped",
       });
       const result = await cmd.output();
       const output = new TextDecoder().decode(result.stdout).trim();
       return output === "Dark" ? "dark" : "light";
     }
-    
+
     if (os === "windows") {
       const cmd = new Deno.Command("reg", {
-        args: ["query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "/v", "AppsUseLightTheme"],
+        args: [
+          "query",
+          "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "/v",
+          "AppsUseLightTheme",
+        ],
         stdout: "piped",
-        stderr: "piped"
+        stderr: "piped",
       });
       const result = await cmd.output();
       const output = new TextDecoder().decode(result.stdout);
       return output.includes("0x0") ? "dark" : "light";
     }
-    
+
     if (os === "linux") {
       const cmd = new Deno.Command("gsettings", {
         args: ["get", "org.gnome.desktop.interface", "gtk-theme"],
         stdout: "piped",
-        stderr: "piped"
+        stderr: "piped",
       });
       const result = await cmd.output();
       const output = new TextDecoder().decode(result.stdout).toLowerCase();
@@ -102,6 +107,6 @@ export async function detectSystemTheme(): Promise<"light" | "dark"> {
   } catch {
     // Fallback to dark theme if detection fails
   }
-  
+
   return "dark";
 }

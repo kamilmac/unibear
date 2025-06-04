@@ -1,5 +1,5 @@
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
-import { getAppConfigDir, detectSystemTheme } from "./helpers.ts";
+import { getAppConfigDir } from "./helpers.ts";
 
 export interface Config {
   provider?: "openai" | "anthropic" | "gemini" | "ollama";
@@ -26,13 +26,6 @@ try {
   console.warn(
     `Failed to load config from ${configPath}: ${error.message}. Using default config.`,
   );
-}
-
-export async function getResolvedTheme(): Promise<"light" | "dark"> {
-  if (config.theme === "auto") {
-    return await detectSystemTheme();
-  }
-  return config.theme ?? "dark";
 }
 
 export const config: Config = { ...file };
