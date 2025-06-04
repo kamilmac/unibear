@@ -1,5 +1,5 @@
 import { join } from "https://deno.land/std@0.205.0/path/mod.ts";
-import { getAppConfigDir } from "./helpers.ts";
+import { getAppConfigDir, detectSystemTheme } from "./helpers.ts";
 
 export interface Config {
   provider?: "openai" | "anthropic" | "gemini" | "ollama";
@@ -9,7 +9,7 @@ export interface Config {
   temperature?: number;
   system?: string;
   port?: number;
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "auto";
   user_name?: string;
 }
 
@@ -28,9 +28,16 @@ try {
   );
 }
 
+export async function getResolvedTheme(): Promise<"light" | "dark"> {
+  if (config.theme === "auto") {
+    return await detectSystemTheme();
+  }
+  return config.theme ?? "dark";
+}
+
 export const config: Config = { ...file };
 
-// Function to save/update config (example, if you need it)
+// Function to save/update config
 export async function updateConfig(newConfig: Partial<Config>): Promise<void> {
   try {
     const currentConfig = { ...config, ...newConfig };

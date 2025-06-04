@@ -1,6 +1,6 @@
 import chalk from "npm:chalk";
 import { basename } from "https://deno.land/std@0.205.0/path/mod.ts";
-import { config } from "./config.ts";
+import { config, getResolvedTheme } from "./config.ts";
 import pkg from "../../deno.json" with { type: "json" };
 
 export const VERSION = pkg.version;
@@ -127,7 +127,21 @@ const LIGHT_THEME = {
   prompt: chalk.bold.hex(HEX_COLORS.navy),
 };
 
-export const COLORS = config.theme === "light" ? LIGHT_THEME : DARK_THEME;
+// Theme colors will be resolved asynchronously
+let resolvedColors = DARK_THEME;
+
+// Initialize theme colors asynchronously
+getResolvedTheme().then(theme => {
+  resolvedColors = theme === "light" ? LIGHT_THEME : DARK_THEME;
+}).catch(() => {
+  resolvedColors = DARK_THEME;
+});
+
+export const COLORS = new Proxy({} as typeof DARK_THEME, {
+  get(_, prop) {
+    return resolvedColors[prop as keyof typeof DARK_THEME];
+  }
+});
 
 export const SYSTEM = config.system ??
   `You’re a friendly and confident AI programming assistant (called Unibear) with the chops of a senior engineer. Be autonomous, deliver concise, precise solutions with respectful wit and subtle sarcasm. Always provide readable, best-practice code and prioritize compact code changes instead of doing big blocks. Always use markdown format for code blocks in your responses (pure and clean markdown and no comments), try to keep lines length below 80 characters.
