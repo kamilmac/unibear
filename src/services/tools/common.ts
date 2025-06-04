@@ -5,7 +5,10 @@ import { Tool } from "../tools.ts";
 import { fsTools } from "./fs.ts";
 import { gitTools } from "./git.ts";
 import { LLMAdapter } from "../llm_providers/default.ts";
-import { Logger } from "../logging.ts"; // Added
+import { Logger } from "../logging.ts";
+import { CommandSecurityChecker } from "./security.ts";
+
+const securityChecker = new CommandSecurityChecker();
 
 const WebSearchOperation = z.object({
   search_string: z.string().describe("String for search input."),
@@ -142,6 +145,9 @@ function getErrorMessage(error: any, baseCommand: string): string {
   return message;
 }
 
+// Simple security check function
+const checkCommandSecurity = (command: string) => securityChecker.checkCommand(command);
+
 export const commonTools = (llm: LLMAdapter): Tool[] => [
   {
     definition: {
@@ -268,19 +274,45 @@ ${toolDetails}`;
       const { command, confirmed = false } = parsed.data;
       Logger.info("CLI command execution requested", { command, confirmed });
 
+      // Security check - blocklist approach
+      const securityResult = checkCommandSecurity(command);
+      if (!securityResult.allowed) {
+        Logger.warn("Command blocked by security policy", {
+          command,
+          reason: securityResult.reason
+        });
+        print(`\n🚫 Security Policy Violation: ${securityResult.reason}`);
+        return `❌ Command "${command}" blocked: ${securityResult.reason}`;
+      }
+
       // Parse command to get base command and detect type
       const commandParts = parseCommand(command);
       const baseCommand = commandParts[0];
       const isGitCommand = baseCommand === "git";
       const commandType = getCommandType(baseCommand);
 
+      // Check for extra confirmation requirements
+      const needsExtraConfirmation = securityResult.requiresExtraConfirmation;
+      const confirmationLevel = needsExtraConfirmation ? "EXTRA" : "STANDARD";
+
       // If not confirmed, ask for user confirmation
       if (!confirmed) {
         const commandInfo = isGitCommand && commandParts[1] 
           ? `git ${commandParts[1]}` 
           : baseCommand;
-        print(`\n⚠️  ${commandType} execution requested: ${command}\n`);
+        const warningIcon = needsExtraConfirmation ? "🔴" : "⚠️";
+        const warningText = needsExtraConfirmation 
+          ? "HIGH-RISK operation requires confirmation" 
+          : "Command execution requested";
+        
+        print(`\n${warningIcon} ${warningText}: ${command}\n`);
+        print(`\n📋 Security Level: ${confirmationLevel}`);
+        if (needsExtraConfirmation) {
+          print(`\n⚠️  This operation may have significant consequences!`);
+        }
+        
         return `Command "${command}" (${commandInfo}) requires explicit user confirmation for security. ` +
+          `Security level: ${confirmationLevel}. ` +
           `To proceed, use the tool again with confirmed=true parameter. ` +
           `Directory: ${Deno.cwd()}`;
       }
@@ -303,16 +335,30 @@ ${toolDetails}`;
         });
 
         const process = cmd.spawn();
-        const { code, stdout, stderr } = await process.output();
+        
+        // Set up timeout (5 minutes default)
+        const timeoutMs = 5 * 60 * 1000;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            process.kill();
+            reject(new Error(`Command timed out after 5 minutes`));
+          }, timeoutMs);
+        });
+        
+        const executionPromise = process.output();
+        const { code, stdout, stderr } = await Promise.race([
+          executionPromise,
+          timeoutPromise
+        ]);
 
         const stdoutText = new TextDecoder().decode(stdout);
         const stderrText = new TextDecoder().decode(stderr);
 
+        // Log command execution
         Logger.info("CLI command executed", {
           command,
           exitCode: code,
-          stdoutLength: stdoutText.length,
-          stderrLength: stderrText.length,
+          workingDirectory: Deno.cwd()
         });
 
         let result = formatCommandResult(
