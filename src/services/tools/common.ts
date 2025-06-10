@@ -13,12 +13,134 @@ const WebSearchOperation = z.object({
 
 const CLICommandOperation = z.object({
   command: z.string().describe(
-    "The CLI command to execute (e.g., 'npm run dev', 'deno task build')",
+    "The CLI command to execute (e.g., 'npm run dev', 'git status', 'cargo run')",
   ),
   confirmed: z.boolean().default(false).describe(
     "Set to true only after user has explicitly confirmed execution. Defaults to false for security.",
   ),
 }).strict();
+
+// Helper functions for enhanced CLI command processing
+function parseCommand(command: string): string[] {
+  // Handle quoted arguments and complex commands
+  const args: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  let quoteChar = "";
+  
+  for (let i = 0; i < command.length; i++) {
+    const char = command[i];
+    
+    if (!inQuotes && (char === '"' || char === "'")) {
+      inQuotes = true;
+      quoteChar = char;
+    } else if (inQuotes && char === quoteChar) {
+      inQuotes = false;
+      quoteChar = "";
+    } else if (!inQuotes && char === " ") {
+      if (current.trim()) {
+        args.push(current.trim());
+        current = "";
+      }
+    } else {
+      current += char;
+    }
+  }
+  
+  if (current.trim()) {
+    args.push(current.trim());
+  }
+  
+  return args;
+}
+
+function getCommandType(baseCommand: string): string {
+  const commandTypes: Record<string, string> = {
+    git: "Git command",
+    npm: "NPM command",
+    yarn: "Yarn command",
+    pnpm: "PNPM command",
+    deno: "Deno command",
+    node: "Node.js command",
+    cargo: "Cargo command",
+    python: "Python command",
+    pip: "Pip command",
+    docker: "Docker command",
+    kubectl: "Kubernetes command",
+    make: "Make command",
+    cmake: "CMake command",
+    go: "Go command",
+  };
+  
+  return commandTypes[baseCommand] || "CLI command";
+}
+
+function formatCommandResult(
+  command: string,
+  code: number,
+  stdout: string,
+  stderr: string,
+  isGitCommand: boolean
+): string {
+  let result = `Command "${command}" completed with exit code: ${code}\n\n`;
+  
+  // For git commands, provide more context
+  if (isGitCommand && code === 0) {
+    const gitSubcommand = parseCommand(command)[1];
+    if (gitSubcommand === "status" && stdout.includes("nothing to commit")) {
+      result = `\n✅ Git status: Working directory clean\n\n`;
+    } else if (gitSubcommand === "add" && !stderr.trim()) {
+      result = `\n✅ Files successfully staged for commit\n\n`;
+    } else if (gitSubcommand === "commit" && stdout.includes("commit")) {
+      const commitMatch = stdout.match(/\[\w+\s+([a-f0-9]+)\]/);
+      const commitHash = commitMatch ? commitMatch[1] : "unknown";
+      result = `\n✅ Commit successful (${commitHash})\n\n`;
+    }
+  }
+  
+  if (stdout.trim()) {
+    result += `STDOUT:\n${stdout}\n\n`;
+  }
+  
+  if (stderr.trim()) {
+    // For git, some "errors" are actually informational
+    const label = isGitCommand && code === 0 ? "INFO" : "STDERR";
+    result += `${label}:\n${stderr}\n\n`;
+  }
+  
+  if (code !== 0) {
+    if (isGitCommand) {
+      result += `\n⚠️  Git command failed with exit code: ${code}`;
+      // Add common git error hints
+      if (stderr.includes("not a git repository")) {
+        result += "\n💡 Hint: Run 'git init' to initialize a repository";
+      } else if (stderr.includes("nothing to commit")) {
+        result += "\n💡 Hint: No changes to commit";
+      }
+    } else {
+      result += `\n⚠️  Command failed with non-zero exit code: ${code}`;
+    }
+  } else {
+    result += `\n✅ Command completed successfully`;
+  }
+  
+  return result;
+}
+
+function getErrorMessage(error: any, baseCommand: string): string {
+  const message = error.message || error.toString();
+  
+  if (message.includes("No such file or directory") || 
+      message.includes("command not found")) {
+    return `Command '${baseCommand}' not found. Please ensure it's installed and in your PATH.`;
+  }
+  
+  if (message.includes("Permission denied")) {
+    return `Permission denied. You may need to run with elevated privileges or check file permissions.`;
+  }
+  
+  return message;
+}
 
 export const commonTools = (llm: LLMAdapter): Tool[] => [
   {
@@ -105,8 +227,8 @@ ${toolDetails}`;
         name: "execute_cli_command",
         description:
           "Executes a CLI command in the current working directory. Requires user confirmation before execution. " +
-          "Use this for running scripts like 'npm run dev', 'deno task build', 'cargo run', etc. " +
-          "The command will be displayed to the user for approval before execution.",
+          "Use this for running scripts like 'npm run dev', 'deno task build', 'cargo run', git commands like 'git status', 'git add', 'git commit', etc. " +
+          "Supports complex commands with arguments, pipes, and redirections. The command will be displayed to the user for approval before execution.",
         strict: true,
         parameters: {
           type: "object",
@@ -114,7 +236,7 @@ ${toolDetails}`;
             command: {
               type: "string",
               description:
-                "The CLI command to execute (e.g., 'npm run dev', 'deno task build')",
+                "The CLI command to execute (e.g., 'npm run dev', 'git status', 'cargo run')",
             },
             confirmed: {
               type: "boolean",
@@ -146,25 +268,38 @@ ${toolDetails}`;
       const { command, confirmed = false } = parsed.data;
       Logger.info("CLI command execution requested", { command, confirmed });
 
+      // Parse command to get base command and detect type
+      const commandParts = parseCommand(command);
+      const baseCommand = commandParts[0];
+      const isGitCommand = baseCommand === "git";
+      const commandType = getCommandType(baseCommand);
+
       // If not confirmed, ask for user confirmation
       if (!confirmed) {
-        print(`\n⚠️  Command execution requested: ${command}\n`);
-        return `Command "${command}" requires explicit user confirmation for security. ` +
+        const commandInfo = isGitCommand && commandParts[1] 
+          ? `git ${commandParts[1]}` 
+          : baseCommand;
+        print(`\n⚠️  ${commandType} execution requested: ${command}\n`);
+        return `Command "${command}" (${commandInfo}) requires explicit user confirmation for security. ` +
           `To proceed, use the tool again with confirmed=true parameter. ` +
           `Directory: ${Deno.cwd()}`;
       }
 
       // Execute the command after confirmation
       print(`\n✅ User confirmed. Executing: ${command}`);
-      print(`\n🚀 Running command in: ${Deno.cwd()}`);
+      print(`\n🚀 Running ${commandType} in: ${Deno.cwd()}`);
 
       try {
-        const commandParts = command.split(" ");
-        const cmd = new Deno.Command(commandParts[0], {
+        const cmd = new Deno.Command(baseCommand, {
           args: commandParts.slice(1),
           stdout: "piped",
           stderr: "piped",
           cwd: Deno.cwd(),
+          env: {
+            ...Deno.env.toObject(),
+            // Ensure git uses color output when appropriate
+            ...(isGitCommand && { FORCE_COLOR: "1", GIT_TERMINAL_PROMPT: "0" }),
+          },
         });
 
         const process = cmd.spawn();
@@ -180,22 +315,13 @@ ${toolDetails}`;
           stderrLength: stderrText.length,
         });
 
-        let result =
-          `Command "${command}" completed with exit code: ${code}\n\n`;
-
-        if (stdoutText.trim()) {
-          result += `STDOUT:\n${stdoutText}\n\n`;
-        }
-
-        if (stderrText.trim()) {
-          result += `STDERR:\n${stderrText}\n`;
-        }
-
-        if (code !== 0) {
-          result += `\n⚠️  Command failed with non-zero exit code: ${code}`;
-        } else {
-          result += `\n✅ Command completed successfully`;
-        }
+        let result = formatCommandResult(
+          command, 
+          code, 
+          stdoutText, 
+          stderrText, 
+          isGitCommand
+        );
 
         return result;
       } catch (error: any) {
@@ -203,7 +329,8 @@ ${toolDetails}`;
           command,
           error: error.message,
         });
-        return `❌ Failed to execute command "${command}": ${error.message}`;
+        const errorMsg = getErrorMessage(error, baseCommand);
+        return `❌ Failed to execute command "${command}": ${errorMsg}`;
       }
     },
     mode: ["modify"],
