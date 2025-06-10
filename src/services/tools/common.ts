@@ -27,10 +27,10 @@ function parseCommand(command: string): string[] {
   let current = "";
   let inQuotes = false;
   let quoteChar = "";
-  
+
   for (let i = 0; i < command.length; i++) {
     const char = command[i];
-    
+
     if (!inQuotes && (char === '"' || char === "'")) {
       inQuotes = true;
       quoteChar = char;
@@ -46,11 +46,11 @@ function parseCommand(command: string): string[] {
       current += char;
     }
   }
-  
+
   if (current.trim()) {
     args.push(current.trim());
   }
-  
+
   return args;
 }
 
@@ -71,7 +71,7 @@ function getCommandType(baseCommand: string): string {
     cmake: "CMake command",
     go: "Go command",
   };
-  
+
   return commandTypes[baseCommand] || "CLI command";
 }
 
@@ -80,10 +80,10 @@ function formatCommandResult(
   code: number,
   stdout: string,
   stderr: string,
-  isGitCommand: boolean
+  isGitCommand: boolean,
 ): string {
   let result = `Command "${command}" completed with exit code: ${code}\n\n`;
-  
+
   // For git commands, provide more context
   if (isGitCommand && code === 0) {
     const gitSubcommand = parseCommand(command)[1];
@@ -97,17 +97,17 @@ function formatCommandResult(
       result = `\n✅ Commit successful (${commitHash})\n\n`;
     }
   }
-  
+
   if (stdout.trim()) {
     result += `STDOUT:\n${stdout}\n\n`;
   }
-  
+
   if (stderr.trim()) {
     // For git, some "errors" are actually informational
     const label = isGitCommand && code === 0 ? "INFO" : "STDERR";
     result += `${label}:\n${stderr}\n\n`;
   }
-  
+
   if (code !== 0) {
     if (isGitCommand) {
       result += `\n⚠️  Git command failed with exit code: ${code}`;
@@ -123,22 +123,24 @@ function formatCommandResult(
   } else {
     result += `\n✅ Command completed successfully`;
   }
-  
+
   return result;
 }
 
 function getErrorMessage(error: any, baseCommand: string): string {
   const message = error.message || error.toString();
-  
-  if (message.includes("No such file or directory") || 
-      message.includes("command not found")) {
+
+  if (
+    message.includes("No such file or directory") ||
+    message.includes("command not found")
+  ) {
     return `Command '${baseCommand}' not found. Please ensure it's installed and in your PATH.`;
   }
-  
+
   if (message.includes("Permission denied")) {
     return `Permission denied. You may need to run with elevated privileges or check file permissions.`;
   }
-  
+
   return message;
 }
 
@@ -276,8 +278,8 @@ ${toolDetails}`;
 
       // If not confirmed, ask for user confirmation
       if (!confirmed) {
-        const commandInfo = isGitCommand && commandParts[1] 
-          ? `git ${commandParts[1]}` 
+        const commandInfo = isGitCommand && commandParts[1]
+          ? `git ${commandParts[1]}`
           : baseCommand;
         print(`\n⚠️  ${commandType} execution requested: ${command}\n`);
         return `Command "${command}" (${commandInfo}) requires explicit user confirmation for security. ` +
@@ -315,12 +317,12 @@ ${toolDetails}`;
           stderrLength: stderrText.length,
         });
 
-        let result = formatCommandResult(
-          command, 
-          code, 
-          stdoutText, 
-          stderrText, 
-          isGitCommand
+        const result = formatCommandResult(
+          command,
+          code,
+          stdoutText,
+          stderrText,
+          isGitCommand,
         );
 
         return result;

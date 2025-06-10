@@ -1,5 +1,4 @@
 import { OpenAI } from "npm:openai";
-import { gitTools } from "./tools/git.ts";
 import { fsTools } from "./tools/fs.ts";
 import { commonTools } from "./tools/common.ts";
 import { LLMAdapter } from "./llm_providers/default.ts";
@@ -24,7 +23,6 @@ export const getTools = (
 ): PreparedTools => {
   const allTools = [
     ...commonTools(llm),
-    // ...gitTools(llm),
     ...fsTools(llm),
   ];
   const filtered = allTools
